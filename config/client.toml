@@ -1,0 +1,21 @@
+[client]
+user_id = "alice"
+username = "alice"
+
+[servers]
+addresses = [
+    "127.0.0.1:8001",
+    "127.0.0.1:8002",
+    "127.0.0.1:8003"
+]
+
+# For production
+# addresses = [
+#     "192.168.1.10:8001",
+#     "192.168.1.11:8002",
+#     "192.168.1.12:8003"
+# ]
+
+[settings]
+request_timeout_secs = 30
+retry_attempts = 3

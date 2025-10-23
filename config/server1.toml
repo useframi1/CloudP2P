@@ -1,0 +1,35 @@
+[server]
+id = 1
+# For localhost development
+address = "127.0.0.1:8001"
+
+# For production (uncomment and modify)
+# address = "0.0.0.0:8001"
+
+[peers]
+# For localhost development
+peers = [
+    { id = 2, address = "127.0.0.1:8002" },
+    { id = 3, address = "127.0.0.1:8003" }
+]
+
+# For production (uncomment and modify)
+# peers = [
+#     { id = 2, address = "192.168.1.11:8002" },
+#     { id = 3, address = "192.168.1.12:8003" }
+# ]
+
+[election]
+heartbeat_interval_secs = 5
+election_timeout_secs = 2
+failure_timeout_secs = 15
+
+[encryption]
+thread_pool_size = 4
+max_queue_size = 100
+
+[metrics]
+# Initial values (will be updated dynamically)
+initial_load = 0.1
+initial_reliability = 0.95
+initial_response_time = 50.0
