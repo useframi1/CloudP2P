@@ -18,6 +18,6 @@ thread_pool_size = 4
 max_queue_size = 100
 
 [metrics]
-initial_load = 0.1
-initial_reliability = 0.95
-initial_response_time = 50.0
+initial_load = 0.2
+initial_reliability = 0.98
+initial_response_time = 60.0

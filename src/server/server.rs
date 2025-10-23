@@ -81,19 +81,32 @@ impl Server {
             self.config.server.id, self.config.server.address
         );
 
-        // Start all tasks
+        // Start initial election as a separate spawned task (not blocking)
+        let server_clone = self.clone_arc();
+        tokio::spawn(async move {
+            server_clone.start_election_process().await;
+        });
+
+        // Start all long-running tasks
         let listener_task = self.start_listener();
         let peer_task = self.connect_to_peers();
         let heartbeat_task = self.start_heartbeat();
         let monitor_task = self.monitor_heartbeats();
-        let election_task = self.start_election_process();
 
+        // These tasks should run forever, so select will keep server alive
         tokio::select! {
-            _ = listener_task => {},
-            _ = peer_task => {},
-            _ = heartbeat_task => {},
-            _ = monitor_task => {},
-            _ = election_task => {},
+            _ = listener_task => {
+                error!("Listener task unexpectedly terminated");
+            },
+            _ = peer_task => {
+                error!("Peer connection task unexpectedly terminated");
+            },
+            _ = heartbeat_task => {
+                error!("Heartbeat task unexpectedly terminated");
+            },
+            _ = monitor_task => {
+                error!("Monitor task unexpectedly terminated");
+            },
         }
     }
 
@@ -198,6 +211,9 @@ impl Server {
                 }
             });
         }
+
+        // ✅ Keep this function alive forever
+        std::future::pending::<()>().await;
     }
 
     async fn handle_message(&self, message: Message) {
