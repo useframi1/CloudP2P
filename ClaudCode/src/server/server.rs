@@ -22,6 +22,7 @@ pub struct Server {
 
     // State
     current_leader: Arc<RwLock<Option<u32>>>,
+    received_alive: Arc<RwLock<bool>>,
     is_failed: Arc<AtomicBool>,
 
     // Peer connections
@@ -65,6 +66,7 @@ impl Server {
             config,
             metrics,
             current_leader: Arc::new(RwLock::new(None)),
+            received_alive: Arc::new(RwLock::new(false)),
             is_failed: Arc::new(AtomicBool::new(false)),
             peer_connections: Arc::new(RwLock::new(HashMap::new())),
             last_heartbeat_times: Arc::new(RwLock::new(HashMap::new())),
@@ -91,7 +93,7 @@ impl Server {
         let listener_task = self.start_listener();
         let peer_task = self.connect_to_peers();
         let heartbeat_task = self.start_heartbeat();
-        // let monitor_task = self.monitor_heartbeats();
+        let monitor_task = self.monitor_heartbeats();
 
         // These tasks should run forever, so select will keep server alive
         tokio::select! {
@@ -104,9 +106,9 @@ impl Server {
             _ = heartbeat_task => {
                 error!("Heartbeat task unexpectedly terminated");
             },
-            // _ = monitor_task => {
-            //     error!("Monitor task unexpectedly terminated");
-            // },
+            _ = monitor_task => {
+                error!("Monitor task unexpectedly terminated");
+            },
         }
     }
 
@@ -226,6 +228,7 @@ impl Server {
                     "👋 Server {} received ALIVE from {}",
                     self.config.server.id, from_id
                 );
+                *self.received_alive.write().await = true;
             }
             Message::Coordinator { leader_id } => {
                 info!(
@@ -427,43 +430,43 @@ impl Server {
         }
     }
 
-    // async fn monitor_heartbeats(&self) {
-    //     loop {
-    //         tokio::time::sleep(Duration::from_secs(5)).await;
+    async fn monitor_heartbeats(&self) {
+        loop {
+            tokio::time::sleep(Duration::from_secs(5)).await;
 
-    //         let now = current_timestamp();
-    //         let timeout = self.config.election.failure_timeout_secs;
+            let now = current_timestamp();
+            let timeout = self.config.election.failure_timeout_secs;
 
-    //         let heartbeats = self.last_heartbeat_times.read().await;
-    //         let mut failed_peers = Vec::new();
+            let heartbeats = self.last_heartbeat_times.read().await;
+            let mut failed_peers = Vec::new();
 
-    //         for (peer_id, last_seen) in heartbeats.iter() {
-    //             if now - last_seen > timeout {
-    //                 failed_peers.push(*peer_id);
-    //             }
-    //         }
-    //         drop(heartbeats);
+            for (peer_id, last_seen) in heartbeats.iter() {
+                if now - last_seen > timeout {
+                    failed_peers.push(*peer_id);
+                }
+            }
+            drop(heartbeats);
 
-    //         for peer_id in failed_peers {
-    //             self.handle_peer_failure(peer_id).await;
-    //         }
-    //     }
-    // }
+            for peer_id in failed_peers {
+                self.handle_peer_failure(peer_id).await;
+            }
+        }
+    }
 
-    // async fn handle_peer_failure(&self, peer_id: u32) {
-    //     warn!(
-    //         "⚠️  Server {} detected failure of Server {}",
-    //         self.config.server.id, peer_id
-    //     );
+    async fn handle_peer_failure(&self, peer_id: u32) {
+        warn!(
+            "⚠️  Server {} detected failure of Server {}",
+            self.config.server.id, peer_id
+        );
 
-    //     let current_leader = *self.current_leader.read().await;
+        let current_leader = *self.current_leader.read().await;
 
-    //     if Some(peer_id) == current_leader {
-    //         warn!("👑💥 Leader {} failed! Starting new election", peer_id);
-    //         *self.current_leader.write().await = None;
-    //         self.initiate_election().await;
-    //     }
-    // }
+        if Some(peer_id) == current_leader {
+            warn!("👑💥 Leader {} failed! Starting new election", peer_id);
+            *self.current_leader.write().await = None;
+            self.initiate_election().await;
+        }
+    }
 
     async fn start_election_process(&self) {
         tokio::time::sleep(Duration::from_secs(3)).await;
@@ -471,6 +474,7 @@ impl Server {
     }
 
     async fn initiate_election(&self) {
+        *self.received_alive.write().await = false;
         info!("🗳️  Server {} initiating election", self.config.server.id);
 
         let my_priority = self.metrics.calculate_priority();
@@ -489,7 +493,7 @@ impl Server {
         .await;
 
         // If no one challenged, become leader
-        if self.current_leader.read().await.is_none() {
+        if !*self.received_alive.read().await {
             info!(
                 "👑 Server {} declaring itself as LEADER (priority: {:.2})",
                 self.config.server.id, my_priority
@@ -595,6 +599,7 @@ impl Server {
             config: self.config.clone(),
             metrics: self.metrics.clone(),
             current_leader: self.current_leader.clone(),
+            received_alive: self.received_alive.clone(),
             is_failed: self.is_failed.clone(),
             peer_connections: self.peer_connections.clone(),
             last_heartbeat_times: self.last_heartbeat_times.clone(),
