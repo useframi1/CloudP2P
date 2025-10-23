@@ -1,0 +1,24 @@
+[package]
+name = "cloud-p2p-simple"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "server"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { version = "1.35", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+rand = "0.8"
+log = "0.4"
+env_logger = "0.11"
+chrono = "0.4"
+uuid = { version = "1.6", features = ["v4", "serde"] }
+anyhow = "1.0"
+clap = { version = "4.4", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3.8"

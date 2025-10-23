@@ -1,0 +1,23 @@
+[server]
+id = 1
+address = "127.0.0.1:8001"
+
+[peers]
+peers = [
+    { id = 2, address = "127.0.0.1:8002" },
+    { id = 3, address = "127.0.0.1:8003" }
+]
+
+[election]
+heartbeat_interval_secs = 5
+election_timeout_secs = 2
+failure_timeout_secs = 15
+
+[encryption]
+thread_pool_size = 4
+max_queue_size = 100
+
+[metrics]
+initial_load = 0.3
+initial_reliability = 0.60
+initial_response_time = 20.0
