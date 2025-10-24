@@ -302,7 +302,7 @@ impl Server {
                     match TcpStream::connect(&peer_addr).await {
                         Ok(stream) => {
                             info!(
-                                "✅ Server {} connected to peer {}",
+                                "🤝 Server {} connected to peer {}",
                                 server.config.server.id, peer_id
                             );
 
@@ -477,7 +477,7 @@ impl Server {
                     if best_server == self.config.server.id {
                         // We have the lowest load, process it ourselves
                         info!(
-                            "✅ Task #{} from 🔵 {} assigned to Server {} (me) - lowest load: {:.2}",
+                            "📌 Task #{} from 🔵 {} assigned to Server {} (me) - lowest load: {:.2}",
                             task_id, client_name, self.config.server.id, my_load
                         );
 

@@ -104,7 +104,7 @@ impl Client {
                             conn.read_message().await
                         {
                             self.current_leader = Some(leader_id);
-                            info!("✅ Found leader: Server {}", leader_id);
+                            info!("🤝 Found leader: Server {}", leader_id);
                             return true;
                         }
                     }
