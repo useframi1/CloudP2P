@@ -481,7 +481,7 @@ impl Server {
                             task_id, client_name, self.config.server.id, my_load
                         );
 
-                        self.process_task(task_id, processing_time_ms, load_impact)
+                        self.process_task(task_id, processing_time_ms, load_impact, client_name)
                             .await;
                     } else {
                         // Delegate to the server with lowest load
@@ -504,7 +504,7 @@ impl Server {
                         "📥 Server {} (follower) processing task #{} from 🔵 {}",
                         self.config.server.id, task_id, client_name
                     );
-                    self.process_task(task_id, processing_time_ms, load_impact)
+                    self.process_task(task_id, processing_time_ms, load_impact, client_name)
                         .await;
                 }
             }
@@ -519,7 +519,7 @@ impl Server {
                     self.config.server.id, task_id, client_name
                 );
 
-                self.process_task(task_id, processing_time_ms, load_impact)
+                self.process_task(task_id, processing_time_ms, load_impact, client_name)
                     .await;
             }
             Message::TaskAck { .. } => {
@@ -720,7 +720,13 @@ impl Server {
         })
     }
 
-    async fn process_task(&self, task_id: u64, processing_time_ms: u64, load_impact: f64) {
+    async fn process_task(
+        &self,
+        task_id: u64,
+        processing_time_ms: u64,
+        load_impact: f64,
+        client_name: String,
+    ) {
         // Increase load immediately
         let current_load = self.metrics.get_load();
         self.metrics.set_load(current_load + load_impact);
@@ -743,8 +749,8 @@ impl Server {
             server.metrics.set_load(new_load.max(0.0));
 
             info!(
-                "✅ Server {} completed task #{}, load now: {:.2}",
-                server.config.server.id, task_id, new_load
+                "✅ Server {} completed task #{} by 🔵 {}, load now: {:.2}",
+                server.config.server.id, task_id, client_name, new_load
             );
         });
 
