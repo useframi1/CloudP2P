@@ -23,6 +23,7 @@ pub struct ServerConfig {
     pub peers: PeersConfig,       // Info about OTHER servers
     pub election: ElectionConfig, // Election timing settings
     pub metrics: MetricsConfig,   // Initial performance metrics
+                                  // pub client: ClientInfo,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -54,6 +55,12 @@ pub struct MetricsConfig {
     pub initial_load: f64,          // Starting load (0.0-1.0, lower is better)
     pub initial_reliability: f64,   // Starting reliability (0.0-1.0, higher is better)
     pub initial_response_time: f64, // Starting response time in ms (lower is better)
+}
+
+// NEW: Client information structure
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClientInfo {
+    pub name: String, // Name of the client
 }
 
 impl ServerConfig {
@@ -427,13 +434,14 @@ impl Server {
 
             // NEW: Client sending a task
             Message::TaskRequest {
+                client_name,
                 task_id,
                 processing_time_ms,
                 load_impact,
             } => {
                 info!(
-                    "📥 Server {} received task #{}",
-                    self.config.server.id, task_id
+                    "📥 Server {} received task #{} from 🔵 {} ",
+                    self.config.server.id, task_id, client_name
                 );
 
                 // Check if we are the leader
@@ -469,8 +477,8 @@ impl Server {
                     if best_server == self.config.server.id {
                         // We have the lowest load, process it ourselves
                         info!(
-                            "✅ Task #{} assigned to Server {} (me) - lowest load: {:.2}",
-                            task_id, self.config.server.id, my_load
+                            "✅ Task #{} from 🔵 {} assigned to Server {} (me) - lowest load: {:.2}",
+                            task_id, client_name, self.config.server.id, my_load
                         );
 
                         self.process_task(task_id, processing_time_ms, load_impact)
@@ -478,11 +486,12 @@ impl Server {
                     } else {
                         // Delegate to the server with lowest load
                         info!(
-                            "📤 Task #{} delegated to Server {} - their load: {:.2} vs my load: {:.2}",
-                            task_id, best_server, lowest_load, my_load
+                            "📤 Task #{} from 🔵 {} delegated to Server {} - their load: {:.2} vs my load: {:.2}",
+                            task_id, client_name, best_server, lowest_load, my_load
                         );
 
                         let delegate_msg = Message::TaskDelegate {
+                            client_name,
                             task_id,
                             processing_time_ms,
                             load_impact,
@@ -492,21 +501,22 @@ impl Server {
                 } else {
                     // We're not the leader, just process the task
                     info!(
-                        "📥 Server {} (follower) processing task #{}",
-                        self.config.server.id, task_id
+                        "📥 Server {} (follower) processing task #{} from 🔵 {}",
+                        self.config.server.id, task_id, client_name
                     );
                     self.process_task(task_id, processing_time_ms, load_impact)
                         .await;
                 }
             }
             Message::TaskDelegate {
+                client_name,
                 task_id,
                 processing_time_ms,
                 load_impact,
             } => {
                 info!(
-                    "📨 Server {} received delegated task #{} from leader",
-                    self.config.server.id, task_id
+                    "📨 Server {} received delegated task #{} by 🔵 {} from leader",
+                    self.config.server.id, task_id, client_name
                 );
 
                 self.process_task(task_id, processing_time_ms, load_impact)

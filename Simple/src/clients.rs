@@ -60,8 +60,8 @@ impl Client {
         }
 
         info!(
-            "⏳ Sending requests for {} seconds...",
-            self.config.requests.duration_seconds
+            "⏳ Client '{}' sending requests for {} seconds...",
+            self.config.client.name, self.config.requests.duration_seconds
         );
 
         // Calculate delay between requests
@@ -130,13 +130,17 @@ impl Client {
                 let mut conn = Connection::new(stream);
 
                 let request = Message::TaskRequest {
+                    client_name: self.config.client.name.clone(),
                     task_id: request_num,
                     processing_time_ms: self.config.requests.request_processing_ms,
                     load_impact: self.config.requests.load_per_request,
                 };
 
                 if conn.write_message(&request).await.is_ok() {
-                    info!("📤 Sent request #{} to Server {}", request_num, leader_id);
+                    info!(
+                        "📤 {} Sent request #{} to Server {}",
+                        self.config.client.name, request_num, leader_id
+                    );
                 } else {
                     warn!("⚠️  Failed to send request #{}", request_num);
                 }

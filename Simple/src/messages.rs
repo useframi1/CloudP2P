@@ -51,6 +51,7 @@ pub enum Message {
 
     // NEW: Client sends a task to process
     TaskRequest {
+        client_name: String,
         task_id: u64,
         processing_time_ms: u64,
         load_impact: f64,
@@ -62,6 +63,7 @@ pub enum Message {
     },
 
     TaskDelegate {
+        client_name: String,
         task_id: u64,
         processing_time_ms: u64,
         load_impact: f64,
