@@ -22,7 +22,6 @@ pub struct Server {
 
     // State
     current_leader: Arc<RwLock<Option<u32>>>,
-    received_alive: Arc<RwLock<bool>>,
     is_failed: Arc<AtomicBool>,
 
     // Peer connections
@@ -66,7 +65,6 @@ impl Server {
             config,
             metrics,
             current_leader: Arc::new(RwLock::new(None)),
-            received_alive: Arc::new(RwLock::new(false)),
             is_failed: Arc::new(AtomicBool::new(false)),
             peer_connections: Arc::new(RwLock::new(HashMap::new())),
             last_heartbeat_times: Arc::new(RwLock::new(HashMap::new())),
@@ -228,7 +226,7 @@ impl Server {
                     "👋 Server {} received ALIVE from {}",
                     self.config.server.id, from_id
                 );
-                *self.received_alive.write().await = true;
+                *self.current_leader.write().await = Some(from_id);
             }
             Message::Coordinator { leader_id } => {
                 info!(
@@ -474,7 +472,7 @@ impl Server {
     }
 
     async fn initiate_election(&self) {
-        *self.received_alive.write().await = false;
+        *self.current_leader.write().await = None;
         info!("🗳️  Server {} initiating election", self.config.server.id);
 
         let my_priority = self.metrics.calculate_priority();
@@ -493,7 +491,7 @@ impl Server {
         .await;
 
         // If no one challenged, become leader
-        if !*self.received_alive.read().await {
+        if self.current_leader.read().await.is_none() {
             info!(
                 "👑 Server {} declaring itself as LEADER (priority: {:.2})",
                 self.config.server.id, my_priority
@@ -599,7 +597,6 @@ impl Server {
             config: self.config.clone(),
             metrics: self.metrics.clone(),
             current_leader: self.current_leader.clone(),
-            received_alive: self.received_alive.clone(),
             is_failed: self.is_failed.clone(),
             peer_connections: self.peer_connections.clone(),
             last_heartbeat_times: self.last_heartbeat_times.clone(),
