@@ -1,11 +1,11 @@
 [server]
 id = 1
-address = "127.0.0.1:8001"
+address = "10.40.50.111:8001"
 
 [peers]
 peers = [
-    { id = 2, address = "127.0.0.1:8002" },
-    { id = 3, address = "127.0.0.1:8003" }
+    { id = 2, address = "10.40.38.47:8002" },
+    { id = 3, address = "10.40.50.111:8003" }
 ]
 
 [election]

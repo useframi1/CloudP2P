@@ -1,11 +1,11 @@
 [server]
 id = 3
-address = "127.0.0.1:8003"
+address = "10.40.50.111:8003"
 
 [peers]
 peers = [
-    { id = 1, address = "127.0.0.1:8001" },
-    { id = 2, address = "127.0.0.1:8002" }
+    { id = 1, address = "10.40.50.111:8001" },
+    { id = 2, address = "10.40.38.47:8002" }
 ]
 
 [election]
@@ -18,6 +18,6 @@ thread_pool_size = 4
 max_queue_size = 100
 
 [metrics]
-initial_load = 0.2
+initial_load = 0.1
 initial_reliability = 0.98
 initial_response_time = 60.0

@@ -1,0 +1,13 @@
+[client]
+name = "Client3"
+server_addresses = [
+    "10.40.50.111:8001",
+    "10.40.38.47:8002",
+    "10.40.50.111:8003"
+]
+
+[requests]
+rate_per_second =0.04
+duration_seconds = 75.0
+request_processing_ms = 80000
+load_per_request = 0.3

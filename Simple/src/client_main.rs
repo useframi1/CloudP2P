@@ -7,9 +7,8 @@ mod clients;
 mod election;
 mod messages;
 mod server;
-// REMOVED: mod services; (we don't need this anymore)
 
-use server::{Server, ServerConfig};
+use clients::{Client, ClientConfig};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -39,11 +38,10 @@ async fn main() -> anyhow::Result<()> {
     init_logger();
 
     let args = Args::parse();
+    let config = ClientConfig::from_file(&args.config)?;
 
-    let config = ServerConfig::from_file(&args.config)?;
-    let server = Server::new(config);
-
-    server.run().await;
+    let mut client = Client::new(config);
+    client.run().await;
 
     Ok(())
 }

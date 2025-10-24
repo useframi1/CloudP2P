@@ -146,6 +146,10 @@ pub struct Server {
 
     // Last time we heard from each peer (used to detect failures)
     last_heartbeat_times: Arc<RwLock<HashMap<u32, u64>>>,
+    // NEW: Track active tasks
+    active_tasks: Arc<RwLock<HashMap<u64, tokio::task::JoinHandle<()>>>>,
+
+    peer_loads: Arc<RwLock<HashMap<u32, f64>>>,
 }
 
 impl Server {
@@ -165,6 +169,8 @@ impl Server {
             received_alive: Arc::new(RwLock::new(false)),
             peer_connections: Arc::new(RwLock::new(HashMap::new())),
             last_heartbeat_times: Arc::new(RwLock::new(HashMap::new())),
+            active_tasks: Arc::new(RwLock::new(HashMap::new())),
+            peer_loads: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
@@ -245,11 +251,20 @@ impl Server {
         loop {
             match conn.read_message().await {
                 Ok(Some(message)) => {
-                    // Got a message! Process it
+                    // Check if it's a LeaderQuery
+                    if matches!(message, Message::LeaderQuery) {
+                        let leader = *self.current_leader.read().await;
+                        if let Some(leader_id) = leader {
+                            let response = Message::LeaderResponse { leader_id };
+                            let _ = conn.write_message(&response).await;
+                        }
+                        continue; // Don't process this as a normal message
+                    }
+
+                    // Normal message handling
                     self.handle_message(message).await;
                 }
                 Ok(None) => {
-                    // Connection closed
                     debug!("🔌 Connection closed");
                     break;
                 }
@@ -393,10 +408,116 @@ impl Server {
                     .await
                     .insert(from_id, timestamp);
 
+                self.peer_loads.write().await.insert(from_id, load);
+
                 debug!(
                     "💓 Server {} received heartbeat from {} (load: {:.2})",
                     self.config.server.id, from_id, load
                 );
+            }
+            // NEW: Client asking who the leader is
+            Message::LeaderQuery => {
+                let leader = *self.current_leader.read().await;
+                if let Some(leader_id) = leader {
+                    info!("📋 Client queried leader, responding with: {}", leader_id);
+                    // Response is sent back through the same connection
+                    // (handled in handle_connection)
+                }
+            }
+
+            // NEW: Client sending a task
+            Message::TaskRequest {
+                task_id,
+                processing_time_ms,
+                load_impact,
+            } => {
+                info!(
+                    "📥 Server {} received task #{}",
+                    self.config.server.id, task_id
+                );
+
+                // Check if we are the leader
+                let current_leader = *self.current_leader.read().await;
+                let am_i_leader = current_leader == Some(self.config.server.id);
+
+                if am_i_leader {
+                    // We're the leader - decide who should handle this task
+                    let my_load = self.metrics.get_load();
+                    let peer_loads = self.peer_loads.read().await;
+
+                    // Print all server loads for debugging
+                    info!("📊 LOAD DISTRIBUTION:");
+                    info!(
+                        "   Server {} (me, leader): {:.2}",
+                        self.config.server.id, my_load
+                    );
+                    for (peer_id, peer_load) in peer_loads.iter() {
+                        info!("   Server {}: {:.2}", peer_id, peer_load);
+                    }
+
+                    // Find the server with the lowest load (including ourselves)
+                    let mut lowest_load = my_load;
+                    let mut best_server = self.config.server.id;
+
+                    for (peer_id, peer_load) in peer_loads.iter() {
+                        if *peer_load < lowest_load {
+                            lowest_load = *peer_load;
+                            best_server = *peer_id;
+                        }
+                    }
+
+                    if best_server == self.config.server.id {
+                        // We have the lowest load, process it ourselves
+                        info!(
+                            "✅ Task #{} assigned to Server {} (me) - lowest load: {:.2}",
+                            task_id, self.config.server.id, my_load
+                        );
+
+                        self.process_task(task_id, processing_time_ms, load_impact)
+                            .await;
+                    } else {
+                        // Delegate to the server with lowest load
+                        info!(
+                            "📤 Task #{} delegated to Server {} - their load: {:.2} vs my load: {:.2}",
+                            task_id, best_server, lowest_load, my_load
+                        );
+
+                        let delegate_msg = Message::TaskDelegate {
+                            task_id,
+                            processing_time_ms,
+                            load_impact,
+                        };
+                        self.send_to_peer(best_server, delegate_msg).await;
+                    }
+                } else {
+                    // We're not the leader, just process the task
+                    info!(
+                        "📥 Server {} (follower) processing task #{}",
+                        self.config.server.id, task_id
+                    );
+                    self.process_task(task_id, processing_time_ms, load_impact)
+                        .await;
+                }
+            }
+            Message::TaskDelegate {
+                task_id,
+                processing_time_ms,
+                load_impact,
+            } => {
+                info!(
+                    "📨 Server {} received delegated task #{} from leader",
+                    self.config.server.id, task_id
+                );
+
+                self.process_task(task_id, processing_time_ms, load_impact)
+                    .await;
+            }
+            Message::TaskAck { .. } => {
+                // Client doesn't need to handle this
+            }
+
+            Message::LeaderResponse { .. } => {
+                // Servers don't need to handle this
             }
         }
     }
@@ -584,6 +705,40 @@ impl Server {
             received_alive: self.received_alive.clone(),
             peer_connections: self.peer_connections.clone(),
             last_heartbeat_times: self.last_heartbeat_times.clone(),
+            active_tasks: self.active_tasks.clone(),
+            peer_loads: self.peer_loads.clone(),
         })
+    }
+
+    async fn process_task(&self, task_id: u64, processing_time_ms: u64, load_impact: f64) {
+        // Increase load immediately
+        let current_load = self.metrics.get_load();
+        self.metrics.set_load(current_load + load_impact);
+
+        info!(
+            "📊 Server {} load: {:.2} → {:.2}",
+            self.config.server.id,
+            current_load,
+            current_load + load_impact
+        );
+
+        // Process task in background
+        let server = self.clone_arc();
+        let handle = tokio::spawn(async move {
+            // Simulate processing
+            tokio::time::sleep(Duration::from_millis(processing_time_ms)).await;
+
+            // Decrease load when done
+            let new_load = server.metrics.get_load() - load_impact;
+            server.metrics.set_load(new_load.max(0.0));
+
+            info!(
+                "✅ Server {} completed task #{}, load now: {:.2}",
+                server.config.server.id, task_id, new_load
+            );
+        });
+
+        // Track the task
+        self.active_tasks.write().await.insert(task_id, handle);
     }
 }

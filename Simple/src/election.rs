@@ -20,7 +20,12 @@ impl ServerMetrics {
             avg_response_time: Arc::new(AtomicU64::new(initial_response_time as u64)),
         }
     }
+    // In election.rs, add this method to ServerMetrics impl block:
 
+    pub fn set_load(&self, load: f64) {
+        self.current_load
+            .store((load * 1000.0) as u64, Ordering::Relaxed);
+    }
     pub fn get_load(&self) -> f64 {
         self.current_load.load(Ordering::Relaxed) as f64 / 1000.0
     }

@@ -40,6 +40,32 @@ pub enum Message {
         timestamp: u64,
         load: f64,
     },
+
+    // NEW: Client asks "who is the leader?"
+    LeaderQuery,
+
+    // NEW: Server responds with leader ID
+    LeaderResponse {
+        leader_id: u32,
+    },
+
+    // NEW: Client sends a task to process
+    TaskRequest {
+        task_id: u64,
+        processing_time_ms: u64,
+        load_impact: f64,
+    },
+
+    // NEW: Server acknowledges task received
+    TaskAck {
+        task_id: u64,
+    },
+
+    TaskDelegate {
+        task_id: u64,
+        processing_time_ms: u64,
+        load_impact: f64,
+    },
 }
 
 impl Message {
