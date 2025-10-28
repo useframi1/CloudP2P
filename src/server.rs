@@ -441,13 +441,14 @@ impl Server {
             // NEW: Client sending a task
             Message::TaskRequest {
                 client_name,
-                task_id,
-                processing_time_ms,
+                request_id,
+                image_name,
+                text_to_embed,
                 load_impact,
             } => {
                 info!(
                     "📥 Server {} received task #{} from 🔵 {} ",
-                    self.config.server.id, task_id, client_name
+                    self.config.server.id, request_id, client_name
                 );
 
                 // Check if we are the leader
@@ -484,22 +485,23 @@ impl Server {
                         // We have the lowest load, process it ourselves
                         info!(
                             "📌 Task #{} from 🔵 {} assigned to Server {} (me) - lowest load: {:.2}",
-                            task_id, client_name, self.config.server.id, my_load
+                            request_id, client_name, self.config.server.id, my_load
                         );
 
-                        self.process_task(task_id, processing_time_ms, load_impact, client_name)
+                        self.process_task(request_id, client_name, image_name, text_to_embed, load_impact)
                             .await;
                     } else {
                         // Delegate to the server with lowest load
                         info!(
                             "📤 Task #{} from 🔵 {} delegated to Server {} - their load: {:.2} vs my load: {:.2}",
-                            task_id, client_name, best_server, lowest_load, my_load
+                            request_id, client_name, best_server, lowest_load, my_load
                         );
 
                         let delegate_msg = Message::TaskDelegate {
                             client_name,
-                            task_id,
-                            processing_time_ms,
+                            request_id,
+                            image_name,
+                            text_to_embed,
                             load_impact,
                         };
                         self.send_to_peer(best_server, delegate_msg).await;
@@ -508,24 +510,25 @@ impl Server {
                     // We're not the leader, just process the task
                     info!(
                         "📥 Server {} (follower) processing task #{} from 🔵 {}",
-                        self.config.server.id, task_id, client_name
+                        self.config.server.id, request_id, client_name
                     );
-                    self.process_task(task_id, processing_time_ms, load_impact, client_name)
+                    self.process_task(request_id, client_name, image_name, text_to_embed, load_impact)
                         .await;
                 }
             }
             Message::TaskDelegate {
                 client_name,
-                task_id,
-                processing_time_ms,
+                request_id,
+                image_name,
+                text_to_embed,
                 load_impact,
             } => {
                 info!(
                     "📨 Server {} received delegated task #{} by 🔵 {} from leader",
-                    self.config.server.id, task_id, client_name
+                    self.config.server.id, request_id, client_name
                 );
 
-                self.process_task(task_id, processing_time_ms, load_impact, client_name)
+                self.process_task(request_id, client_name, image_name, text_to_embed, load_impact)
                     .await;
             }
             Message::TaskAck { .. } => {
@@ -534,7 +537,7 @@ impl Server {
 
             Message::LeaderResponse { .. } => {
                 // Servers don't need to handle this
-            }
+            },
         }
     }
 
@@ -728,10 +731,11 @@ impl Server {
 
     async fn process_task(
         &self,
-        task_id: u64,
-        processing_time_ms: u64,
-        load_impact: f64,
+        request_id: u64,
         client_name: String,
+        image_name: String,
+        text_to_embed: String,
+        load_impact: f64,
     ) {
         // Increase load immediately
         let current_load = self.metrics.get_load();
@@ -747,8 +751,29 @@ impl Server {
         // Process task in background
         let server = self.clone_arc();
         let handle = tokio::spawn(async move {
-            // Simulate processing
-            tokio::time::sleep(Duration::from_millis(processing_time_ms)).await;
+            info!(
+                    "📷 Server {} received image encryption request #{} from 🔵 {}",
+                    server.config.server.id, request_id, client_name
+            );
+
+            // Process the image encryption
+            let input_path = format!("user-data/uploads/{}", image_name);
+            let output_path = format!("user-data/outputs/encrypted_{}", image_name);
+
+            match crate::steganography::embed_text(&input_path, &text_to_embed, &output_path) {
+                Ok(_) => {
+                    info!(
+                        "✅ Server {} completed encryption for request #{}",
+                        server.config.server.id, request_id
+                    );
+                }
+                Err(e) => {
+                    error!(
+                        "❌ Server {} failed to encrypt image: {}",
+                        server.config.server.id, e
+                    );
+                }
+            }
 
             // Decrease load when done
             let new_load = server.metrics.get_load() - load_impact;
@@ -756,11 +781,11 @@ impl Server {
 
             info!(
                 "✅ Server {} completed task #{} by 🔵 {}, load now: {:.2}",
-                server.config.server.id, task_id, client_name, new_load
+                server.config.server.id, request_id, client_name, new_load
             );
         });
 
         // Track the task
-        self.active_tasks.write().await.insert(task_id, handle);
+        self.active_tasks.write().await.insert(request_id, handle);
     }
 }

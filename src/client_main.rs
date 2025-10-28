@@ -7,6 +7,7 @@ mod clients;
 mod election;
 mod messages;
 mod server;
+mod steganography;
 
 use clients::{Client, ClientConfig};
 

@@ -6,6 +6,7 @@ use std::io::Write;
 mod election;
 mod messages;
 mod server;
+mod steganography;
 
 use server::{Server, ServerConfig};
 

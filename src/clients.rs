@@ -72,7 +72,7 @@ impl Client {
         // Send requests
         for i in 1..=total_requests {
             if let Some(leader_id) = self.current_leader {
-                self.send_request(leader_id, i).await;
+                self.send_request(leader_id, i, "test_image.jpg".to_string(), "uusername:alice,views:5".to_string()).await;
             } else {
                 warn!("⚠️  Lost connection to leader, trying to find new one...");
                 if !self.discover_leader().await {
@@ -116,7 +116,8 @@ impl Client {
         false
     }
 
-    async fn send_request(&mut self, leader_id: u32, request_num: u64) {
+    async fn send_request(&mut self, leader_id: u32, request_num: u64, image_name: String,
+        text_to_embed: String) {
         // Find leader's address
         let leader_idx = (leader_id - 1) as usize;
         if leader_idx >= self.config.client.server_addresses.len() {
@@ -131,9 +132,10 @@ impl Client {
 
                 let request = Message::TaskRequest {
                     client_name: self.config.client.name.clone(),
-                    task_id: request_num,
-                    processing_time_ms: self.config.requests.request_processing_ms,
-                    load_impact: self.config.requests.load_per_request,
+                    request_id: request_num,
+                    image_name: image_name,
+                    text_to_embed: text_to_embed,
+                    load_impact: self.config.requests.load_per_request
                 };
 
                 if conn.write_message(&request).await.is_ok() {
