@@ -100,7 +100,7 @@ impl Connection {
                 let length = u32::from_be_bytes(length_buf) as usize;
 
                 // Sanity check: don't allow messages larger than 10MB
-                if length > 10_000_000 {
+                if length > 50_000_000 {
                     error!("❌ Message too large: {} bytes", length);
                     return Ok(None);
                 }
@@ -275,7 +275,7 @@ impl Server {
                     }
 
                     // Normal message handling
-                    self.handle_message(message).await;
+                    self.handle_message(message, &mut conn).await;
                 }
                 Ok(None) => {
                     debug!("🔌 Connection closed");
@@ -351,7 +351,7 @@ impl Server {
     // ========================================================================
     // MESSAGE HANDLING - Process different message types
     // ========================================================================
-    async fn handle_message(&self, message: Message) {
+    async fn handle_message(&self, message: Message, conn: &mut Connection) {
         match message {
             // Someone started an election
             Message::Election { from_id, priority } => {
@@ -442,6 +442,7 @@ impl Server {
             Message::TaskRequest {
                 client_name,
                 request_id,
+                image_data,
                 image_name,
                 text_to_embed,
                 load_impact,
@@ -488,8 +489,24 @@ impl Server {
                             request_id, client_name, self.config.server.id, my_load
                         );
 
-                        self.process_task(request_id, client_name, image_name, text_to_embed, load_impact)
-                            .await;
+                        let (tx, mut rx) = mpsc::channel::<Message>(1);
+
+                        self.process_task(
+                            request_id, 
+                            client_name, 
+                            image_data, 
+                            image_name, 
+                            text_to_embed, 
+                            load_impact, 
+                            Some(tx),
+                        ).await;
+
+                        if let Some(response) = rx.recv().await {
+                            if let Err(e) = conn.write_message(&response).await {
+                                error!("❌ Failed to send response to client: {}", e);
+                            }
+                        }
+
                     } else {
                         // Delegate to the server with lowest load
                         info!(
@@ -500,11 +517,15 @@ impl Server {
                         let delegate_msg = Message::TaskDelegate {
                             client_name,
                             request_id,
+                            image_data,
                             image_name,
                             text_to_embed,
                             load_impact,
                         };
                         self.send_to_peer(best_server, delegate_msg).await;
+
+                        // TODO Phase 2: Handle getting response from delegate and forwarding to client
+                        warn!("⚠️  Delegated tasks don't send responses yet - needs implementation");
                     }
                 } else {
                     // We're not the leader, just process the task
@@ -512,13 +533,31 @@ impl Server {
                         "📥 Server {} (follower) processing task #{} from 🔵 {}",
                         self.config.server.id, request_id, client_name
                     );
-                    self.process_task(request_id, client_name, image_name, text_to_embed, load_impact)
-                        .await;
+
+                    let (tx, mut rx) = mpsc::channel::<Message>(1);
+
+                    self.process_task(
+                        request_id, 
+                        client_name, 
+                        image_data, 
+                        image_name, 
+                        text_to_embed, 
+                        load_impact, 
+                        Some(tx),
+                    ).await;
+
+                    if let Some(response) = rx.recv().await {
+                        if let Err(e) = conn.write_message(&response).await {
+                            error!("❌ Failed to send response to client: {}", e);
+                        }
+                    }
                 }
             }
+
             Message::TaskDelegate {
                 client_name,
                 request_id,
+                image_data,
                 image_name,
                 text_to_embed,
                 load_impact,
@@ -528,16 +567,21 @@ impl Server {
                     self.config.server.id, request_id, client_name
                 );
 
-                self.process_task(request_id, client_name, image_name, text_to_embed, load_impact)
-                    .await;
+                self.process_task(
+                    request_id,
+                    client_name,
+                    image_data,
+                    image_name,
+                    text_to_embed,
+                    load_impact,
+                    None,  // No response channel for delegates yet
+                )
+                .await;
             }
-            Message::TaskAck { .. } => {
-                // Client doesn't need to handle this
+            
+            _ => {
+                // Ignore other messages
             }
-
-            Message::LeaderResponse { .. } => {
-                // Servers don't need to handle this
-            },
         }
     }
 
@@ -733,9 +777,11 @@ impl Server {
         &self,
         request_id: u64,
         client_name: String,
+        image_data: Vec<u8>,
         image_name: String,
         text_to_embed: String,
         load_impact: f64,
+        response_tx: Option<mpsc::Sender<Message>>,
     ) {
         // Increase load immediately
         let current_load = self.metrics.get_load();
@@ -756,21 +802,52 @@ impl Server {
                     server.config.server.id, request_id, client_name
             );
 
-            // Process the image encryption
-            let input_path = format!("user-data/uploads/{}", image_name);
-            let output_path = format!("user-data/outputs/encrypted_{}", image_name);
-
-            match crate::steganography::embed_text(&input_path, &text_to_embed, &output_path) {
-                Ok(_) => {
+            // Process the image encryption IN MEMORY
+            let response = match crate::steganography::embed_text_bytes(&image_data, &text_to_embed) {
+                Ok(encrypted_data) => {
                     info!(
                         "✅ Server {} completed encryption for request #{}",
                         server.config.server.id, request_id
                     );
+
+                    // Save encrypted image to outputs folder
+                    let output_path = format!("user-data/outputs/encrypted_{}", image_name);
+                    if let Err(e) = std::fs::write(&output_path, &encrypted_data) {
+                        error!(
+                            "❌ Server {} failed to save encrypted image: {}",
+                            server.config.server.id, e
+                        );
+                    }
+
+                    // ADDED: Create success response
+                    Message::TaskResponse {
+                        request_id,
+                        encrypted_image_data: encrypted_data,
+                        success: true,
+                        error_message: None,
+                    }
                 }
                 Err(e) => {
                     error!(
                         "❌ Server {} failed to encrypt image: {}",
                         server.config.server.id, e
+                    );
+
+                    // ADDED: Create error response
+                    Message::TaskResponse {
+                        request_id,
+                        encrypted_image_data: Vec::new(),
+                        success: false,
+                        error_message: Some(e.to_string()),
+                    }
+                }
+            };
+
+            if let Some(tx) = response_tx {
+                if let Err(e) = tx.send(response).await {
+                    error!(
+                        "❌ Server {} failed to send response for task #{}: {}",
+                        server.config.server.id, request_id, e
                     );
                 }
             }

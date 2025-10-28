@@ -53,19 +53,23 @@ pub enum Message {
     TaskRequest {
         client_name: String,
         request_id: u64,
+        image_data: Vec<u8>,
         image_name: String,
         text_to_embed: String,
         load_impact: f64,
     },
 
-    // NEW: Server acknowledges task received
-    TaskAck {
-        task_id: u64,
+    TaskResponse {
+        request_id: u64,
+        encrypted_image_data: Vec<u8>, // NEW: send encrypted image back
+        success: bool,
+        error_message: Option<String>,
     },
 
     TaskDelegate {
         client_name: String,
         request_id: u64,
+        image_data: Vec<u8>,
         image_name: String,
         text_to_embed: String,
         load_impact: f64,
