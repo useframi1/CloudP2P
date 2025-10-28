@@ -5,6 +5,7 @@ use std::sync::Arc;
 // METRICS FOR PRIORITY CALCULATION
 // ============================================================================
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ServerMetrics {
     current_load: Arc<AtomicU64>,      // Stored as u64 (multiply by 1000)
@@ -12,6 +13,7 @@ pub struct ServerMetrics {
     avg_response_time: Arc<AtomicU64>, // In milliseconds
 }
 
+#[allow(dead_code)]
 impl ServerMetrics {
     pub fn new(initial_load: f64, initial_reliability: f64, initial_response_time: f64) -> Self {
         Self {

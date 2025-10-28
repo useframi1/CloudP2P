@@ -87,6 +87,7 @@ impl Message {
 // ============================================================================
 
 // Get current time as unix timestamp (seconds since Jan 1, 1970)
+#[allow(dead_code)]
 pub fn current_timestamp() -> u64 {
     std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)

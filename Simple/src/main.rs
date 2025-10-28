@@ -3,11 +3,9 @@ use env_logger::Builder;
 use log::LevelFilter;
 use std::io::Write;
 
-mod clients;
 mod election;
 mod messages;
 mod server;
-// REMOVED: mod services; (we don't need this anymore)
 
 use server::{Server, ServerConfig};
 

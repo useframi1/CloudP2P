@@ -17,6 +17,7 @@ use crate::messages::*;
 // CONFIGURATION - What each server needs to know about itself and others
 // ============================================================================
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerConfig {
     pub server: ServerInfo,       // Info about THIS server
@@ -26,6 +27,7 @@ pub struct ServerConfig {
                                   // pub client: ClientInfo,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerInfo {
     pub id: u32,         // Unique ID for this server (1, 2, or 3)
@@ -58,11 +60,13 @@ pub struct MetricsConfig {
 }
 
 // NEW: Client information structure
+#[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClientInfo {
     pub name: String, // Name of the client
 }
 
+#[allow(dead_code)]
 impl ServerConfig {
     // Load configuration from a TOML file
     pub fn from_file(path: &str) -> Result<Self> {
@@ -137,6 +141,7 @@ impl Connection {
 // SERVER - The main server that does leader election
 // ============================================================================
 
+#[allow(dead_code)]
 pub struct Server {
     // Configuration loaded from TOML file
     config: ServerConfig,
@@ -159,6 +164,7 @@ pub struct Server {
     peer_loads: Arc<RwLock<HashMap<u32, f64>>>,
 }
 
+#[allow(dead_code)]
 impl Server {
     // Create a new server with the given configuration
     pub fn new(config: ServerConfig) -> Self {
