@@ -41,22 +41,22 @@ pub enum Message {
         load: f64,
     },
 
-    // NEW: Client asks "who is the leader?"
+    // Client asks "who is the leader?"
     LeaderQuery,
 
-    // NEW: Server responds with leader ID
+    // Server responds with leader ID
     LeaderResponse {
         leader_id: u32,
     },
 
-    // NEW: Client sends a task to process
+    // Client sends a task to process
     TaskRequest {
         client_name: String,
         request_id: u64,
-        image_data: Vec<u8>,
+        image_data: Vec<u8>, // The actual image bytes
         image_name: String,
         text_to_embed: String,
-        load_impact: f64,
+        assigned_by_leader: u32, // Which leader assigned this (for validation)
     },
 
     TaskResponse {
@@ -66,13 +66,17 @@ pub enum Message {
         error_message: Option<String>,
     },
 
-    TaskDelegate {
-        client_name: String,
-        request_id: u64,
-        image_data: Vec<u8>,
-        image_name: String,
-        text_to_embed: String,
-        load_impact: f64,
+    TaskAssignmentRequest {
+        // client_name: String,   // Who is asking
+        request_id: u64, // Which request is this
+                         // image_name: String,    // Name of the image (for logging)
+                         // text_to_embed: String, // What to encrypt (for tracking)
+    },
+
+    TaskAssignmentResponse {
+        request_id: u64,                 // Which request this answers
+        assigned_server_id: u32,         // Which server to use (1, 2, or 3)
+        assigned_server_address: String, // IP address like "10.40.50.111:8001"
     },
 }
 

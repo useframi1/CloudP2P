@@ -16,8 +16,3 @@ failure_timeout_secs = 15
 [encryption]
 thread_pool_size = 4
 max_queue_size = 100
-
-[metrics]
-initial_load = 0.1
-initial_reliability = 0.95
-initial_response_time = 50

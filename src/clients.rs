@@ -72,7 +72,13 @@ impl Client {
         // Send requests
         for i in 1..=total_requests {
             if let Some(leader_id) = self.current_leader {
-                self.send_request(leader_id, i, "test_image.jpg".to_string(), "username:alice,views:5".to_string()).await;
+                self.send_request(
+                    leader_id,
+                    i,
+                    "test_image.jpg".to_string(),
+                    "username:alice,views:5".to_string(),
+                )
+                .await;
             } else {
                 warn!("⚠️  Lost connection to leader, trying to find new one...");
                 if !self.discover_leader().await {
@@ -116,17 +122,80 @@ impl Client {
         false
     }
 
-    async fn send_request(&mut self, leader_id: u32, request_num: u64, image_name: String,
-        text_to_embed: String) {
-        // Find leader's address
+    async fn send_request(
+        &mut self,
+        leader_id: u32,
+        request_num: u64,
+        image_name: String,
+        text_to_embed: String,
+    ) {
+        // PHASE 1: ASK LEADER FOR ASSIGNMENT
+
         let leader_idx = (leader_id - 1) as usize;
         if leader_idx >= self.config.client.server_addresses.len() {
             return;
         }
+        let leader_address = &self.config.client.server_addresses[leader_idx];
 
-        let address = &self.config.client.server_addresses[leader_idx];
+        info!(
+            "📋 {} Requesting assignment for task #{} from leader {}",
+            self.config.client.name, request_num, leader_id
+        );
 
-        // READ IMAGE FILE INTO BYTES
+        // Create lightweight request
+        let assignment_request = Message::TaskAssignmentRequest {
+            // client_name: self.config.client.name.clone(),
+            request_id: request_num,
+            // image_name: image_name.clone(),
+            // text_to_embed: text_to_embed.clone(),
+        };
+
+        // Connect to leader and ask for assignment
+        let assigned_server = match TcpStream::connect(leader_address).await {
+            Ok(stream) => {
+                let mut conn = Connection::new(stream);
+
+                // Send assignment request
+                if conn.write_message(&assignment_request).await.is_err() {
+                    error!("❌ Failed to send assignment request");
+                    return;
+                }
+
+                // Wait for leader's response
+                match conn.read_message().await {
+                    Ok(Some(Message::TaskAssignmentResponse {
+                        request_id: _,
+                        assigned_server_id,
+                        assigned_server_address,
+                    })) => {
+                        info!(
+                            "✅ {} Task #{} assigned to Server {} at {}",
+                            self.config.client.name,
+                            request_num,
+                            assigned_server_id,
+                            assigned_server_address
+                        );
+                        Some((assigned_server_id, assigned_server_address))
+                    }
+                    _ => {
+                        error!("❌ Failed to receive assignment response");
+                        None
+                    }
+                }
+            }
+            Err(e) => {
+                error!("❌ Failed to connect to leader: {}", e);
+                None
+            }
+        };
+
+        // If we didn't get an assignment, give up
+        let (assigned_server_id, assigned_address) = match assigned_server {
+            Some(addr) => addr,
+            None => return,
+        };
+
+        // PHASE 2: READ THE IMAGE FILE
         let image_path = format!("user-data/uploads/{}", image_name);
         let image_data = match std::fs::read(&image_path) {
             Ok(data) => data,
@@ -136,121 +205,95 @@ impl Client {
             }
         };
 
-        match TcpStream::connect(address).await {
+        // PHASE 3: SEND IMAGE DIRECTLY TO ASSIGNED SERVER
+        info!(
+            "📤 {} Sending image for task #{} directly to Server {}",
+            self.config.client.name, request_num, assigned_server_id
+        );
+
+        match TcpStream::connect(&assigned_address).await {
             Ok(stream) => {
                 let mut conn = Connection::new(stream);
 
-                let request = Message::TaskRequest {
+                // Now send the actual image data
+                let task_request = Message::TaskRequest {
                     client_name: self.config.client.name.clone(),
                     request_id: request_num,
-                    image_data: image_data,
+                    image_data,
                     image_name: image_name.clone(),
                     text_to_embed: text_to_embed.clone(),
-                    load_impact: self.config.requests.load_per_request
+                    assigned_by_leader: leader_id,
                 };
 
-                if conn.write_message(&request).await.is_ok() {
-                    info!(
-                        "📤 {} Sent request #{} to Server {}",
-                        self.config.client.name, request_num, leader_id
-                    );
+                if conn.write_message(&task_request).await.is_err() {
+                    error!("❌ Failed to send task to assigned server");
+                    return;
+                }
 
-                    match conn.read_message().await {
-                        Ok(Some(Message::TaskResponse {
-                            request_id,
-                            encrypted_image_data,
-                            success,
-                            error_message,
-                        })) => {
-                            if success {
-                                // Save encrypted image
-                                let output_path = format!(
-                                    "user-data/outputs/encrypted_{}_{}",
-                                    self.config.client.name, image_name.clone()
-                                );
-                                
-                                match std::fs::write(&output_path, &encrypted_image_data) {
-                                    Ok(_) => {
-                                        info!(
-                                            "✅ {} Received and saved encrypted image for request #{}",
-                                            self.config.client.name, request_id
-                                        );
+                // Wait for encrypted image response
+                match conn.read_message().await {
+                    Ok(Some(Message::TaskResponse {
+                        request_id,
+                        encrypted_image_data,
+                        success,
+                        error_message,
+                    })) => {
+                        if success {
+                            // Save the encrypted image
+                            let output_path = format!(
+                                "user-data/outputs/encrypted_{}_{}",
+                                self.config.client.name, image_name
+                            );
 
-                                        match crate::steganography::extract_text_bytes(&encrypted_image_data) {
-                                            Ok(extracted_text) => {
+                            match std::fs::write(&output_path, &encrypted_image_data) {
+                                Ok(_) => {
+                                    info!(
+                                        "✅ {} Saved encrypted image for task #{}",
+                                        self.config.client.name, request_id
+                                    );
+
+                                    // Verify the encryption worked
+                                    match crate::steganography::extract_text_bytes(
+                                        &encrypted_image_data,
+                                    ) {
+                                        Ok(extracted_text) => {
+                                            if extracted_text == text_to_embed {
                                                 info!(
-                                                    "🔍 {} VERIFICATION for request #{}:",
+                                                    "✅ {} Encryption VERIFIED for task #{}",
                                                     self.config.client.name, request_id
                                                 );
-                                                info!(
-                                                    "   Expected: {:?}",
-                                                    text_to_embed.clone()
-                                                );
-                                                info!(
-                                                    "   Extracted: {:?}",
-                                                    extracted_text
-                                                );
-                                                
-                                                if extracted_text == text_to_embed.clone() {
-                                                    info!(
-                                                        "✅ {} Encryption VERIFIED successfully for request #{}",
-                                                        self.config.client.name, request_id
-                                                    );
-                                                } else {
-                                                    error!(
-                                                        "❌ {} Encryption MISMATCH for request #{}!",
-                                                        self.config.client.name, request_id
-                                                    );
-                                                }
-                                            }
-                                            Err(e) => {
+                                            } else {
                                                 error!(
-                                                    "❌ {} Failed to extract text from encrypted image: {}",
-                                                    self.config.client.name, e
+                                                    "❌ {} Encryption MISMATCH for task #{}",
+                                                    self.config.client.name, request_id
                                                 );
                                             }
                                         }
-                                    }
-                                    Err(e) => {
-                                        error!(
-                                            "❌ {} Failed to save encrypted image: {}",
-                                            self.config.client.name, e
-                                        );
+                                        Err(e) => {
+                                            error!("❌ Failed to extract text: {}", e);
+                                        }
                                     }
                                 }
-                            } else {
-                                error!(
-                                    "❌ {} Task #{} failed: {}",
-                                    self.config.client.name,
-                                    request_id,
-                                    error_message.unwrap_or_else(|| "Unknown error".to_string())
-                                );
+                                Err(e) => {
+                                    error!("❌ Failed to save encrypted image: {}", e);
+                                }
                             }
-                        }
-                        Ok(Some(_)) => {
-                            warn!("⚠️  {} Received unexpected message type", self.config.client.name);
-                        }
-                        Ok(None) => {
-                            warn!(
-                                "⚠️  {} Connection closed before receiving response for request #{}",
-                                self.config.client.name, request_num
-                            );
-                        }
-                        Err(e) => {
+                        } else {
                             error!(
-                                "❌ {} Failed to read response for request #{}: {}",
-                                self.config.client.name, request_num, e
+                                "❌ {} Task #{} failed: {}",
+                                self.config.client.name,
+                                request_id,
+                                error_message.unwrap_or_else(|| "Unknown error".to_string())
                             );
                         }
                     }
-
-                } else {
-                    warn!("⚠️  Failed to send request #{}", request_num);
+                    _ => {
+                        error!("❌ Unexpected response or connection closed");
+                    }
                 }
             }
-            Err(_) => {
-                warn!("⚠️  Could not connect to leader");
-                self.current_leader = None;
+            Err(e) => {
+                error!("❌ Failed to connect to assigned server: {}", e);
             }
         }
     }

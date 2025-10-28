@@ -23,8 +23,6 @@ pub struct ServerConfig {
     pub server: ServerInfo,       // Info about THIS server
     pub peers: PeersConfig,       // Info about OTHER servers
     pub election: ElectionConfig, // Election timing settings
-    pub metrics: MetricsConfig,   // Initial performance metrics
-                                  // pub client: ClientInfo,
 }
 
 #[allow(dead_code)]
@@ -50,13 +48,6 @@ pub struct ElectionConfig {
     pub heartbeat_interval_secs: u64, // How often to send "I'm alive" messages
     pub election_timeout_secs: u64,   // How long to wait during election
     pub failure_timeout_secs: u64,    // How long before we consider a server dead
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MetricsConfig {
-    pub initial_load: f64,          // Starting load (0.0-1.0, lower is better)
-    pub initial_reliability: f64,   // Starting reliability (0.0-1.0, higher is better)
-    pub initial_response_time: f64, // Starting response time in ms (lower is better)
 }
 
 // NEW: Client information structure
@@ -169,11 +160,7 @@ impl Server {
     // Create a new server with the given configuration
     pub fn new(config: ServerConfig) -> Self {
         // Initialize metrics from config
-        let metrics = ServerMetrics::new(
-            config.metrics.initial_load,
-            config.metrics.initial_reliability,
-            config.metrics.initial_response_time,
-        );
+        let metrics = ServerMetrics::new();
 
         Self {
             config,
@@ -351,6 +338,7 @@ impl Server {
     // ========================================================================
     // MESSAGE HANDLING - Process different message types
     // ========================================================================
+
     async fn handle_message(&self, message: Message, conn: &mut Connection) {
         match message {
             // Someone started an election
@@ -364,9 +352,9 @@ impl Server {
                 let my_priority = self.metrics.calculate_priority();
 
                 // If we have higher priority, respond and start our own election
-                if my_priority > priority {
+                if my_priority < priority {
                     info!(
-                        "💪 Server {} has higher priority ({:.2} > {:.2}), responding with ALIVE",
+                        "💪 Server {} has lower priority ({:.2} < {:.2}), responding with ALIVE",
                         self.config.server.id, my_priority, priority
                     );
 
@@ -384,7 +372,7 @@ impl Server {
                     });
                 } else {
                     info!(
-                        "📊 Server {} has lower priority ({:.2} < {:.2}), deferring",
+                        "📊 Server {} has higher priority ({:.2} > {:.2}), deferring",
                         self.config.server.id, my_priority, priority
                     );
                 }
@@ -428,7 +416,7 @@ impl Server {
                     self.config.server.id, from_id, load
                 );
             }
-            // NEW: Client asking who the leader is
+            // Client asking who the leader is
             Message::LeaderQuery => {
                 let leader = *self.current_leader.read().await;
                 if let Some(leader_id) = leader {
@@ -438,30 +426,62 @@ impl Server {
                 }
             }
 
-            // NEW: Client sending a task
+            // Client sending a task
             Message::TaskRequest {
                 client_name,
                 request_id,
                 image_data,
                 image_name,
                 text_to_embed,
-                load_impact,
+                assigned_by_leader,
             } => {
                 info!(
-                    "📥 Server {} received task #{} from 🔵 {} ",
-                    self.config.server.id, request_id, client_name
+                    "📥 Server {} received task #{} from 🔵 {} (assigned by leader {})",
+                    self.config.server.id, request_id, client_name, assigned_by_leader
                 );
 
-                // Check if we are the leader
+                // Create a channel for response
+                let (tx, mut rx) = mpsc::channel::<Message>(1);
+
+                // Process the task (this part stays the same)
+                self.process_task(
+                    request_id,
+                    client_name.clone(),
+                    image_data,
+                    image_name,
+                    text_to_embed,
+                    Some(tx),
+                )
+                .await;
+
+                // Send response back to client
+                if let Some(response) = rx.recv().await {
+                    if let Err(e) = conn.write_message(&response).await {
+                        error!("❌ Failed to send response to client: {}", e);
+                    }
+                }
+            }
+
+            Message::TaskAssignmentRequest {
+                // client_name,
+                request_id,
+                // image_name,
+                // text_to_embed,
+            } => {
+                // First, check if we're the leader
                 let current_leader = *self.current_leader.read().await;
                 let am_i_leader = current_leader == Some(self.config.server.id);
 
                 if am_i_leader {
-                    // We're the leader - decide who should handle this task
+                    // We're the leader! Let's find the best server
+
+                    // Get our own load
                     let my_load = self.metrics.get_load();
+
+                    // Get all peer loads (from heartbeats)
                     let peer_loads = self.peer_loads.read().await;
 
-                    // Print all server loads for debugging
+                    // Log current state
                     info!("📊 LOAD DISTRIBUTION:");
                     info!(
                         "   Server {} (me, leader): {:.2}",
@@ -471,7 +491,7 @@ impl Server {
                         info!("   Server {}: {:.2}", peer_id, peer_load);
                     }
 
-                    // Find the server with the lowest load (including ourselves)
+                    // Find server with lowest load (could be us!)
                     let mut lowest_load = my_load;
                     let mut best_server = self.config.server.id;
 
@@ -482,103 +502,41 @@ impl Server {
                         }
                     }
 
-                    if best_server == self.config.server.id {
-                        // We have the lowest load, process it ourselves
-                        info!(
-                            "📌 Task #{} from 🔵 {} assigned to Server {} (me) - lowest load: {:.2}",
-                            request_id, client_name, self.config.server.id, my_load
-                        );
-
-                        let (tx, mut rx) = mpsc::channel::<Message>(1);
-
-                        self.process_task(
-                            request_id, 
-                            client_name, 
-                            image_data, 
-                            image_name, 
-                            text_to_embed, 
-                            load_impact, 
-                            Some(tx),
-                        ).await;
-
-                        if let Some(response) = rx.recv().await {
-                            if let Err(e) = conn.write_message(&response).await {
-                                error!("❌ Failed to send response to client: {}", e);
-                            }
-                        }
-
+                    // Get the address of the chosen server
+                    let assigned_address = if best_server == self.config.server.id {
+                        // It's us! Use our address
+                        self.config.server.address.clone()
                     } else {
-                        // Delegate to the server with lowest load
-                        info!(
-                            "📤 Task #{} from 🔵 {} delegated to Server {} - their load: {:.2} vs my load: {:.2}",
-                            request_id, client_name, best_server, lowest_load, my_load
-                        );
+                        // It's a peer, look up their address
+                        self.config
+                            .peers
+                            .peers
+                            .iter()
+                            .find(|p| p.id == best_server)
+                            .map(|p| p.address.clone())
+                            .unwrap_or_default()
+                    };
 
-                        let delegate_msg = Message::TaskDelegate {
-                            client_name,
-                            request_id,
-                            image_data,
-                            image_name,
-                            text_to_embed,
-                            load_impact,
-                        };
-                        self.send_to_peer(best_server, delegate_msg).await;
-
-                        // TODO Phase 2: Handle getting response from delegate and forwarding to client
-                        warn!("⚠️  Delegated tasks don't send responses yet - needs implementation");
-                    }
-                } else {
-                    // We're not the leader, just process the task
                     info!(
-                        "📥 Server {} (follower) processing task #{} from 🔵 {}",
-                        self.config.server.id, request_id, client_name
+                        "📌 Task #{} assigned to Server {} (load: {:.2})",
+                        request_id, best_server, lowest_load
                     );
 
-                    let (tx, mut rx) = mpsc::channel::<Message>(1);
+                    // Send response to client
+                    let response = Message::TaskAssignmentResponse {
+                        request_id,
+                        assigned_server_id: best_server,
+                        assigned_server_address: assigned_address,
+                    };
 
-                    self.process_task(
-                        request_id, 
-                        client_name, 
-                        image_data, 
-                        image_name, 
-                        text_to_embed, 
-                        load_impact, 
-                        Some(tx),
-                    ).await;
-
-                    if let Some(response) = rx.recv().await {
-                        if let Err(e) = conn.write_message(&response).await {
-                            error!("❌ Failed to send response to client: {}", e);
-                        }
+                    if let Err(e) = conn.write_message(&response).await {
+                        error!("❌ Failed to send assignment response: {}", e);
                     }
+                } else {
+                    warn!("⚠️  Non-leader received assignment request, ignoring");
                 }
             }
 
-            Message::TaskDelegate {
-                client_name,
-                request_id,
-                image_data,
-                image_name,
-                text_to_embed,
-                load_impact,
-            } => {
-                info!(
-                    "📨 Server {} received delegated task #{} by 🔵 {} from leader",
-                    self.config.server.id, request_id, client_name
-                );
-
-                self.process_task(
-                    request_id,
-                    client_name,
-                    image_data,
-                    image_name,
-                    text_to_embed,
-                    load_impact,
-                    None,  // No response channel for delegates yet
-                )
-                .await;
-            }
-            
             _ => {
                 // Ignore other messages
             }
@@ -592,23 +550,24 @@ impl Server {
         let interval = self.config.election.heartbeat_interval_secs;
 
         loop {
-            // Wait for the heartbeat interval
             tokio::time::sleep(Duration::from_secs(interval)).await;
 
-            // Create a heartbeat message
+            // Get REAL current load
+            let current_load = self.metrics.get_load();
+            let cpu = self.metrics.get_cpu_usage();
+            let tasks = self.metrics.get_active_tasks();
+
             let heartbeat = Message::Heartbeat {
                 from_id: self.config.server.id,
                 timestamp: current_timestamp(),
-                load: self.metrics.get_load(),
+                load: current_load,
             };
 
             debug!(
-                "💓 Server {} sending heartbeat (load: {:.2})",
-                self.config.server.id,
-                self.metrics.get_load()
+                "💓 Server {} sending heartbeat (load: {:.2}, CPU: {:.1}%, tasks: {})",
+                self.config.server.id, current_load, cpu, tasks
             );
 
-            // Send to all peers
             self.broadcast(heartbeat).await;
         }
     }
@@ -661,18 +620,18 @@ impl Server {
         *self.received_alive.write().await = false;
         info!("🗳️  Server {} initiating election", self.config.server.id);
 
-        // Calculate our priority based on metrics
+        // Calculate priority based on REAL metrics
         let my_priority = self.metrics.calculate_priority();
+        let cpu = self.metrics.get_cpu_usage();
+        let tasks = self.metrics.get_active_tasks();
+        let memory = self.metrics.get_available_memory_percent();
+
         info!(
-            "📊 Server {} priority: {:.2} (load: {:.2}, reliability: {:.2}, response_time: {:.2}ms)",
-            self.config.server.id,
-            my_priority,
-            self.metrics.get_load(),
-            self.metrics.get_reliability(),
-            self.metrics.get_response_time()
+            "📊 Server {} priority: {:.2} (CPU: {:.1}%, Tasks: {}, Memory: {:.1}% available)",
+            self.config.server.id, my_priority, cpu, tasks, memory
         );
 
-        // Send election message to all peers
+        // Send election message with our priority
         let election_msg = Message::Election {
             from_id: self.config.server.id,
             priority: my_priority,
@@ -684,7 +643,7 @@ impl Server {
         );
         self.broadcast(election_msg).await;
 
-        // Wait for responses (election timeout)
+        // Wait for responses
         info!(
             "⏳ Server {} waiting {}s for election responses...",
             self.config.server.id, self.config.election.election_timeout_secs
@@ -694,17 +653,15 @@ impl Server {
         ))
         .await;
 
-        // Check if we received any ALIVE responses
+        // Check if we won
         if !*self.received_alive.read().await {
             info!(
-                "🎉 Server {} won the election! Declaring as LEADER (priority: {:.2})",
+                "🎉 Server {} won election! (lowest priority score: {:.2})",
                 self.config.server.id, my_priority
             );
 
-            // Set ourselves as leader
             *self.current_leader.write().await = Some(self.config.server.id);
 
-            // Announce to everyone
             let coordinator_msg = Message::Coordinator {
                 leader_id: self.config.server.id,
             };
@@ -716,7 +673,7 @@ impl Server {
             self.broadcast(coordinator_msg).await;
         } else {
             info!(
-                "📊 Server {} lost the election (received ALIVE responses)",
+                "📊 Server {} lost election (higher load than others)",
                 self.config.server.id
             );
         }
@@ -780,46 +737,42 @@ impl Server {
         image_data: Vec<u8>,
         image_name: String,
         text_to_embed: String,
-        load_impact: f64,
         response_tx: Option<mpsc::Sender<Message>>,
     ) {
-        // Increase load immediately
-        let current_load = self.metrics.get_load();
-        self.metrics.set_load(current_load + load_impact);
+        // START TRACKING: Increment active task count
+        self.metrics.task_started();
+
+        let current_tasks = self.metrics.get_active_tasks();
+        let cpu_usage = self.metrics.get_cpu_usage();
 
         info!(
-            "📊 Server {} load: {:.2} → {:.2}",
-            self.config.server.id,
-            current_load,
-            current_load + load_impact
+            "📊 Server {} starting task #{} (Active tasks: {}, CPU: {:.1}%)",
+            self.config.server.id, request_id, current_tasks, cpu_usage
         );
 
         // Process task in background
         let server = self.clone_arc();
         let handle = tokio::spawn(async move {
             info!(
-                    "📷 Server {} received image encryption request #{} from 🔵 {}",
-                    server.config.server.id, request_id, client_name
+                "📷 Server {} processing encryption request #{} from 🔵 {}",
+                server.config.server.id, request_id, client_name
             );
 
-            // Process the image encryption IN MEMORY
-            let response = match crate::steganography::embed_text_bytes(&image_data, &text_to_embed) {
+            // Do the actual encryption
+            let response = match crate::steganography::embed_text_bytes(&image_data, &text_to_embed)
+            {
                 Ok(encrypted_data) => {
                     info!(
                         "✅ Server {} completed encryption for request #{}",
                         server.config.server.id, request_id
                     );
 
-                    // Save encrypted image to outputs folder
+                    // Save encrypted image
                     let output_path = format!("user-data/outputs/encrypted_{}", image_name);
                     if let Err(e) = std::fs::write(&output_path, &encrypted_data) {
-                        error!(
-                            "❌ Server {} failed to save encrypted image: {}",
-                            server.config.server.id, e
-                        );
+                        error!("❌ Failed to save encrypted image: {}", e);
                     }
 
-                    // ADDED: Create success response
                     Message::TaskResponse {
                         request_id,
                         encrypted_image_data: encrypted_data,
@@ -833,7 +786,6 @@ impl Server {
                         server.config.server.id, e
                     );
 
-                    // ADDED: Create error response
                     Message::TaskResponse {
                         request_id,
                         encrypted_image_data: Vec::new(),
@@ -843,26 +795,26 @@ impl Server {
                 }
             };
 
+            // Send response if channel exists
             if let Some(tx) = response_tx {
                 if let Err(e) = tx.send(response).await {
-                    error!(
-                        "❌ Server {} failed to send response for task #{}: {}",
-                        server.config.server.id, request_id, e
-                    );
+                    error!("❌ Failed to send response: {}", e);
                 }
             }
 
-            // Decrease load when done
-            let new_load = server.metrics.get_load() - load_impact;
-            server.metrics.set_load(new_load.max(0.0));
+            // FINISH TRACKING: Decrement active task count
+            server.metrics.task_finished();
+
+            let remaining_tasks = server.metrics.get_active_tasks();
+            let new_cpu = server.metrics.get_cpu_usage();
 
             info!(
-                "✅ Server {} completed task #{} by 🔵 {}, load now: {:.2}",
-                server.config.server.id, request_id, client_name, new_load
+                "✅ Server {} completed task #{} (Remaining tasks: {}, CPU: {:.1}%)",
+                server.config.server.id, request_id, remaining_tasks, new_cpu
             );
         });
 
-        // Track the task
+        // Track the task handle
         self.active_tasks.write().await.insert(request_id, handle);
     }
 }

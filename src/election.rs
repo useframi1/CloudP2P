@@ -1,5 +1,6 @@
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use sysinfo::System;
 
 // ============================================================================
 // METRICS FOR PRIORITY CALCULATION
@@ -8,52 +9,91 @@ use std::sync::Arc;
 #[allow(dead_code)]
 #[derive(Debug, Clone)]
 pub struct ServerMetrics {
-    current_load: Arc<AtomicU64>,      // Stored as u64 (multiply by 1000)
-    reliability_score: Arc<AtomicU64>, // Stored as u64 (multiply by 1000)
-    avg_response_time: Arc<AtomicU64>, // In milliseconds
+    active_tasks: Arc<AtomicU64>, // How many tasks currently running
+    total_tasks: Arc<AtomicU64>,  // Total tasks processed (for stats)
+    system: Arc<std::sync::Mutex<System>>, // System info for metrics
 }
 
 #[allow(dead_code)]
 impl ServerMetrics {
-    pub fn new(initial_load: f64, initial_reliability: f64, initial_response_time: f64) -> Self {
+    pub fn new() -> Self {
         Self {
-            current_load: Arc::new(AtomicU64::new((initial_load * 1000.0) as u64)),
-            reliability_score: Arc::new(AtomicU64::new((initial_reliability * 1000.0) as u64)),
-            avg_response_time: Arc::new(AtomicU64::new(initial_response_time as u64)),
+            active_tasks: Arc::new(AtomicU64::new(0)),
+            total_tasks: Arc::new(AtomicU64::new(0)),
+            system: Arc::new(std::sync::Mutex::new(System::new_all())),
         }
     }
-    // In election.rs, add this method to ServerMetrics impl block:
 
-    pub fn set_load(&self, load: f64) {
-        self.current_load
-            .store((load * 1000.0) as u64, Ordering::Relaxed);
-    }
-    pub fn get_load(&self) -> f64 {
-        self.current_load.load(Ordering::Relaxed) as f64 / 1000.0
-    }
+    /// Get current CPU usage (0-100)
+    pub fn get_cpu_usage(&self) -> f64 {
+        let mut sys = self.system.lock().unwrap();
 
-    pub fn get_reliability(&self) -> f64 {
-        self.reliability_score.load(Ordering::Relaxed) as f64 / 1000.0
+        // Refresh CPU information
+        sys.refresh_cpu_all();
+
+        // Get global CPU usage (average across all cores)
+        sys.global_cpu_usage() as f64
     }
 
-    pub fn get_response_time(&self) -> f64 {
-        self.avg_response_time.load(Ordering::Relaxed) as f64
+    /// Get number of active tasks
+    pub fn get_active_tasks(&self) -> u64 {
+        self.active_tasks.load(Ordering::Relaxed)
+    }
+
+    /// Get available memory percentage (0-100)
+    pub fn get_available_memory_percent(&self) -> f64 {
+        let mut sys = self.system.lock().unwrap();
+
+        // Refresh memory information
+        sys.refresh_memory();
+
+        let total = sys.total_memory();
+        let available = sys.available_memory();
+
+        if total == 0 {
+            return 100.0;
+        }
+
+        (available as f64 / total as f64) * 100.0
+    }
+
+    /// Increment task count when starting a task
+    pub fn task_started(&self) {
+        self.active_tasks.fetch_add(1, Ordering::Relaxed);
+        self.total_tasks.fetch_add(1, Ordering::Relaxed);
+    }
+
+    /// Decrement task count when finishing a task
+    pub fn task_finished(&self) {
+        self.active_tasks.fetch_sub(1, Ordering::Relaxed);
     }
 
     /// Calculate priority for Modified Bully Algorithm
-    /// Higher priority = better candidate for leadership
+    /// LOWER score = BETTER candidate (less loaded)
     pub fn calculate_priority(&self) -> f64 {
-        const W1: f64 = 0.4; // Load weight
-        const W2: f64 = 0.3; // Reliability weight
-        const W3: f64 = 0.3; // Response time weight
+        const W_CPU: f64 = 0.5; // Weight for CPU usage
+        const W_TASKS: f64 = 0.3; // Weight for active tasks
+        const W_MEMORY: f64 = 0.2; // Weight for memory
 
-        let load = self.get_load();
-        let reliability = self.get_reliability();
-        let response_time = self.get_response_time();
+        let cpu_usage = self.get_cpu_usage();
+        let active_tasks = self.get_active_tasks() as f64;
+        let memory_available = self.get_available_memory_percent();
 
-        let load_score = 1.0 - load; // Lower load is better
-        let response_score = 1.0 / (1.0 + response_time / 100.0); // Lower response time is better
+        // Normalize active tasks (assuming max 10 concurrent tasks is "full load")
+        let tasks_normalized = (active_tasks / 10.0).min(1.0) * 100.0;
 
-        W1 * load_score + W2 * reliability + W3 * response_score
+        // Memory score: lower available = higher score (worse)
+        let memory_score = 100.0 - memory_available;
+
+        // Calculate composite score (lower = better)
+        let priority = W_CPU * cpu_usage + W_TASKS * tasks_normalized + W_MEMORY * memory_score;
+
+        priority
+    }
+
+    /// Get a load value between 0.0 and 1.0 for heartbeats
+    pub fn get_load(&self) -> f64 {
+        // Simple version: just normalize the priority to 0-1
+        self.calculate_priority() / 100.0
     }
 }
