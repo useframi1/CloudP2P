@@ -91,9 +91,8 @@ impl ServerMetrics {
         priority
     }
 
-    /// Get a load value between 0.0 and 1.0 for heartbeats
+    /// Get a load value between 0.0 and 100.0
     pub fn get_load(&self) -> f64 {
-        // Simple version: just normalize the priority to 0-1
-        self.calculate_priority() / 100.0
+        self.calculate_priority()
     }
 }

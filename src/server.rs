@@ -381,7 +381,7 @@ impl Server {
             // Someone responded to our election with "I'm alive and have higher priority"
             Message::Alive { from_id } => {
                 info!(
-                    "👋 Server {} received ALIVE from {} (they have higher priority)",
+                    "👋 Server {} received ALIVE from {} (they have lower priority)",
                     self.config.server.id, from_id
                 );
                 // We lost the election
