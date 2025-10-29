@@ -758,9 +758,14 @@ impl Server {
                 server.config.server.id, request_id, client_name
             );
 
-            // Do the actual encryption
-            let response = match crate::steganography::embed_text_bytes(&image_data, &text_to_embed)
-            {
+            // Do the actual encryption using spawn_blocking to avoid blocking async threads
+            let encryption_result = tokio::task::spawn_blocking(move || {
+                crate::steganography::embed_text_bytes(&image_data, &text_to_embed)
+            })
+            .await
+            .expect("Encryption task panicked");
+
+            let response = match encryption_result {
                 Ok(encrypted_data) => {
                     info!(
                         "✅ Server {} completed encryption for request #{}",
