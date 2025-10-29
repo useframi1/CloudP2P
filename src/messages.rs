@@ -67,16 +67,27 @@ pub enum Message {
     },
 
     TaskAssignmentRequest {
-        // client_name: String,   // Who is asking
+        client_name: String,   // Who is asking
         request_id: u64, // Which request is this
-                         // image_name: String,    // Name of the image (for logging)
-                         // text_to_embed: String, // What to encrypt (for tracking)
     },
 
     TaskAssignmentResponse {
         request_id: u64,                 // Which request this answers
         assigned_server_id: u32,         // Which server to use (1, 2, or 3)
         assigned_server_address: String, // IP address like "10.40.50.111:8001"
+    },
+
+    // History tracking for fault tolerance
+    HistoryAdd {
+        client_name: String,
+        request_id: u64,
+        assigned_server_id: u32,
+        timestamp: u64,
+    },
+
+    HistoryRemove {
+        client_name: String,
+        request_id: u64,
     },
 }
 

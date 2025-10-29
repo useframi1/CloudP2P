@@ -48,6 +48,7 @@ pub struct ElectionConfig {
     pub heartbeat_interval_secs: u64, // How often to send "I'm alive" messages
     pub election_timeout_secs: u64,   // How long to wait during election
     pub failure_timeout_secs: u64,    // How long before we consider a server dead
+    pub monitor_interval_secs: u64,   // How often to check for failed peers
 }
 
 // NEW: Client information structure
@@ -129,6 +130,18 @@ impl Connection {
 }
 
 // ============================================================================
+// TASK HISTORY - For fault tolerance tracking
+// ============================================================================
+
+#[derive(Debug, Clone)]
+struct TaskHistoryEntry {
+    _client_name: String,
+    _request_id: u64,
+    assigned_server_id: u32,
+    _timestamp: u64,
+}
+
+// ============================================================================
 // SERVER - The main server that does leader election
 // ============================================================================
 
@@ -153,6 +166,9 @@ pub struct Server {
     active_tasks: Arc<RwLock<HashMap<u64, tokio::task::JoinHandle<()>>>>,
 
     peer_loads: Arc<RwLock<HashMap<u32, f64>>>,
+
+    // Task history for fault tolerance: (client_name, request_id) -> entry
+    task_history: Arc<RwLock<HashMap<(String, u64), TaskHistoryEntry>>>,
 }
 
 #[allow(dead_code)]
@@ -171,6 +187,7 @@ impl Server {
             last_heartbeat_times: Arc::new(RwLock::new(HashMap::new())),
             active_tasks: Arc::new(RwLock::new(HashMap::new())),
             peer_loads: Arc::new(RwLock::new(HashMap::new())),
+            task_history: Arc::new(RwLock::new(HashMap::new())),
         }
     }
 
@@ -463,10 +480,8 @@ impl Server {
             }
 
             Message::TaskAssignmentRequest {
-                // client_name,
+                client_name,
                 request_id,
-                // image_name,
-                // text_to_embed,
             } => {
                 // First, check if we're the leader
                 let current_leader = *self.current_leader.read().await;
@@ -518,9 +533,33 @@ impl Server {
                     };
 
                     info!(
-                        "📌 Task #{} assigned to Server {} (load: {:.2})",
-                        request_id, best_server, lowest_load
+                        "📌 Task #{} from {} assigned to Server {} (load: {:.2})",
+                        request_id, client_name, best_server, lowest_load
                     );
+
+                    // Add to history and broadcast to all servers
+                    let timestamp = crate::messages::current_timestamp();
+                    let history_msg = Message::HistoryAdd {
+                        client_name: client_name.clone(),
+                        request_id,
+                        assigned_server_id: best_server,
+                        timestamp,
+                    };
+
+                    // Add to own history
+                    let entry = TaskHistoryEntry {
+                        _client_name: client_name.clone(),
+                        _request_id: request_id,
+                        assigned_server_id: best_server,
+                        _timestamp: timestamp,
+                    };
+                    self.task_history
+                        .write()
+                        .await
+                        .insert((client_name, request_id), entry);
+
+                    // Broadcast to all peers
+                    self.broadcast(history_msg).await;
 
                     // Send response to client
                     let response = Message::TaskAssignmentResponse {
@@ -535,6 +574,45 @@ impl Server {
                 } else {
                     warn!("⚠️  Non-leader received assignment request, ignoring");
                 }
+            }
+
+            Message::HistoryAdd {
+                client_name,
+                request_id,
+                assigned_server_id,
+                timestamp,
+            } => {
+                debug!(
+                    "📝 Server {} adding history entry: ({}, {}) -> Server {}",
+                    self.config.server.id, client_name, request_id, assigned_server_id
+                );
+
+                let entry = TaskHistoryEntry {
+                    _client_name: client_name.clone(),
+                    _request_id: request_id,
+                    assigned_server_id,
+                    _timestamp: timestamp,
+                };
+
+                self.task_history
+                    .write()
+                    .await
+                    .insert((client_name, request_id), entry);
+            }
+
+            Message::HistoryRemove {
+                client_name,
+                request_id,
+            } => {
+                debug!(
+                    "🗑️  Server {} removing history entry: ({}, {})",
+                    self.config.server.id, client_name, request_id
+                );
+
+                self.task_history
+                    .write()
+                    .await
+                    .remove(&(client_name, request_id));
             }
 
             _ => {
@@ -578,34 +656,74 @@ impl Server {
     async fn monitor_heartbeats(&self) {
         loop {
             tokio::time::sleep(Duration::from_secs(
-                self.config.election.failure_timeout_secs,
+                self.config.election.monitor_interval_secs,
             ))
             .await;
 
             let now = current_timestamp();
             let timeout = self.config.election.failure_timeout_secs;
-            let heartbeats = self.last_heartbeat_times.read().await;
+
+            // Collect timed-out peers (only holding read lock)
+            let timed_out_peers: Vec<u32> = {
+                let heartbeats = self.last_heartbeat_times.read().await;
+                heartbeats
+                    .iter()
+                    .filter_map(|(peer_id, last_seen)| {
+                        if now - last_seen > timeout {
+                            Some(*peer_id)
+                        } else {
+                            None
+                        }
+                    })
+                    .collect()
+            };
+
             let current_leader = *self.current_leader.read().await;
 
-            // Check if any peer has timed out
-            for (peer_id, last_seen) in heartbeats.iter() {
-                if now - last_seen > timeout {
+            // Now process the timed-out peers without holding the read lock
+            for peer_id in timed_out_peers {
+                warn!(
+                    "⚠️  Server {} detected peer {} may have failed (no heartbeat for {}s)",
+                    self.config.server.id, peer_id, timeout
+                );
+
+                self.peer_loads.write().await.remove(&peer_id);
+                self.last_heartbeat_times.write().await.remove(&peer_id);
+
+                // Check for orphaned tasks assigned to this failed server
+                let orphaned_tasks: Vec<(String, u64)> = {
+                    let history = self.task_history.read().await;
+                    history
+                        .iter()
+                        .filter(|(_, entry)| entry.assigned_server_id == peer_id)
+                        .map(|(key, _)| key.clone())
+                        .collect()
+                };
+
+                if !orphaned_tasks.is_empty() {
                     warn!(
-                        "⚠️  Server {} detected peer {} may have failed (no heartbeat for {}s)",
+                        "🗑️  Server {} found {} orphaned task(s) assigned to failed Server {}",
                         self.config.server.id,
-                        peer_id,
-                        now - last_seen
+                        orphaned_tasks.len(),
+                        peer_id
                     );
 
-                    // If the leader failed, start a new election
-                    if Some(*peer_id) == current_leader {
-                        warn!(
-                            "⚠️  LEADER {} appears to have failed! Starting election...",
-                            peer_id
-                        );
-                        *self.current_leader.write().await = None;
-                        self.initiate_election().await;
+                    // Remove orphaned tasks from history
+                    let mut history = self.task_history.write().await;
+                    for key in &orphaned_tasks {
+                        history.remove(key);
+                        info!("   - Removed task: {:?}", key);
                     }
+                }
+
+                // If the leader failed, start a new election
+                if Some(peer_id) == current_leader {
+                    warn!(
+                        "⚠️  LEADER {} appears to have failed! Starting election...",
+                        peer_id
+                    );
+                    *self.current_leader.write().await = None;
+                    self.initiate_election().await;
                 }
             }
         }
@@ -727,6 +845,7 @@ impl Server {
             last_heartbeat_times: self.last_heartbeat_times.clone(),
             active_tasks: self.active_tasks.clone(),
             peer_loads: self.peer_loads.clone(),
+            task_history: self.task_history.clone(),
         })
     }
 
@@ -806,6 +925,22 @@ impl Server {
                     error!("❌ Failed to send response: {}", e);
                 }
             }
+
+            // Remove from history and broadcast to all servers
+            let history_remove_msg = Message::HistoryRemove {
+                client_name: client_name.clone(),
+                request_id,
+            };
+
+            // Remove from own history
+            server
+                .task_history
+                .write()
+                .await
+                .remove(&(client_name.clone(), request_id));
+
+            // Broadcast to all peers
+            server.broadcast(history_remove_msg).await;
 
             // FINISH TRACKING: Decrement active task count
             server.metrics.task_finished();

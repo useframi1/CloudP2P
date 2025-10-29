@@ -9,9 +9,10 @@ peers = [
 ]
 
 [election]
-heartbeat_interval_secs = 5
+heartbeat_interval_secs = 1
 election_timeout_secs = 2
-failure_timeout_secs = 15
+failure_timeout_secs = 3
+monitor_interval_secs = 1
 
 [encryption]
 thread_pool_size = 4
