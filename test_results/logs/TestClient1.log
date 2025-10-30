@@ -1,57 +1,53 @@
-[17:04:22] [INFO] 🔵 Client 'TestClient1' starting
-[17:04:22] [INFO] ⏳ Client 'TestClient1' sending requests for 10 seconds...
-[17:04:22] [INFO] 🔍 TestClient1 Finding leader for task #1 (attempt 1/3)
-[17:04:22] [INFO] 🔍 Looking for the current leader...
-[17:04:24] [WARN] ⚠️  TestClient1 No leader found for task #1 on attempt 1/3
-[17:04:24] [INFO] 🔄 TestClient1 Retry attempt 2/3 for task #1
-[17:04:29] [INFO] 🔍 TestClient1 Finding leader for task #1 (attempt 2/3)
-[17:04:29] [INFO] 🔍 Looking for the current leader...
-[17:04:33] [INFO] 🤝 Found leader: Server 2
-[17:04:33] [INFO] ✅ TestClient1 Found leader: Server 2 for task #1
-[17:04:33] [INFO] 📋 TestClient1 Requesting assignment for task #1 from leader 2
-[17:04:33] [INFO] ✅ TestClient1 Task #1 assigned to Server 1 at 127.0.0.1:9001
-[17:04:33] [INFO] 📤 TestClient1 Sending task #1 to Server 1
-[17:04:34] [INFO] ✅ TestClient1 Saved encrypted image for task #1
-[17:04:34] [INFO] ✅ TestClient1 Encryption VERIFIED for task #1
-[17:04:34] [INFO] ✅ TestClient1 Task #1 completed successfully
-[17:04:36] [INFO] 🔍 TestClient1 Finding leader for task #2 (attempt 1/3)
-[17:04:36] [INFO] 🔍 Looking for the current leader...
-[17:04:36] [INFO] 🤝 Found leader: Server 2
-[17:04:36] [INFO] ✅ TestClient1 Found leader: Server 2 for task #2
-[17:04:36] [INFO] 📋 TestClient1 Requesting assignment for task #2 from leader 2
-[17:04:36] [INFO] ✅ TestClient1 Task #2 assigned to Server 2 at 127.0.0.1:9002
-[17:04:36] [INFO] 📤 TestClient1 Sending task #2 to Server 2
-[17:04:36] [INFO] ✅ TestClient1 Saved encrypted image for task #2
-[17:04:36] [INFO] ✅ TestClient1 Encryption VERIFIED for task #2
-[17:04:36] [INFO] ✅ TestClient1 Task #2 completed successfully
-[17:04:38] [INFO] 🔍 TestClient1 Finding leader for task #3 (attempt 1/3)
-[17:04:38] [INFO] 🔍 Looking for the current leader...
-[17:04:38] [INFO] 🤝 Found leader: Server 2
-[17:04:38] [INFO] ✅ TestClient1 Found leader: Server 2 for task #3
-[17:04:38] [INFO] 📋 TestClient1 Requesting assignment for task #3 from leader 2
-[17:04:38] [INFO] ✅ TestClient1 Task #3 assigned to Server 1 at 127.0.0.1:9001
-[17:04:38] [INFO] 📤 TestClient1 Sending task #3 to Server 1
-[17:04:38] [INFO] ✅ TestClient1 Saved encrypted image for task #3
-[17:04:38] [INFO] ✅ TestClient1 Encryption VERIFIED for task #3
-[17:04:38] [INFO] ✅ TestClient1 Task #3 completed successfully
-[17:04:40] [INFO] 🔍 TestClient1 Finding leader for task #4 (attempt 1/3)
-[17:04:40] [INFO] 🔍 Looking for the current leader...
-[17:04:40] [INFO] 🤝 Found leader: Server 2
-[17:04:40] [INFO] ✅ TestClient1 Found leader: Server 2 for task #4
-[17:04:40] [INFO] 📋 TestClient1 Requesting assignment for task #4 from leader 2
-[17:04:40] [INFO] ✅ TestClient1 Task #4 assigned to Server 1 at 127.0.0.1:9001
-[17:04:40] [INFO] 📤 TestClient1 Sending task #4 to Server 1
-[17:04:40] [INFO] ✅ TestClient1 Saved encrypted image for task #4
-[17:04:40] [INFO] ✅ TestClient1 Encryption VERIFIED for task #4
-[17:04:40] [INFO] ✅ TestClient1 Task #4 completed successfully
-[17:04:42] [INFO] 🔍 TestClient1 Finding leader for task #5 (attempt 1/3)
-[17:04:42] [INFO] 🔍 Looking for the current leader...
-[17:04:42] [INFO] 🤝 Found leader: Server 2
-[17:04:42] [INFO] ✅ TestClient1 Found leader: Server 2 for task #5
-[17:04:42] [INFO] 📋 TestClient1 Requesting assignment for task #5 from leader 2
-[17:04:42] [INFO] ✅ TestClient1 Task #5 assigned to Server 1 at 127.0.0.1:9001
-[17:04:42] [INFO] 📤 TestClient1 Sending task #5 to Server 1
-[17:04:42] [INFO] ✅ TestClient1 Saved encrypted image for task #5
-[17:04:42] [INFO] ✅ TestClient1 Encryption VERIFIED for task #5
-[17:04:42] [INFO] ✅ TestClient1 Task #5 completed successfully
-[17:04:44] [INFO] ✅ Client finished sending 5 requests
+[19:05:40S] [INFO] Client 'TestClient1' starting
+[19:05:40S] [INFO] Client 'TestClient1' sending requests for 10 seconds...
+[19:05:40S] [INFO] Finding leader for task #1 (attempt 1/3)
+[19:05:40S] [INFO] Looking for the current leader...
+[19:05:40S] [INFO] Found leader: Server 3
+[19:05:40S] [INFO] ✅ TestClient1 Found leader: Server 3 for task #1
+[19:05:40S] [INFO] TestClient1 Requesting assignment for task #1 from leader 3
+[19:05:40S] [INFO] ✅ TestClient1 Task #1 assigned to Server 3 at 127.0.0.1:9003
+[19:05:40S] [INFO] 📤 TestClient1 Sending task #1 to server at 127.0.0.1:9003
+[19:05:40S] [INFO] ✅ TestClient1 Saved encrypted image for task #1
+[19:05:40S] [INFO] ✅ TestClient1 Encryption VERIFIED for task #1
+[19:05:40S] [INFO] ✅ TestClient1 Task #1 completed successfully
+[19:05:42S] [INFO] Finding leader for task #2 (attempt 1/3)
+[19:05:42S] [INFO] Looking for the current leader...
+[19:05:42S] [INFO] Found leader: Server 3
+[19:05:42S] [INFO] ✅ TestClient1 Found leader: Server 3 for task #2
+[19:05:42S] [INFO] TestClient1 Requesting assignment for task #2 from leader 3
+[19:05:42S] [INFO] ✅ TestClient1 Task #2 assigned to Server 3 at 127.0.0.1:9003
+[19:05:42S] [INFO] 📤 TestClient1 Sending task #2 to server at 127.0.0.1:9003
+[19:05:42S] [INFO] ✅ TestClient1 Saved encrypted image for task #2
+[19:05:42S] [INFO] ✅ TestClient1 Encryption VERIFIED for task #2
+[19:05:42S] [INFO] ✅ TestClient1 Task #2 completed successfully
+[19:05:44S] [INFO] Finding leader for task #3 (attempt 1/3)
+[19:05:44S] [INFO] Looking for the current leader...
+[19:05:44S] [INFO] Found leader: Server 3
+[19:05:44S] [INFO] ✅ TestClient1 Found leader: Server 3 for task #3
+[19:05:44S] [INFO] TestClient1 Requesting assignment for task #3 from leader 3
+[19:05:44S] [INFO] ✅ TestClient1 Task #3 assigned to Server 3 at 127.0.0.1:9003
+[19:05:44S] [INFO] 📤 TestClient1 Sending task #3 to server at 127.0.0.1:9003
+[19:05:44S] [INFO] ✅ TestClient1 Saved encrypted image for task #3
+[19:05:44S] [INFO] ✅ TestClient1 Encryption VERIFIED for task #3
+[19:05:44S] [INFO] ✅ TestClient1 Task #3 completed successfully
+[19:05:46S] [INFO] Finding leader for task #4 (attempt 1/3)
+[19:05:46S] [INFO] Looking for the current leader...
+[19:05:50S] [INFO] Found leader: Server 3
+[19:05:50S] [INFO] ✅ TestClient1 Found leader: Server 3 for task #4
+[19:05:50S] [INFO] TestClient1 Requesting assignment for task #4 from leader 3
+[19:05:50S] [INFO] ✅ TestClient1 Task #4 assigned to Server 1 at 127.0.0.1:9001
+[19:05:50S] [INFO] 📤 TestClient1 Sending task #4 to server at 127.0.0.1:9001
+[19:05:50S] [INFO] ✅ TestClient1 Saved encrypted image for task #4
+[19:05:50S] [INFO] ✅ TestClient1 Encryption VERIFIED for task #4
+[19:05:50S] [INFO] ✅ TestClient1 Task #4 completed successfully
+[19:05:52S] [INFO] Finding leader for task #5 (attempt 1/3)
+[19:05:52S] [INFO] Looking for the current leader...
+[19:05:52S] [INFO] Found leader: Server 1
+[19:05:52S] [INFO] ✅ TestClient1 Found leader: Server 1 for task #5
+[19:05:52S] [INFO] TestClient1 Requesting assignment for task #5 from leader 1
+[19:05:52S] [INFO] ✅ TestClient1 Task #5 assigned to Server 1 at 127.0.0.1:9001
+[19:05:52S] [INFO] 📤 TestClient1 Sending task #5 to server at 127.0.0.1:9001
+[19:05:52S] [INFO] ✅ TestClient1 Saved encrypted image for task #5
+[19:05:52S] [INFO] ✅ TestClient1 Encryption VERIFIED for task #5
+[19:05:52S] [INFO] ✅ TestClient1 Task #5 completed successfully
+[19:05:54S] [INFO] ✅ Client finished sending 5 requests

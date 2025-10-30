@@ -1,21 +1,55 @@
-[17:04:18] [INFO] 🚀 Server 3 starting on 127.0.0.1:9003
-[17:04:18] [INFO] 📡 Server 3 listening on 127.0.0.1:9003
-[17:04:22] [INFO] ⏰ Initial election timer expired, starting election...
-[17:04:22] [INFO] 🗳️  Server 3 initiating election
-[17:04:22] [INFO] 📊 Server 3 priority: 23.30 (CPU: 6.6%, Tasks: 0, Memory: 0.0% available)
-[17:04:22] [INFO] 📤 Server 3 broadcasting ELECTION message
-[17:04:22] [INFO] ⏳ Server 3 waiting 2s for election responses...
-[17:04:24] [INFO] 🎉 Server 3 won election! (lowest priority score: 23.30)
-[17:04:24] [INFO] 📤 Server 3 broadcasting COORDINATOR message
-[17:04:29] [INFO] 🤝 Server 3 connected to peer 2
-[17:04:29] [INFO] 🤝 Server 3 connected to peer 1
-[17:04:31] [INFO] 🗳️  Server 3 received ELECTION from 1 (priority: 31.47)
-[17:04:31] [INFO] 📊 Server 3 has higher priority (31.64 > 31.47), deferring
-[17:04:31] [INFO] 🗳️  Server 3 received ELECTION from 2 (priority: 30.97)
-[17:04:31] [INFO] 📊 Server 3 has higher priority (31.64 > 30.97), deferring
-[17:04:32] [INFO] 🗳️  Server 3 received ELECTION from 2 (priority: 24.17)
-[17:04:32] [INFO] 📊 Server 3 has higher priority (25.38 > 24.17), deferring
-[17:04:33] [INFO] 👑 Server 3 acknowledges 2 as LEADER
-[17:04:34] [INFO] 👑 Server 3 acknowledges 2 as LEADER
-[17:04:45] [ERROR] ❌ Error sending to peer 1: Broken pipe (os error 32)
-[17:04:45] [WARN] ⚠️  Server 3 lost connection to peer 1
+[19:05:34] [INFO] 🚀 Server 3 starting on 127.0.0.1:9003
+[19:05:34] [INFO] 📡 Server 3 listening on 127.0.0.1:9003
+[19:05:37] [INFO] ⏰ Initial election timer expired, starting election...
+[19:05:37] [INFO] 🗳️  Server 3 initiating election
+[19:05:37] [INFO] 📊 Server 3 priority: 3.75 (CPU: 2.2%, Tasks: 0, Memory: 87.8% available)
+[19:05:37] [INFO] 📤 Server 3 broadcasting ELECTION message
+[19:05:37] [INFO] ⏳ Server 3 waiting 2s for election responses...
+[19:05:39] [INFO] 🎉 Server 3 won election! (lowest priority score: 3.75)
+[19:05:39] [INFO] 📤 Server 3 broadcasting COORDINATOR message
+[19:05:40] [INFO] 📊 LOAD DISTRIBUTION:
+[19:05:40] [INFO]    Server 3 (me, leader): 4.98
+[19:05:40] [INFO] 📌 Task #1 from TestClient1 assigned to Server 3 (load: 4.98)
+[19:05:40] [INFO] 📥 Server 3 received task #1 from client 'TestClient1' (assigned by leader 3)
+[19:05:40] [INFO] 📊 Server 3 starting task #1 (Active tasks: 1, CPU: 5.1%)
+[19:05:40] [INFO] 📷 Server 3 processing encryption request #1 from client 'TestClient1'
+[19:05:40] [INFO] 📷 Server 3 processing encryption request #1 from client 'TestClient1'
+[19:05:40] [INFO] ✅ Server 3 completed encryption for request #1
+[19:05:40] [INFO] 💾 Server 3 saved encrypted image to user-data/outputs/encrypted_test_image.jpg
+[19:05:40] [INFO] ✅ Server 3 completed encryption for request #1
+[19:05:40] [INFO] ✅ Server 3 completed task #1 (Remaining tasks: 0, CPU: 5.1%)
+[19:05:42] [INFO] 📊 LOAD DISTRIBUTION:
+[19:05:42] [INFO]    Server 3 (me, leader): 4.11
+[19:05:42] [INFO] 📌 Task #2 from TestClient1 assigned to Server 3 (load: 4.11)
+[19:05:42] [INFO] 📥 Server 3 received task #2 from client 'TestClient1' (assigned by leader 3)
+[19:05:42] [INFO] 📊 Server 3 starting task #2 (Active tasks: 1, CPU: 3.3%)
+[19:05:42] [INFO] 📷 Server 3 processing encryption request #2 from client 'TestClient1'
+[19:05:42] [INFO] 📷 Server 3 processing encryption request #2 from client 'TestClient1'
+[19:05:42] [INFO] ✅ Server 3 completed encryption for request #2
+[19:05:42] [INFO] 💾 Server 3 saved encrypted image to user-data/outputs/encrypted_test_image.jpg
+[19:05:42] [INFO] ✅ Server 3 completed encryption for request #2
+[19:05:42] [INFO] ✅ Server 3 completed task #2 (Remaining tasks: 0, CPU: 3.3%)
+[19:05:44] [INFO] 📊 LOAD DISTRIBUTION:
+[19:05:44] [INFO]    Server 3 (me, leader): 4.12
+[19:05:44] [INFO] 📌 Task #3 from TestClient1 assigned to Server 3 (load: 4.12)
+[19:05:44] [INFO] 📥 Server 3 received task #3 from client 'TestClient1' (assigned by leader 3)
+[19:05:44] [INFO] 📊 Server 3 starting task #3 (Active tasks: 1, CPU: 3.3%)
+[19:05:44] [INFO] 📷 Server 3 processing encryption request #3 from client 'TestClient1'
+[19:05:44] [INFO] 📷 Server 3 processing encryption request #3 from client 'TestClient1'
+[19:05:44] [INFO] ✅ Server 3 completed encryption for request #3
+[19:05:44] [INFO] 💾 Server 3 saved encrypted image to user-data/outputs/encrypted_test_image.jpg
+[19:05:44] [INFO] ✅ Server 3 completed encryption for request #3
+[19:05:44] [INFO] ✅ Server 3 completed task #3 (Remaining tasks: 0, CPU: 2.5%)
+[19:05:47] [INFO] 🤝 Server 3 connected to peer 1
+[19:05:48] [INFO] 🗳️  Server 3 received ELECTION from 1 (priority: 2.77)
+[19:05:48] [INFO] 📊 Server 3 has higher priority (3.26 > 2.77), deferring
+[19:05:49] [INFO] 🤝 Server 3 connected to peer 2
+[19:05:50] [INFO] 📊 LOAD DISTRIBUTION:
+[19:05:50] [INFO]    Server 3 (me, leader): 3.10
+[19:05:50] [INFO]    Server 1: 3.05
+[19:05:50] [INFO]    Server 2: 3.05
+[19:05:50] [INFO] 📌 Task #4 from TestClient1 assigned to Server 1 (load: 3.05)
+[19:05:50] [INFO] 👑 Server 3 acknowledges 1 as LEADER
+[19:05:51] [INFO] 🗳️  Server 3 received ELECTION from 2 (priority: 2.85)
+[19:05:51] [INFO] 📊 Server 3 has higher priority (3.16 > 2.85), deferring
+[19:05:53] [INFO] 👑 Server 3 acknowledges 2 as LEADER

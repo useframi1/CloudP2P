@@ -69,16 +69,20 @@ setup_test_env() {
     mkdir -p "$PROJECT_DIR/user-data/uploads"
     mkdir -p "$PROJECT_DIR/user-data/outputs"
 
-    # Create a test image if it doesn't exist
+    # Check if test image exists, create if needed
     if [ ! -f "$PROJECT_DIR/user-data/uploads/test_image.jpg" ]; then
         print_info "Creating test image..."
         # Create a simple test image using ImageMagick if available
         if command -v convert &> /dev/null; then
             convert -size 800x600 xc:blue "$PROJECT_DIR/user-data/uploads/test_image.jpg"
+            print_success "Test image created"
         else
             print_error "ImageMagick not found. Please place a test_image.jpg in user-data/uploads/"
+            print_info "You can download any JPG image and place it at: user-data/uploads/test_image.jpg"
             exit 1
         fi
+    else
+        print_success "Test image found ($(du -h "$PROJECT_DIR/user-data/uploads/test_image.jpg" | cut -f1))"
     fi
 
     # Build the project
@@ -98,7 +102,13 @@ cleanup() {
     print_info "Cleaning up..."
     stop_all_servers
     stop_all_clients
-    sleep 1
+
+    # Aggressively kill any remaining server/client processes
+    pkill -9 -f "target/release/server" 2>/dev/null || true
+    pkill -9 -f "target/release/client" 2>/dev/null || true
+
+    # Wait longer for TCP ports to be released
+    sleep 3
 }
 
 # ============================================================================
@@ -111,12 +121,12 @@ start_server() {
     local log_file="$LOGS_DIR/server${server_id}.log"
 
     print_info "Starting Server $server_id..."
-    "$PROJECT_DIR/target/release/server" -c "$config_file" > "$log_file" 2>&1 &
+    (cd "$PROJECT_DIR" && "$PROJECT_DIR/target/release/server" -c "$config_file" > "$log_file" 2>&1) &
     local pid=$!
     SERVER_PIDS[$server_id]=$pid
 
     # Wait a moment for server to start
-    sleep 1
+    sleep 3
 
     if ps -p $pid > /dev/null; then
         print_success "Server $server_id started (PID: $pid)"
@@ -162,6 +172,8 @@ stop_all_servers() {
     for i in 1 2 3; do
         stop_server $i
     done
+    # Give extra time for ports to be released
+    sleep 2
 }
 
 start_client() {
@@ -170,7 +182,7 @@ start_client() {
     local log_file="$LOGS_DIR/${client_name}.log"
 
     print_info "Starting $client_name..."
-    "$PROJECT_DIR/target/release/client" -c "$config_file" > "$log_file" 2>&1 &
+    (cd "$PROJECT_DIR" && "$PROJECT_DIR/target/release/client" -c "$config_file" > "$log_file" 2>&1) &
     local pid=$!
     CLIENT_PIDS+=($pid)
 
@@ -295,7 +307,7 @@ run_test() {
     local test_name="$1"
     local test_function="$2"
 
-    ((TESTS_RUN++))
+    TESTS_RUN=$((TESTS_RUN + 1))
     print_test "$TESTS_RUN" "$test_name"
 
     # Clean up before test
@@ -304,10 +316,10 @@ run_test() {
 
     # Run test
     if $test_function; then
-        ((TESTS_PASSED++))
+        TESTS_PASSED=$((TESTS_PASSED + 1))
         print_success "TEST PASSED: $test_name"
     else
-        ((TESTS_FAILED++))
+        TESTS_FAILED=$((TESTS_FAILED + 1))
         FAILED_TESTS+=("$test_name")
         print_error "TEST FAILED: $test_name"
     fi
