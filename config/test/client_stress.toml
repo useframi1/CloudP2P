@@ -1,0 +1,13 @@
+[client]
+name = "StressClient"
+server_addresses = [
+    "127.0.0.1:9001",
+    "127.0.0.1:9002",
+    "127.0.0.1:9003"
+]
+
+[requests]
+rate_per_second = 2.0
+duration_seconds = 15.0
+request_processing_ms = 2000
+load_per_request = 0.15

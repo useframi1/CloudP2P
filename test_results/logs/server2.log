@@ -1,0 +1,49 @@
+[17:04:28] [INFO] 🚀 Server 2 starting on 127.0.0.1:9002
+[17:04:28] [INFO] 📡 Server 2 listening on 127.0.0.1:9002
+[17:04:29] [INFO] 🤝 Server 2 connected to peer 3
+[17:04:29] [INFO] 🤝 Server 2 connected to peer 1
+[17:04:31] [INFO] 🗳️  Server 2 received ELECTION from 1 (priority: 31.47)
+[17:04:31] [INFO] 💪 Server 2 has lower priority (30.97 < 31.47), responding with ALIVE
+[17:04:31] [INFO] 🗳️  Server 2 initiating election
+[17:04:31] [INFO] 📊 Server 2 priority: 30.97 (CPU: 21.9%, Tasks: 0, Memory: 0.0% available)
+[17:04:31] [INFO] 📤 Server 2 broadcasting ELECTION message
+[17:04:31] [INFO] ⏳ Server 2 waiting 2s for election responses...
+[17:04:32] [INFO] ⏰ Initial election timer expired, starting election...
+[17:04:32] [INFO] 🗳️  Server 2 initiating election
+[17:04:32] [INFO] 📊 Server 2 priority: 24.17 (CPU: 8.3%, Tasks: 0, Memory: 0.0% available)
+[17:04:32] [INFO] 📤 Server 2 broadcasting ELECTION message
+[17:04:32] [INFO] ⏳ Server 2 waiting 2s for election responses...
+[17:04:33] [INFO] 🎉 Server 2 won election! (lowest priority score: 30.97)
+[17:04:33] [INFO] 📤 Server 2 broadcasting COORDINATOR message
+[17:04:33] [INFO] 📊 LOAD DISTRIBUTION:
+[17:04:33] [INFO]    Server 2 (me, leader): 28.55
+[17:04:33] [INFO]    Server 3: 28.68
+[17:04:33] [INFO]    Server 1: 26.47
+[17:04:33] [INFO] 📌 Task #1 from TestClient1 assigned to Server 1 (load: 26.47)
+[17:04:34] [INFO] 🎉 Server 2 won election! (lowest priority score: 24.17)
+[17:04:34] [INFO] 📤 Server 2 broadcasting COORDINATOR message
+[17:04:36] [INFO] 📊 LOAD DISTRIBUTION:
+[17:04:36] [INFO]    Server 2 (me, leader): 31.53
+[17:04:36] [INFO]    Server 3: 31.81
+[17:04:36] [INFO]    Server 1: 31.76
+[17:04:36] [INFO] 📌 Task #2 from TestClient1 assigned to Server 2 (load: 31.53)
+[17:04:36] [INFO] 📥 Server 2 received task #2 from 🔵 TestClient1 (assigned by leader 2)
+[17:04:36] [INFO] 📊 Server 2 starting task #2 (Active tasks: 1, CPU: 23.1%)
+[17:04:36] [INFO] 📷 Server 2 processing encryption request #2 from 🔵 TestClient1
+[17:04:36] [INFO] ✅ Server 2 completed encryption for request #2
+[17:04:36] [INFO] ✅ Server 2 completed task #2 (Remaining tasks: 0, CPU: 23.1%)
+[17:04:38] [INFO] 📊 LOAD DISTRIBUTION:
+[17:04:38] [INFO]    Server 2 (me, leader): 30.48
+[17:04:38] [INFO]    Server 3: 24.39
+[17:04:38] [INFO]    Server 1: 23.95
+[17:04:38] [INFO] 📌 Task #3 from TestClient1 assigned to Server 1 (load: 23.95)
+[17:04:40] [INFO] 📊 LOAD DISTRIBUTION:
+[17:04:40] [INFO]    Server 2 (me, leader): 32.18
+[17:04:40] [INFO]    Server 3: 32.26
+[17:04:40] [INFO]    Server 1: 32.08
+[17:04:40] [INFO] 📌 Task #4 from TestClient1 assigned to Server 1 (load: 32.08)
+[17:04:42] [INFO] 📊 LOAD DISTRIBUTION:
+[17:04:42] [INFO]    Server 2 (me, leader): 35.38
+[17:04:42] [INFO]    Server 3: 32.44
+[17:04:42] [INFO]    Server 1: 32.08
+[17:04:42] [INFO] 📌 Task #5 from TestClient1 assigned to Server 1 (load: 32.08)

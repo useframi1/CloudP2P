@@ -1,17 +1,17 @@
 [server]
-id = 1
-address = "127.0.0.1:8001"
+id = 3
+address = "127.0.0.1:9003"
 
 [peers]
 peers = [
-    { id = 2, address = "127.0.0.1:8002" },
-    { id = 3, address = "127.0.0.1:8003" }
+    { id = 1, address = "127.0.0.1:9001" },
+    { id = 2, address = "127.0.0.1:9002" }
 ]
 
 [election]
 heartbeat_interval_secs = 1
 election_timeout_secs = 2
-failure_timeout_secs = 3
+failure_timeout_secs = 4
 monitor_interval_secs = 1
 
 [encryption]

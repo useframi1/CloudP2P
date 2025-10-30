@@ -1,0 +1,37 @@
+[17:04:27] [INFO] 🚀 Server 1 starting on 127.0.0.1:9001
+[17:04:27] [INFO] 📡 Server 1 listening on 127.0.0.1:9001
+[17:04:28] [INFO] 🤝 Server 1 connected to peer 3
+[17:04:30] [INFO] 🤝 Server 1 connected to peer 2
+[17:04:31] [INFO] ⏰ Initial election timer expired, starting election...
+[17:04:31] [INFO] 🗳️  Server 1 initiating election
+[17:04:31] [INFO] 📊 Server 1 priority: 31.47 (CPU: 22.9%, Tasks: 0, Memory: 0.0% available)
+[17:04:31] [INFO] 📤 Server 1 broadcasting ELECTION message
+[17:04:31] [INFO] ⏳ Server 1 waiting 2s for election responses...
+[17:04:31] [INFO] 👋 Server 1 received ALIVE from 2 (they have lower priority)
+[17:04:31] [INFO] 🗳️  Server 1 received ELECTION from 2 (priority: 30.97)
+[17:04:31] [INFO] 📊 Server 1 has higher priority (31.47 > 30.97), deferring
+[17:04:32] [INFO] 🗳️  Server 1 received ELECTION from 2 (priority: 24.17)
+[17:04:32] [INFO] 📊 Server 1 has higher priority (25.01 > 24.17), deferring
+[17:04:33] [INFO] 📊 Server 1 lost election (higher load than others)
+[17:04:33] [INFO] 👑 Server 1 acknowledges 2 as LEADER
+[17:04:33] [INFO] 📥 Server 1 received task #1 from 🔵 TestClient1 (assigned by leader 2)
+[17:04:33] [INFO] 📊 Server 1 starting task #1 (Active tasks: 1, CPU: 18.1%)
+[17:04:33] [INFO] 📷 Server 1 processing encryption request #1 from 🔵 TestClient1
+[17:04:34] [INFO] ✅ Server 1 completed encryption for request #1
+[17:04:34] [INFO] ✅ Server 1 completed task #1 (Remaining tasks: 0, CPU: 18.1%)
+[17:04:34] [INFO] 👑 Server 1 acknowledges 2 as LEADER
+[17:04:38] [INFO] 📥 Server 1 received task #3 from 🔵 TestClient1 (assigned by leader 2)
+[17:04:38] [INFO] 📊 Server 1 starting task #3 (Active tasks: 1, CPU: 22.5%)
+[17:04:38] [INFO] 📷 Server 1 processing encryption request #3 from 🔵 TestClient1
+[17:04:38] [INFO] ✅ Server 1 completed encryption for request #3
+[17:04:38] [INFO] ✅ Server 1 completed task #3 (Remaining tasks: 0, CPU: 22.5%)
+[17:04:40] [INFO] 📥 Server 1 received task #4 from 🔵 TestClient1 (assigned by leader 2)
+[17:04:40] [INFO] 📊 Server 1 starting task #4 (Active tasks: 1, CPU: 24.4%)
+[17:04:40] [INFO] 📷 Server 1 processing encryption request #4 from 🔵 TestClient1
+[17:04:40] [INFO] ✅ Server 1 completed encryption for request #4
+[17:04:40] [INFO] ✅ Server 1 completed task #4 (Remaining tasks: 0, CPU: 24.4%)
+[17:04:42] [INFO] 📥 Server 1 received task #5 from 🔵 TestClient1 (assigned by leader 2)
+[17:04:42] [INFO] 📊 Server 1 starting task #5 (Active tasks: 1, CPU: 30.3%)
+[17:04:42] [INFO] 📷 Server 1 processing encryption request #5 from 🔵 TestClient1
+[17:04:42] [INFO] ✅ Server 1 completed encryption for request #5
+[17:04:42] [INFO] ✅ Server 1 completed task #5 (Remaining tasks: 0, CPU: 30.3%)

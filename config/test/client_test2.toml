@@ -1,0 +1,13 @@
+[client]
+name = "TestClient2"
+server_addresses = [
+    "127.0.0.1:9001",
+    "127.0.0.1:9002",
+    "127.0.0.1:9003"
+]
+
+[requests]
+rate_per_second = 0.5
+duration_seconds = 10.0
+request_processing_ms = 5000
+load_per_request = 0.1

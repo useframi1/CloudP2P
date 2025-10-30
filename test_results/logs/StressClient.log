@@ -1,0 +1,303 @@
+[17:03:52] [INFO] 🔵 Client 'StressClient' starting
+[17:03:52] [INFO] ⏳ Client 'StressClient' sending requests for 15 seconds...
+[17:03:52] [INFO] 🔍 StressClient Finding leader for task #1 (attempt 1/3)
+[17:03:52] [INFO] 🔍 Looking for the current leader...
+[17:03:52] [INFO] 🤝 Found leader: Server 3
+[17:03:52] [INFO] ✅ StressClient Found leader: Server 3 for task #1
+[17:03:52] [INFO] 📋 StressClient Requesting assignment for task #1 from leader 3
+[17:03:52] [INFO] ✅ StressClient Task #1 assigned to Server 3 at 127.0.0.1:9003
+[17:03:52] [INFO] 📤 StressClient Sending task #1 to Server 3
+[17:03:52] [INFO] ✅ StressClient Saved encrypted image for task #1
+[17:03:52] [INFO] ✅ StressClient Encryption VERIFIED for task #1
+[17:03:52] [INFO] ✅ StressClient Task #1 completed successfully
+[17:03:53] [INFO] 🔍 StressClient Finding leader for task #2 (attempt 1/3)
+[17:03:53] [INFO] 🔍 Looking for the current leader...
+[17:03:53] [INFO] 🤝 Found leader: Server 3
+[17:03:53] [INFO] ✅ StressClient Found leader: Server 3 for task #2
+[17:03:53] [INFO] 📋 StressClient Requesting assignment for task #2 from leader 3
+[17:03:53] [INFO] ✅ StressClient Task #2 assigned to Server 3 at 127.0.0.1:9003
+[17:03:53] [INFO] 📤 StressClient Sending task #2 to Server 3
+[17:03:53] [INFO] ✅ StressClient Saved encrypted image for task #2
+[17:03:53] [INFO] ✅ StressClient Encryption VERIFIED for task #2
+[17:03:53] [INFO] ✅ StressClient Task #2 completed successfully
+[17:03:54] [INFO] 🔍 StressClient Finding leader for task #3 (attempt 1/3)
+[17:03:54] [INFO] 🔍 Looking for the current leader...
+[17:03:54] [INFO] 🤝 Found leader: Server 3
+[17:03:54] [INFO] ✅ StressClient Found leader: Server 3 for task #3
+[17:03:54] [INFO] 📋 StressClient Requesting assignment for task #3 from leader 3
+[17:03:54] [INFO] ✅ StressClient Task #3 assigned to Server 2 at 127.0.0.1:9002
+[17:03:54] [INFO] 📤 StressClient Sending task #3 to Server 2
+[17:03:54] [INFO] ✅ StressClient Saved encrypted image for task #3
+[17:03:54] [INFO] ✅ StressClient Encryption VERIFIED for task #3
+[17:03:54] [INFO] ✅ StressClient Task #3 completed successfully
+[17:03:54] [INFO] 🔍 StressClient Finding leader for task #4 (attempt 1/3)
+[17:03:54] [INFO] 🔍 Looking for the current leader...
+[17:03:54] [INFO] 🤝 Found leader: Server 3
+[17:03:54] [INFO] ✅ StressClient Found leader: Server 3 for task #4
+[17:03:54] [INFO] 📋 StressClient Requesting assignment for task #4 from leader 3
+[17:03:54] [INFO] ✅ StressClient Task #4 assigned to Server 2 at 127.0.0.1:9002
+[17:03:54] [INFO] 📤 StressClient Sending task #4 to Server 2
+[17:03:54] [INFO] ✅ StressClient Saved encrypted image for task #4
+[17:03:54] [INFO] ✅ StressClient Encryption VERIFIED for task #4
+[17:03:54] [INFO] ✅ StressClient Task #4 completed successfully
+[17:03:55] [INFO] 🔍 StressClient Finding leader for task #5 (attempt 1/3)
+[17:03:55] [INFO] 🔍 Looking for the current leader...
+[17:03:55] [INFO] 🤝 Found leader: Server 3
+[17:03:55] [INFO] ✅ StressClient Found leader: Server 3 for task #5
+[17:03:55] [INFO] 📋 StressClient Requesting assignment for task #5 from leader 3
+[17:03:55] [INFO] ✅ StressClient Task #5 assigned to Server 3 at 127.0.0.1:9003
+[17:03:55] [INFO] 📤 StressClient Sending task #5 to Server 3
+[17:03:55] [INFO] ✅ StressClient Saved encrypted image for task #5
+[17:03:55] [INFO] ✅ StressClient Encryption VERIFIED for task #5
+[17:03:55] [INFO] ✅ StressClient Task #5 completed successfully
+[17:03:56] [INFO] 🔍 StressClient Finding leader for task #6 (attempt 1/3)
+[17:03:56] [INFO] 🔍 Looking for the current leader...
+[17:03:56] [INFO] 🤝 Found leader: Server 3
+[17:03:56] [INFO] ✅ StressClient Found leader: Server 3 for task #6
+[17:03:56] [INFO] 📋 StressClient Requesting assignment for task #6 from leader 3
+[17:03:56] [INFO] ✅ StressClient Task #6 assigned to Server 1 at 127.0.0.1:9001
+[17:03:56] [INFO] 📤 StressClient Sending task #6 to Server 1
+[17:03:56] [INFO] ✅ StressClient Saved encrypted image for task #6
+[17:03:56] [INFO] ✅ StressClient Encryption VERIFIED for task #6
+[17:03:56] [INFO] ✅ StressClient Task #6 completed successfully
+[17:03:56] [INFO] 🔍 StressClient Finding leader for task #7 (attempt 1/3)
+[17:03:56] [INFO] 🔍 Looking for the current leader...
+[17:03:56] [INFO] 🤝 Found leader: Server 3
+[17:03:56] [INFO] ✅ StressClient Found leader: Server 3 for task #7
+[17:03:56] [INFO] 📋 StressClient Requesting assignment for task #7 from leader 3
+[17:03:56] [INFO] ✅ StressClient Task #7 assigned to Server 1 at 127.0.0.1:9001
+[17:03:56] [INFO] 📤 StressClient Sending task #7 to Server 1
+[17:03:56] [INFO] ✅ StressClient Saved encrypted image for task #7
+[17:03:56] [INFO] ✅ StressClient Encryption VERIFIED for task #7
+[17:03:56] [INFO] ✅ StressClient Task #7 completed successfully
+[17:03:57] [INFO] 🔍 StressClient Finding leader for task #8 (attempt 1/3)
+[17:03:57] [INFO] 🔍 Looking for the current leader...
+[17:03:57] [INFO] 🤝 Found leader: Server 3
+[17:03:57] [INFO] ✅ StressClient Found leader: Server 3 for task #8
+[17:03:57] [INFO] 📋 StressClient Requesting assignment for task #8 from leader 3
+[17:03:57] [INFO] ✅ StressClient Task #8 assigned to Server 3 at 127.0.0.1:9003
+[17:03:57] [INFO] 📤 StressClient Sending task #8 to Server 3
+[17:03:57] [INFO] ✅ StressClient Saved encrypted image for task #8
+[17:03:57] [INFO] ✅ StressClient Encryption VERIFIED for task #8
+[17:03:57] [INFO] ✅ StressClient Task #8 completed successfully
+[17:03:57] [INFO] 🔍 StressClient Finding leader for task #9 (attempt 1/3)
+[17:03:57] [INFO] 🔍 Looking for the current leader...
+[17:03:57] [INFO] 🤝 Found leader: Server 3
+[17:03:57] [INFO] ✅ StressClient Found leader: Server 3 for task #9
+[17:03:57] [INFO] 📋 StressClient Requesting assignment for task #9 from leader 3
+[17:03:57] [INFO] ✅ StressClient Task #9 assigned to Server 2 at 127.0.0.1:9002
+[17:03:57] [INFO] 📤 StressClient Sending task #9 to Server 2
+[17:03:58] [INFO] ✅ StressClient Saved encrypted image for task #9
+[17:03:58] [INFO] ✅ StressClient Encryption VERIFIED for task #9
+[17:03:58] [INFO] ✅ StressClient Task #9 completed successfully
+[17:03:58] [INFO] 🔍 StressClient Finding leader for task #10 (attempt 1/3)
+[17:03:58] [INFO] 🔍 Looking for the current leader...
+[17:03:58] [INFO] 🤝 Found leader: Server 3
+[17:03:58] [INFO] ✅ StressClient Found leader: Server 3 for task #10
+[17:03:58] [INFO] 📋 StressClient Requesting assignment for task #10 from leader 3
+[17:03:58] [INFO] ✅ StressClient Task #10 assigned to Server 2 at 127.0.0.1:9002
+[17:03:58] [INFO] 📤 StressClient Sending task #10 to Server 2
+[17:03:58] [INFO] ✅ StressClient Saved encrypted image for task #10
+[17:03:58] [INFO] ✅ StressClient Encryption VERIFIED for task #10
+[17:03:58] [INFO] ✅ StressClient Task #10 completed successfully
+[17:03:59] [INFO] 🔍 StressClient Finding leader for task #11 (attempt 1/3)
+[17:03:59] [INFO] 🔍 Looking for the current leader...
+[17:03:59] [INFO] 🤝 Found leader: Server 3
+[17:03:59] [INFO] ✅ StressClient Found leader: Server 3 for task #11
+[17:03:59] [INFO] 📋 StressClient Requesting assignment for task #11 from leader 3
+[17:03:59] [INFO] ✅ StressClient Task #11 assigned to Server 2 at 127.0.0.1:9002
+[17:03:59] [INFO] 📤 StressClient Sending task #11 to Server 2
+[17:03:59] [INFO] ✅ StressClient Saved encrypted image for task #11
+[17:03:59] [INFO] ✅ StressClient Encryption VERIFIED for task #11
+[17:03:59] [INFO] ✅ StressClient Task #11 completed successfully
+[17:03:59] [INFO] 🔍 StressClient Finding leader for task #12 (attempt 1/3)
+[17:03:59] [INFO] 🔍 Looking for the current leader...
+[17:03:59] [INFO] 🤝 Found leader: Server 3
+[17:03:59] [INFO] ✅ StressClient Found leader: Server 3 for task #12
+[17:03:59] [INFO] 📋 StressClient Requesting assignment for task #12 from leader 3
+[17:03:59] [INFO] ✅ StressClient Task #12 assigned to Server 3 at 127.0.0.1:9003
+[17:03:59] [INFO] 📤 StressClient Sending task #12 to Server 3
+[17:03:59] [INFO] ✅ StressClient Saved encrypted image for task #12
+[17:03:59] [INFO] ✅ StressClient Encryption VERIFIED for task #12
+[17:03:59] [INFO] ✅ StressClient Task #12 completed successfully
+[17:04:00] [INFO] 🔍 StressClient Finding leader for task #13 (attempt 1/3)
+[17:04:00] [INFO] 🔍 Looking for the current leader...
+[17:04:00] [INFO] 🤝 Found leader: Server 3
+[17:04:00] [INFO] ✅ StressClient Found leader: Server 3 for task #13
+[17:04:00] [INFO] 📋 StressClient Requesting assignment for task #13 from leader 3
+[17:04:00] [INFO] ✅ StressClient Task #13 assigned to Server 3 at 127.0.0.1:9003
+[17:04:00] [INFO] 📤 StressClient Sending task #13 to Server 3
+[17:04:00] [INFO] ✅ StressClient Saved encrypted image for task #13
+[17:04:00] [INFO] ✅ StressClient Encryption VERIFIED for task #13
+[17:04:00] [INFO] ✅ StressClient Task #13 completed successfully
+[17:04:01] [INFO] 🔍 StressClient Finding leader for task #14 (attempt 1/3)
+[17:04:01] [INFO] 🔍 Looking for the current leader...
+[17:04:01] [INFO] 🤝 Found leader: Server 3
+[17:04:01] [INFO] ✅ StressClient Found leader: Server 3 for task #14
+[17:04:01] [INFO] 📋 StressClient Requesting assignment for task #14 from leader 3
+[17:04:01] [INFO] ✅ StressClient Task #14 assigned to Server 1 at 127.0.0.1:9001
+[17:04:01] [INFO] 📤 StressClient Sending task #14 to Server 1
+[17:04:01] [INFO] ✅ StressClient Saved encrypted image for task #14
+[17:04:01] [INFO] ✅ StressClient Encryption VERIFIED for task #14
+[17:04:01] [INFO] ✅ StressClient Task #14 completed successfully
+[17:04:01] [INFO] 🔍 StressClient Finding leader for task #15 (attempt 1/3)
+[17:04:01] [INFO] 🔍 Looking for the current leader...
+[17:04:01] [INFO] 🤝 Found leader: Server 3
+[17:04:01] [INFO] ✅ StressClient Found leader: Server 3 for task #15
+[17:04:01] [INFO] 📋 StressClient Requesting assignment for task #15 from leader 3
+[17:04:01] [INFO] ✅ StressClient Task #15 assigned to Server 1 at 127.0.0.1:9001
+[17:04:01] [INFO] 📤 StressClient Sending task #15 to Server 1
+[17:04:01] [INFO] ✅ StressClient Saved encrypted image for task #15
+[17:04:01] [INFO] ✅ StressClient Encryption VERIFIED for task #15
+[17:04:01] [INFO] ✅ StressClient Task #15 completed successfully
+[17:04:02] [INFO] 🔍 StressClient Finding leader for task #16 (attempt 1/3)
+[17:04:02] [INFO] 🔍 Looking for the current leader...
+[17:04:02] [INFO] 🤝 Found leader: Server 3
+[17:04:02] [INFO] ✅ StressClient Found leader: Server 3 for task #16
+[17:04:02] [INFO] 📋 StressClient Requesting assignment for task #16 from leader 3
+[17:04:02] [INFO] ✅ StressClient Task #16 assigned to Server 3 at 127.0.0.1:9003
+[17:04:02] [INFO] 📤 StressClient Sending task #16 to Server 3
+[17:04:02] [INFO] ✅ StressClient Saved encrypted image for task #16
+[17:04:02] [INFO] ✅ StressClient Encryption VERIFIED for task #16
+[17:04:02] [INFO] ✅ StressClient Task #16 completed successfully
+[17:04:02] [INFO] 🔍 StressClient Finding leader for task #17 (attempt 1/3)
+[17:04:02] [INFO] 🔍 Looking for the current leader...
+[17:04:02] [INFO] 🤝 Found leader: Server 3
+[17:04:02] [INFO] ✅ StressClient Found leader: Server 3 for task #17
+[17:04:02] [INFO] 📋 StressClient Requesting assignment for task #17 from leader 3
+[17:04:02] [INFO] ✅ StressClient Task #17 assigned to Server 2 at 127.0.0.1:9002
+[17:04:02] [INFO] 📤 StressClient Sending task #17 to Server 2
+[17:04:03] [INFO] ✅ StressClient Saved encrypted image for task #17
+[17:04:03] [INFO] ✅ StressClient Encryption VERIFIED for task #17
+[17:04:03] [INFO] ✅ StressClient Task #17 completed successfully
+[17:04:03] [INFO] 🔍 StressClient Finding leader for task #18 (attempt 1/3)
+[17:04:03] [INFO] 🔍 Looking for the current leader...
+[17:04:03] [INFO] 🤝 Found leader: Server 3
+[17:04:03] [INFO] ✅ StressClient Found leader: Server 3 for task #18
+[17:04:03] [INFO] 📋 StressClient Requesting assignment for task #18 from leader 3
+[17:04:03] [INFO] ✅ StressClient Task #18 assigned to Server 2 at 127.0.0.1:9002
+[17:04:03] [INFO] 📤 StressClient Sending task #18 to Server 2
+[17:04:03] [INFO] ✅ StressClient Saved encrypted image for task #18
+[17:04:03] [INFO] ✅ StressClient Encryption VERIFIED for task #18
+[17:04:03] [INFO] ✅ StressClient Task #18 completed successfully
+[17:04:04] [INFO] 🔍 StressClient Finding leader for task #19 (attempt 1/3)
+[17:04:04] [INFO] 🔍 Looking for the current leader...
+[17:04:04] [INFO] 🤝 Found leader: Server 3
+[17:04:04] [INFO] ✅ StressClient Found leader: Server 3 for task #19
+[17:04:04] [INFO] 📋 StressClient Requesting assignment for task #19 from leader 3
+[17:04:04] [INFO] ✅ StressClient Task #19 assigned to Server 2 at 127.0.0.1:9002
+[17:04:04] [INFO] 📤 StressClient Sending task #19 to Server 2
+[17:04:04] [INFO] ✅ StressClient Saved encrypted image for task #19
+[17:04:04] [INFO] ✅ StressClient Encryption VERIFIED for task #19
+[17:04:04] [INFO] ✅ StressClient Task #19 completed successfully
+[17:04:04] [INFO] 🔍 StressClient Finding leader for task #20 (attempt 1/3)
+[17:04:04] [INFO] 🔍 Looking for the current leader...
+[17:04:04] [INFO] 🤝 Found leader: Server 3
+[17:04:04] [INFO] ✅ StressClient Found leader: Server 3 for task #20
+[17:04:04] [INFO] 📋 StressClient Requesting assignment for task #20 from leader 3
+[17:04:04] [INFO] ✅ StressClient Task #20 assigned to Server 3 at 127.0.0.1:9003
+[17:04:04] [INFO] 📤 StressClient Sending task #20 to Server 3
+[17:04:04] [INFO] ✅ StressClient Saved encrypted image for task #20
+[17:04:04] [INFO] ✅ StressClient Encryption VERIFIED for task #20
+[17:04:04] [INFO] ✅ StressClient Task #20 completed successfully
+[17:04:05] [INFO] 🔍 StressClient Finding leader for task #21 (attempt 1/3)
+[17:04:05] [INFO] 🔍 Looking for the current leader...
+[17:04:05] [INFO] 🤝 Found leader: Server 3
+[17:04:05] [INFO] ✅ StressClient Found leader: Server 3 for task #21
+[17:04:05] [INFO] 📋 StressClient Requesting assignment for task #21 from leader 3
+[17:04:05] [INFO] ✅ StressClient Task #21 assigned to Server 3 at 127.0.0.1:9003
+[17:04:05] [INFO] 📤 StressClient Sending task #21 to Server 3
+[17:04:05] [INFO] ✅ StressClient Saved encrypted image for task #21
+[17:04:05] [INFO] ✅ StressClient Encryption VERIFIED for task #21
+[17:04:05] [INFO] ✅ StressClient Task #21 completed successfully
+[17:04:06] [INFO] 🔍 StressClient Finding leader for task #22 (attempt 1/3)
+[17:04:06] [INFO] 🔍 Looking for the current leader...
+[17:04:06] [INFO] 🤝 Found leader: Server 3
+[17:04:06] [INFO] ✅ StressClient Found leader: Server 3 for task #22
+[17:04:06] [INFO] 📋 StressClient Requesting assignment for task #22 from leader 3
+[17:04:06] [INFO] ✅ StressClient Task #22 assigned to Server 3 at 127.0.0.1:9003
+[17:04:06] [INFO] 📤 StressClient Sending task #22 to Server 3
+[17:04:06] [INFO] ✅ StressClient Saved encrypted image for task #22
+[17:04:06] [INFO] ✅ StressClient Encryption VERIFIED for task #22
+[17:04:06] [INFO] ✅ StressClient Task #22 completed successfully
+[17:04:06] [INFO] 🔍 StressClient Finding leader for task #23 (attempt 1/3)
+[17:04:06] [INFO] 🔍 Looking for the current leader...
+[17:04:06] [INFO] 🤝 Found leader: Server 3
+[17:04:06] [INFO] ✅ StressClient Found leader: Server 3 for task #23
+[17:04:06] [INFO] 📋 StressClient Requesting assignment for task #23 from leader 3
+[17:04:06] [INFO] ✅ StressClient Task #23 assigned to Server 3 at 127.0.0.1:9003
+[17:04:06] [INFO] 📤 StressClient Sending task #23 to Server 3
+[17:04:06] [INFO] ✅ StressClient Saved encrypted image for task #23
+[17:04:06] [INFO] ✅ StressClient Encryption VERIFIED for task #23
+[17:04:06] [INFO] ✅ StressClient Task #23 completed successfully
+[17:04:07] [INFO] 🔍 StressClient Finding leader for task #24 (attempt 1/3)
+[17:04:07] [INFO] 🔍 Looking for the current leader...
+[17:04:07] [INFO] 🤝 Found leader: Server 3
+[17:04:07] [INFO] ✅ StressClient Found leader: Server 3 for task #24
+[17:04:07] [INFO] 📋 StressClient Requesting assignment for task #24 from leader 3
+[17:04:07] [INFO] ✅ StressClient Task #24 assigned to Server 2 at 127.0.0.1:9002
+[17:04:07] [INFO] 📤 StressClient Sending task #24 to Server 2
+[17:04:07] [INFO] ✅ StressClient Saved encrypted image for task #24
+[17:04:07] [INFO] ✅ StressClient Encryption VERIFIED for task #24
+[17:04:07] [INFO] ✅ StressClient Task #24 completed successfully
+[17:04:07] [INFO] 🔍 StressClient Finding leader for task #25 (attempt 1/3)
+[17:04:07] [INFO] 🔍 Looking for the current leader...
+[17:04:07] [INFO] 🤝 Found leader: Server 3
+[17:04:07] [INFO] ✅ StressClient Found leader: Server 3 for task #25
+[17:04:07] [INFO] 📋 StressClient Requesting assignment for task #25 from leader 3
+[17:04:07] [INFO] ✅ StressClient Task #25 assigned to Server 1 at 127.0.0.1:9001
+[17:04:07] [INFO] 📤 StressClient Sending task #25 to Server 1
+[17:04:08] [INFO] ✅ StressClient Saved encrypted image for task #25
+[17:04:08] [INFO] ✅ StressClient Encryption VERIFIED for task #25
+[17:04:08] [INFO] ✅ StressClient Task #25 completed successfully
+[17:04:08] [INFO] 🔍 StressClient Finding leader for task #26 (attempt 1/3)
+[17:04:08] [INFO] 🔍 Looking for the current leader...
+[17:04:08] [INFO] 🤝 Found leader: Server 3
+[17:04:08] [INFO] ✅ StressClient Found leader: Server 3 for task #26
+[17:04:08] [INFO] 📋 StressClient Requesting assignment for task #26 from leader 3
+[17:04:08] [INFO] ✅ StressClient Task #26 assigned to Server 3 at 127.0.0.1:9003
+[17:04:08] [INFO] 📤 StressClient Sending task #26 to Server 3
+[17:04:08] [INFO] ✅ StressClient Saved encrypted image for task #26
+[17:04:08] [INFO] ✅ StressClient Encryption VERIFIED for task #26
+[17:04:08] [INFO] ✅ StressClient Task #26 completed successfully
+[17:04:09] [INFO] 🔍 StressClient Finding leader for task #27 (attempt 1/3)
+[17:04:09] [INFO] 🔍 Looking for the current leader...
+[17:04:09] [INFO] 🤝 Found leader: Server 3
+[17:04:09] [INFO] ✅ StressClient Found leader: Server 3 for task #27
+[17:04:09] [INFO] 📋 StressClient Requesting assignment for task #27 from leader 3
+[17:04:09] [INFO] ✅ StressClient Task #27 assigned to Server 2 at 127.0.0.1:9002
+[17:04:09] [INFO] 📤 StressClient Sending task #27 to Server 2
+[17:04:09] [INFO] ✅ StressClient Saved encrypted image for task #27
+[17:04:09] [INFO] ✅ StressClient Encryption VERIFIED for task #27
+[17:04:09] [INFO] ✅ StressClient Task #27 completed successfully
+[17:04:09] [INFO] 🔍 StressClient Finding leader for task #28 (attempt 1/3)
+[17:04:09] [INFO] 🔍 Looking for the current leader...
+[17:04:09] [INFO] 🤝 Found leader: Server 3
+[17:04:09] [INFO] ✅ StressClient Found leader: Server 3 for task #28
+[17:04:09] [INFO] 📋 StressClient Requesting assignment for task #28 from leader 3
+[17:04:09] [INFO] ✅ StressClient Task #28 assigned to Server 3 at 127.0.0.1:9003
+[17:04:09] [INFO] 📤 StressClient Sending task #28 to Server 3
+[17:04:09] [INFO] ✅ StressClient Saved encrypted image for task #28
+[17:04:09] [INFO] ✅ StressClient Encryption VERIFIED for task #28
+[17:04:09] [INFO] ✅ StressClient Task #28 completed successfully
+[17:04:10] [INFO] 🔍 StressClient Finding leader for task #29 (attempt 1/3)
+[17:04:10] [INFO] 🔍 Looking for the current leader...
+[17:04:10] [INFO] 🤝 Found leader: Server 3
+[17:04:10] [INFO] ✅ StressClient Found leader: Server 3 for task #29
+[17:04:10] [INFO] 📋 StressClient Requesting assignment for task #29 from leader 3
+[17:04:10] [INFO] ✅ StressClient Task #29 assigned to Server 3 at 127.0.0.1:9003
+[17:04:10] [INFO] 📤 StressClient Sending task #29 to Server 3
+[17:04:10] [INFO] ✅ StressClient Saved encrypted image for task #29
+[17:04:10] [INFO] ✅ StressClient Encryption VERIFIED for task #29
+[17:04:10] [INFO] ✅ StressClient Task #29 completed successfully
+[17:04:11] [INFO] 🔍 StressClient Finding leader for task #30 (attempt 1/3)
+[17:04:11] [INFO] 🔍 Looking for the current leader...
+[17:04:11] [INFO] 🤝 Found leader: Server 3
+[17:04:11] [INFO] ✅ StressClient Found leader: Server 3 for task #30
+[17:04:11] [INFO] 📋 StressClient Requesting assignment for task #30 from leader 3
+[17:04:11] [INFO] ✅ StressClient Task #30 assigned to Server 1 at 127.0.0.1:9001
+[17:04:11] [INFO] 📤 StressClient Sending task #30 to Server 1
+[17:04:11] [INFO] ✅ StressClient Saved encrypted image for task #30
+[17:04:11] [INFO] ✅ StressClient Encryption VERIFIED for task #30
+[17:04:11] [INFO] ✅ StressClient Task #30 completed successfully
+[17:04:11] [INFO] ✅ Client finished sending 30 requests

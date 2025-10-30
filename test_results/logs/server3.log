@@ -1,0 +1,21 @@
+[17:04:18] [INFO] 🚀 Server 3 starting on 127.0.0.1:9003
+[17:04:18] [INFO] 📡 Server 3 listening on 127.0.0.1:9003
+[17:04:22] [INFO] ⏰ Initial election timer expired, starting election...
+[17:04:22] [INFO] 🗳️  Server 3 initiating election
+[17:04:22] [INFO] 📊 Server 3 priority: 23.30 (CPU: 6.6%, Tasks: 0, Memory: 0.0% available)
+[17:04:22] [INFO] 📤 Server 3 broadcasting ELECTION message
+[17:04:22] [INFO] ⏳ Server 3 waiting 2s for election responses...
+[17:04:24] [INFO] 🎉 Server 3 won election! (lowest priority score: 23.30)
+[17:04:24] [INFO] 📤 Server 3 broadcasting COORDINATOR message
+[17:04:29] [INFO] 🤝 Server 3 connected to peer 2
+[17:04:29] [INFO] 🤝 Server 3 connected to peer 1
+[17:04:31] [INFO] 🗳️  Server 3 received ELECTION from 1 (priority: 31.47)
+[17:04:31] [INFO] 📊 Server 3 has higher priority (31.64 > 31.47), deferring
+[17:04:31] [INFO] 🗳️  Server 3 received ELECTION from 2 (priority: 30.97)
+[17:04:31] [INFO] 📊 Server 3 has higher priority (31.64 > 30.97), deferring
+[17:04:32] [INFO] 🗳️  Server 3 received ELECTION from 2 (priority: 24.17)
+[17:04:32] [INFO] 📊 Server 3 has higher priority (25.38 > 24.17), deferring
+[17:04:33] [INFO] 👑 Server 3 acknowledges 2 as LEADER
+[17:04:34] [INFO] 👑 Server 3 acknowledges 2 as LEADER
+[17:04:45] [ERROR] ❌ Error sending to peer 1: Broken pipe (os error 32)
+[17:04:45] [WARN] ⚠️  Server 3 lost connection to peer 1
