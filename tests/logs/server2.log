@@ -1,0 +1,22 @@
+[19:53:40] [INFO] 🚀 Server 2 starting on 127.0.0.1:9002
+[19:53:40] [INFO] 📡 Server 2 listening on 127.0.0.1:9002
+[19:53:41] [INFO] 🤝 Server 2 connected to peer 3
+[19:53:41] [INFO] 🤝 Server 2 connected to peer 1
+[19:53:42] [INFO] 🗳️  Server 2 received ELECTION from 1 (priority: 4.44)
+[19:53:42] [INFO] 💪 Server 2 has lower priority (4.31 < 4.44), responding with ALIVE
+[19:53:42] [INFO] 🗳️  Server 2 initiating election
+[19:53:42] [INFO] 📊 Server 2 priority: 4.31 (CPU: 3.3%, Tasks: 0, Memory: 86.6% available)
+[19:53:42] [INFO] 📤 Server 2 broadcasting ELECTION message
+[19:53:42] [INFO] ⏳ Server 2 waiting 2s for election responses...
+[19:53:43] [INFO] ⏰ Initial election timer expired, starting election...
+[19:53:43] [INFO] 🗳️  Server 2 initiating election
+[19:53:43] [INFO] 📊 Server 2 priority: 4.76 (CPU: 4.2%, Tasks: 0, Memory: 86.7% available)
+[19:53:43] [INFO] 📤 Server 2 broadcasting ELECTION message
+[19:53:43] [INFO] ⏳ Server 2 waiting 2s for election responses...
+[19:53:44] [INFO] 🗳️  Server 2 received ELECTION from 3 (priority: 4.36)
+[19:53:44] [INFO] 📊 Server 2 has higher priority (4.42 > 4.36), deferring
+[19:53:44] [INFO] 🎉 Server 2 won election! (lowest priority score: 4.31)
+[19:53:44] [INFO] 📤 Server 2 broadcasting COORDINATOR message
+[19:53:45] [INFO] 🎉 Server 2 won election! (lowest priority score: 4.76)
+[19:53:45] [INFO] 📤 Server 2 broadcasting COORDINATOR message
+[19:53:46] [INFO] 👑 Server 2 acknowledges 3 as LEADER

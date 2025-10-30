@@ -22,7 +22,7 @@ FAILED_TESTS=()
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TEST_CONFIG_DIR="$PROJECT_DIR/config/test"
 TEST_OUTPUT_DIR="$PROJECT_DIR/test_results"
-LOGS_DIR="$TEST_OUTPUT_DIR/logs"
+LOGS_DIR="$PROJECT_DIR/tests/logs"
 
 # Server/Client PIDs
 declare -a SERVER_PIDS
@@ -126,7 +126,7 @@ start_server() {
     SERVER_PIDS[$server_id]=$pid
 
     # Wait a moment for server to start
-    sleep 3
+    sleep 1
 
     if ps -p $pid > /dev/null; then
         print_success "Server $server_id started (PID: $pid)"

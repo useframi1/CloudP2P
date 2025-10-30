@@ -1,0 +1,20 @@
+[19:53:39] [INFO] 🚀 Server 1 starting on 127.0.0.1:9001
+[19:53:39] [INFO] 📡 Server 1 listening on 127.0.0.1:9001
+[19:53:42] [INFO] 🤝 Server 1 connected to peer 3
+[19:53:42] [INFO] 🤝 Server 1 connected to peer 2
+[19:53:42] [INFO] ⏰ Initial election timer expired, starting election...
+[19:53:42] [INFO] 🗳️  Server 1 initiating election
+[19:53:42] [INFO] 📊 Server 1 priority: 4.44 (CPU: 3.5%, Tasks: 0, Memory: 86.6% available)
+[19:53:42] [INFO] 📤 Server 1 broadcasting ELECTION message
+[19:53:42] [INFO] ⏳ Server 1 waiting 2s for election responses...
+[19:53:42] [INFO] 👋 Server 1 received ALIVE from 2 (they have lower priority)
+[19:53:42] [INFO] 🗳️  Server 1 received ELECTION from 2 (priority: 4.31)
+[19:53:42] [INFO] 📊 Server 1 has higher priority (4.44 > 4.31), deferring
+[19:53:43] [INFO] 🗳️  Server 1 received ELECTION from 2 (priority: 4.76)
+[19:53:43] [INFO] 📊 Server 1 has higher priority (5.50 > 4.76), deferring
+[19:53:44] [INFO] 🗳️  Server 1 received ELECTION from 3 (priority: 4.36)
+[19:53:44] [INFO] 📊 Server 1 has higher priority (4.78 > 4.36), deferring
+[19:53:44] [INFO] 📊 Server 1 lost election (higher load than others)
+[19:53:44] [INFO] 👑 Server 1 acknowledges 2 as LEADER
+[19:53:45] [INFO] 👑 Server 1 acknowledges 2 as LEADER
+[19:53:46] [INFO] 👑 Server 1 acknowledges 3 as LEADER

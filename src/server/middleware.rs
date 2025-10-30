@@ -58,9 +58,9 @@ use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::{mpsc, RwLock};
 
-use crate::common::messages::*;
+use crate::common::config::{ElectionConfig, PeersConfig};
 use crate::common::connection::Connection;
-use crate::common::config::{PeersConfig, ElectionConfig};
+use crate::common::messages::*;
 use crate::server::election::ServerMetrics;
 use crate::server::server::ServerCore;
 
@@ -1044,13 +1044,16 @@ impl ServerMiddleware {
             );
 
             // Delegate to ServerCore for actual encryption
-            let encryption_result = server.core.encrypt_image(
-                request_id,
-                client_name.clone(),
-                image_data,
-                image_name,
-                text_to_embed,
-            ).await;
+            let encryption_result = server
+                .core
+                .encrypt_image(
+                    request_id,
+                    client_name.clone(),
+                    image_data,
+                    image_name,
+                    text_to_embed,
+                )
+                .await;
 
             let response = match encryption_result {
                 Ok(encrypted_data) => {
