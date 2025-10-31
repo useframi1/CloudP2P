@@ -23,9 +23,9 @@ use std::io::Write;
 use std::sync::Arc;
 
 // Import from the library crate
-use cloud_p2p_simple::common::config::load_config;
-use cloud_p2p_simple::client::{ClientCore, ClientMiddleware};
-use cloud_p2p_simple::client::middleware::ClientConfig;
+use cloud_p2p::client::middleware::ClientConfig;
+use cloud_p2p::client::{ClientCore, ClientMiddleware};
+use cloud_p2p::common::config::load_config;
 
 /// Command-line arguments for the client binary
 #[derive(Parser, Debug)]

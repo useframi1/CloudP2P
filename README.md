@@ -23,7 +23,7 @@ A fault-tolerant, load-balanced distributed system for image encryption using st
 - **Steganography**: LSB (Least Significant Bit) text embedding in images
 - **Heartbeat Monitoring**: Continuous health checking of all servers
 - **Task History Tracking**: Orphaned task cleanup when servers fail
-- **Retry Mechanism**: Client-side retry with configurable timeouts
+- **Server-Side Failover**: Automatic server reassignment with indefinite client polling
 - **Concurrent Processing**: Asynchronous task handling with tokio
 
 ## Architecture Overview
@@ -151,10 +151,10 @@ RUST_LOG=info cargo run --bin client -- --config config/client1.toml
 ```
 
 The client will:
-1. Discover the leader
-2. Request task assignment
-3. Send image to assigned server
-4. Receive encrypted image
+1. Broadcast assignment request (leader responds with server assignment)
+2. Send image to assigned server
+3. Receive encrypted image
+4. Send acknowledgment (TaskAck)
 5. Verify encryption
 
 ## Configuration
@@ -259,21 +259,22 @@ Winner: Server 3 (lowest score = least loaded)
 ### Task Processing Flow
 
 ```
-1. Client -> Any Server: "Who is the leader?"
-   Server -> Client: "Server 2 is the leader"
-
-2. Client -> Leader: "Assign my task (ID: 42)"
+1. Client -> All Servers (broadcast): TaskAssignmentRequest(task ID: 42)
    Leader checks load of all servers:
    - Server 1: load = 25.3
    - Server 2: load = 18.7 (lowest)
    - Server 3: load = 42.1
-   Leader -> Client: "Send to Server 2 at 127.0.0.1:8002"
+   Leader -> Client: TaskAssignmentResponse(Server 2, 127.0.0.1:8002)
+   Leader -> All Servers (broadcast): HistoryAdd(task assigned to Server 2)
 
-3. Client -> Server 2: TaskRequest(image_data, text_to_embed)
+2. Client -> Server 2: TaskRequest(image_data, text_to_embed)
    Server 2 -> ServerCore: encrypt_image()
    - Embeds text into image LSBs
    - Saves encrypted image to disk
    Server 2 -> Client: TaskResponse(encrypted_image_data)
+
+3. Client -> Server 2: TaskAck(task ID: 42)
+   Server 2 -> All Servers (broadcast): HistoryRemove(task 42 completed)
 
 4. Client verifies encryption by extracting text
    If text matches -> Success
@@ -286,17 +287,18 @@ Winner: Server 3 (lowest score = least loaded)
 - If no heartbeat for 3 seconds -> server considered failed
 - Leader failure triggers immediate re-election
 
-**Orphaned Task Cleanup:**
-1. Leader tracks all task assignments: `(client, task_id) -> server_id`
-2. When server fails, leader identifies orphaned tasks
-3. Orphaned tasks removed from history
-4. Clients retry failed tasks automatically
+**Orphaned Task Reassignment:**
+1. All servers track task assignments via shared history: `(client, task_id) -> server_id`
+2. When server fails, surviving servers detect timeout (3+ seconds without heartbeat)
+3. New leader (or existing leader) automatically reassigns orphaned tasks to healthy servers
+4. Clients poll for updated assignment using TaskStatusQuery (broadcast to all servers)
 
-**Client Retry Logic:**
-- 3 retry attempts per task
-- 10-second timeout per attempt
-- 5-second delay between retries
-- Rediscover leader on each retry
+**Client Failover Logic:**
+- Client broadcasts TaskAssignmentRequest, waits for leader response (polls indefinitely with 2s intervals if no leader)
+- If assigned server fails during task execution, client polls all servers for reassignment (2s intervals, indefinitely)
+- Client preferentially accepts reassignment to different server
+- If same server keeps being returned after 10 polls (20s), client retries (server may have recovered)
+- No hard failure limit - client continues indefinitely until task succeeds
 
 ### Load Balancing Algorithm
 
@@ -420,14 +422,17 @@ Message: {"Election":{"from_id":1,"priority":25.3}}
 - `Alive`: Response to election
 - `Coordinator`: Announce new leader
 - `Heartbeat`: Periodic health check with load
-- `LeaderQuery`: Request current leader
+- `LeaderQuery`: Request current leader (optional, not used in current implementation)
 - `LeaderResponse`: Return leader ID
-- `TaskAssignmentRequest`: Request server assignment
-- `TaskAssignmentResponse`: Return assigned server
+- `TaskAssignmentRequest`: Request server assignment (broadcast to all servers)
+- `TaskAssignmentResponse`: Return assigned server (leader responds)
 - `TaskRequest`: Submit encryption task
 - `TaskResponse`: Return encrypted image
-- `HistoryAdd`: Track task assignment
-- `HistoryRemove`: Remove completed task
+- `TaskAck`: Client acknowledges receipt of TaskResponse
+- `TaskStatusQuery`: Query current server assignment for a task (broadcast)
+- `TaskStatusResponse`: Return current server assignment (any server can respond)
+- `HistoryAdd`: Track task assignment (broadcast to all servers)
+- `HistoryRemove`: Remove completed task (broadcast to all servers)
 
 ### Steganography Implementation
 

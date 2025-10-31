@@ -1,5 +1,5 @@
 [package]
-name = "cloud-p2p-simple"
+name = "cloud-p2p"
 version = "0.1.0"
 edition = "2021"
 

@@ -52,11 +52,10 @@ use std::fs;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::net::TcpStream;
-use tokio::time::sleep;
 
+use crate::client::client::ClientCore;
 use crate::common::connection::Connection;
 use crate::common::messages::Message;
-use crate::client::client::ClientCore;
 
 /// Client configuration loaded from TOML file.
 ///
@@ -140,22 +139,19 @@ impl ClientConfig {
 /// Client middleware that orchestrates distributed task execution.
 ///
 /// This struct manages the coordination layer for client operations:
-/// - Tracks current leader state
-/// - Manages request lifecycle (discovery, assignment, execution, retry)
+/// - Broadcasts assignment requests to all servers (leader responds)
+/// - Manages request lifecycle (assignment, execution, retry)
 /// - Delegates actual image transmission to the core client
 ///
 /// # Fields
 ///
 /// * `config` - Client configuration loaded from TOML
 /// * `core` - Shared reference to the core client for image transmission
-/// * `current_leader` - ID of the currently known leader (None if unknown)
 pub struct ClientMiddleware {
     /// Client configuration
     config: ClientConfig,
     /// Core client for image transmission (shared via Arc for potential future multi-threading)
     core: Arc<ClientCore>,
-    /// Currently known leader ID (None if no leader is known)
-    current_leader: Option<u32>,
 }
 
 impl ClientMiddleware {
@@ -178,11 +174,7 @@ impl ClientMiddleware {
     /// let middleware = ClientMiddleware::new(config, core);
     /// ```
     pub fn new(config: ClientConfig, core: Arc<ClientCore>) -> Self {
-        Self {
-            config,
-            core,
-            current_leader: None,
-        }
+        Self { config, core }
     }
 
     /// Runs the main client loop, sending requests at the configured rate.
@@ -233,96 +225,317 @@ impl ClientMiddleware {
         info!("✅ Client finished sending {} requests", total_requests);
     }
 
-    /// Discovers the current leader by querying all known servers.
+    /// Broadcasts a task assignment request to all servers and waits for the leader's response.
     ///
     /// This method:
-    /// 1. Iterates through all configured server addresses
-    /// 2. Attempts to query each server with a 2-second timeout
-    /// 3. Stops on the first successful response indicating a leader
-    /// 4. Updates `current_leader` with the discovered leader ID
+    /// 1. Sends `TaskAssignmentRequest` to all configured server addresses concurrently
+    /// 2. Waits for the first valid `TaskAssignmentResponse` (from the leader)
+    /// 3. Returns the assigned server ID, address, and which server was the leader
     ///
-    /// # Returns
-    ///
-    /// * `true` - If a leader was successfully discovered
-    /// * `false` - If no server responded with a valid leader within the timeout
-    ///
-    /// # Timeout
-    ///
-    /// Each server query has a 2-second timeout. If a server doesn't respond
-    /// within this time, the next server is tried.
-    async fn discover_leader(&mut self) -> bool {
-        info!("Looking for the current leader...");
-
-        const CONNECTION_TIMEOUT_SECS: u64 = 2;
-
-        // Try each server with a timeout
-        for address in &self.config.client.server_addresses {
-            // Wrap entire leader query in a timeout
-            let result = tokio::time::timeout(
-                Duration::from_secs(CONNECTION_TIMEOUT_SECS),
-                self.query_leader(address),
-            )
-            .await;
-
-            match result {
-                Ok(Some(leader_id)) => {
-                    self.current_leader = Some(leader_id);
-                    info!("Found leader: Server {}", leader_id);
-                    return true;
-                }
-                Ok(None) => {
-                    // Server responded but not ready or invalid response
-                    continue;
-                }
-                Err(_) => {
-                    // Timeout - server not responding, try next one
-                    continue;
-                }
-            }
-        }
-
-        false
-    }
-
-    /// Queries a specific server to determine the current leader.
-    ///
-    /// This helper method:
-    /// 1. Connects to the specified server address
-    /// 2. Sends a `LeaderQuery` message
-    /// 3. Waits for a `LeaderResponse` message
-    /// 4. Extracts and returns the leader ID
+    /// Only the current leader will respond with an assignment. Non-leader servers will ignore
+    /// the request or not respond.
     ///
     /// # Arguments
     ///
-    /// * `address` - Server address to query (e.g., "127.0.0.1:5001")
+    /// * `request_num` - Unique identifier for this request
     ///
     /// # Returns
     ///
-    /// * `Some(leader_id)` - If the server responded with a valid leader ID
-    /// * `None` - If connection failed or response was invalid
-    async fn query_leader(&self, address: &str) -> Option<u32> {
-        // Try to connect
-        let stream = TcpStream::connect(address).await.ok()?;
+    /// * `Ok((assigned_server_id, assigned_address, leader_id))` - Assignment details and which server was leader
+    /// * `Err(anyhow::Error)` - If no server responded with a valid assignment
+    ///
+    /// # Timeout
+    ///
+    /// Each server connection attempt has a 2-second timeout. Returns the first valid response.
+    async fn broadcast_assignment_request(&self, request_num: u64) -> Result<(u32, String, u32)> {
+        const CONNECTION_TIMEOUT_SECS: u64 = 2;
+
+        info!(
+            "📡 {} Broadcasting assignment request for task #{} to {} servers",
+            self.config.client.name,
+            request_num,
+            self.config.client.server_addresses.len()
+        );
+
+        // Create futures for querying all servers concurrently
+        let mut tasks = Vec::new();
+
+        for (idx, address) in self.config.client.server_addresses.iter().enumerate() {
+            let address = address.clone();
+            let client_name = self.config.client.name.clone();
+            let server_id = (idx + 1) as u32; // Server IDs are 1-indexed
+
+            let task = tokio::spawn(async move {
+                // Wrap in timeout
+                let result = tokio::time::timeout(
+                    Duration::from_secs(CONNECTION_TIMEOUT_SECS),
+                    Self::request_assignment_from_server(&address, &client_name, request_num),
+                )
+                .await;
+
+                match result {
+                    Ok(Ok(assignment)) => Some((assignment, server_id)),
+                    Ok(Err(_)) | Err(_) => None,
+                }
+            });
+
+            tasks.push(task);
+        }
+
+        // Wait for all tasks and collect the first successful response
+        for task in tasks {
+            if let Ok(Some(((assigned_server_id, assigned_address), responder_id))) = task.await {
+                info!(
+                    "✅ {} Received assignment from leader (Server {}): Task #{} → Server {}",
+                    self.config.client.name, responder_id, request_num, assigned_server_id
+                );
+                return Ok((assigned_server_id, assigned_address, responder_id));
+            }
+        }
+
+        Err(anyhow::anyhow!(
+            "No server responded with a task assignment (no leader available)"
+        ))
+    }
+
+    /// Helper method to request assignment from a specific server.
+    ///
+    /// # Arguments
+    ///
+    /// * `address` - Server address to connect to
+    /// * `client_name` - Name of this client
+    /// * `request_num` - Request ID
+    ///
+    /// # Returns
+    ///
+    /// * `Ok((assigned_server_id, assigned_address))` - If server responded with assignment
+    /// * `Err` - If connection failed or no valid response
+    async fn request_assignment_from_server(
+        address: &str,
+        client_name: &str,
+        request_num: u64,
+    ) -> Result<(u32, String)> {
+        // Connect to server
+        let stream = TcpStream::connect(address).await?;
         let mut conn = Connection::new(stream);
 
-        // Ask: who is the leader?
-        let query = Message::LeaderQuery;
-        conn.write_message(&query).await.ok()?;
+        // Send assignment request
+        let request = Message::TaskAssignmentRequest {
+            client_name: client_name.to_string(),
+            request_id: request_num,
+        };
+        conn.write_message(&request).await?;
 
         // Wait for response
-        match conn.read_message().await.ok()? {
-            Some(Message::LeaderResponse { leader_id }) => Some(leader_id),
-            _ => None,
+        match conn.read_message().await? {
+            Some(Message::TaskAssignmentResponse {
+                request_id: _,
+                assigned_server_id,
+                assigned_server_address,
+            }) => Ok((assigned_server_id, assigned_server_address)),
+            _ => Err(anyhow::anyhow!("Invalid or no response from server")),
         }
     }
 
-    /// Sends a request with retry logic and fault tolerance.
+    /// Broadcasts a task status query to all servers and waits for a response.
     ///
-    /// This method implements the complete retry workflow:
-    /// 1. Attempts the request up to 3 times
-    /// 2. Each attempt has a 10-second timeout
-    /// 3. Waits 5 seconds between retry attempts
-    /// 4. Each attempt includes leader discovery and task processing
+    /// Used when the originally assigned server fails - client polls to discover
+    /// if the task has been reassigned to a new server. Any server can respond
+    /// by checking the shared task history.
+    ///
+    /// # Arguments
+    ///
+    /// * `request_num` - Request ID to query
+    ///
+    /// # Returns
+    ///
+    /// * `Ok((assigned_server_id, assigned_address))` - Current server assignment
+    /// * `Err` - If no server responded with valid status
+    async fn broadcast_status_query(&self, request_num: u64) -> Result<(u32, String)> {
+        const CONNECTION_TIMEOUT_SECS: u64 = 2;
+
+        info!(
+            "🔍 {} Broadcasting status query for task #{} to {} servers",
+            self.config.client.name,
+            request_num,
+            self.config.client.server_addresses.len()
+        );
+
+        // Create futures for querying all servers concurrently
+        let mut tasks = Vec::new();
+
+        for address in &self.config.client.server_addresses {
+            let address = address.clone();
+            let client_name = self.config.client.name.clone();
+
+            let task = tokio::spawn(async move {
+                // Wrap in timeout
+                let result = tokio::time::timeout(
+                    Duration::from_secs(CONNECTION_TIMEOUT_SECS),
+                    Self::query_task_status(&address, &client_name, request_num),
+                )
+                .await;
+
+                match result {
+                    Ok(Ok(status)) => Some(status),
+                    Ok(Err(_)) | Err(_) => None,
+                }
+            });
+
+            tasks.push(task);
+        }
+
+        // Wait for first successful response
+        for task in tasks {
+            if let Ok(Some((assigned_server_id, assigned_address))) = task.await {
+                info!(
+                    "✅ {} Task #{} is assigned to Server {}",
+                    self.config.client.name, request_num, assigned_server_id
+                );
+                return Ok((assigned_server_id, assigned_address));
+            }
+        }
+
+        Err(anyhow::anyhow!(
+            "No server responded with task status (task may not exist)"
+        ))
+    }
+
+    /// Helper method to query task status from a specific server.
+    ///
+    /// # Arguments
+    ///
+    /// * `address` - Server address to query
+    /// * `client_name` - Name of this client
+    /// * `request_num` - Request ID to query
+    ///
+    /// # Returns
+    ///
+    /// * `Ok((assigned_server_id, assigned_address))` - Current assignment
+    /// * `Err` - If connection failed or no valid response
+    async fn query_task_status(
+        address: &str,
+        client_name: &str,
+        request_num: u64,
+    ) -> Result<(u32, String)> {
+        // Connect to server
+        let stream = TcpStream::connect(address).await?;
+        let mut conn = Connection::new(stream);
+
+        // Send status query
+        let query = Message::TaskStatusQuery {
+            client_name: client_name.to_string(),
+            request_id: request_num,
+        };
+        conn.write_message(&query).await?;
+
+        // Wait for response
+        match conn.read_message().await? {
+            Some(Message::TaskStatusResponse {
+                request_id: _,
+                assigned_server_id,
+                assigned_server_address,
+            }) => Ok((assigned_server_id, assigned_server_address)),
+            _ => Err(anyhow::anyhow!("Invalid or no response from server")),
+        }
+    }
+
+    /// Waits for task assignment/reassignment after server failure by polling all servers.
+    ///
+    /// When the assigned server fails, this method polls all servers (via broadcast)
+    /// to get the current task assignment. The strategy is:
+    /// 1. Prefer reassignment to a **different** server (immediate return)
+    /// 2. If same server keeps being returned, retry after MAX_SAME_SERVER_POLLS attempts
+    ///    (in case the server came back online)
+    ///
+    /// This method polls **indefinitely** until it gets an assignment.
+    ///
+    /// # Arguments
+    ///
+    /// * `request_num` - Request ID to wait for
+    /// * `failed_address` - Address of the server that just failed
+    ///
+    /// # Returns
+    ///
+    /// * `Ok((assigned_server_id, assigned_address))` - Server assignment (always succeeds eventually)
+    ///
+    /// # Polling Behavior
+    ///
+    /// - Polls indefinitely with 2-second intervals
+    /// - Immediately accepts reassignment to a different server
+    /// - Retries same server after MAX_SAME_SERVER_POLLS attempts (server might have recovered)
+    /// - Logs every polling attempt
+    /// - Never gives up
+    async fn wait_for_reassignment(
+        &self,
+        request_num: u64,
+        failed_address: &str,
+    ) -> Result<(u32, String)> {
+        const POLL_INTERVAL_SECS: u64 = 2;
+        const MAX_SAME_SERVER_POLLS: u32 = 10; // After 10 polls (20s), retry same server in case it recovered
+
+        info!(
+            "⏳ {} Polling for task #{} assignment after {} failed (indefinitely, 2s interval)...",
+            self.config.client.name, request_num, failed_address
+        );
+
+        let mut attempt = 1;
+        let mut same_server_count = 0;
+
+        loop {
+            info!(
+                "🔄 {} Polling attempt {} for task #{}",
+                self.config.client.name, attempt, request_num
+            );
+
+            match self.broadcast_status_query(request_num).await {
+                Ok((server_id, address)) => {
+                    if address != failed_address {
+                        // Different server - immediately accept
+                        info!(
+                            "✅ {} Task #{} reassigned to different Server {} at {}",
+                            self.config.client.name, request_num, server_id, address
+                        );
+                        return Ok((server_id, address));
+                    } else {
+                        // Same server - might have recovered, but wait a bit first
+                        same_server_count += 1;
+
+                        if same_server_count >= MAX_SAME_SERVER_POLLS {
+                            info!(
+                                "🔄 {} Task #{} still at {} after {} polls - will retry in case server recovered",
+                                self.config.client.name, request_num, address, same_server_count
+                            );
+                            return Ok((server_id, address));
+                        } else {
+                            warn!(
+                                "⏸️  {} Poll {}: Task #{} still at {} ({}/{} polls) - waiting for reassignment or recovery...",
+                                self.config.client.name, attempt, request_num, failed_address,
+                                same_server_count, MAX_SAME_SERVER_POLLS
+                            );
+                        }
+                    }
+                }
+                Err(e) => {
+                    warn!(
+                        "Polling attempt {} failed for task #{}: {}",
+                        attempt, request_num, e
+                    );
+                }
+            }
+
+            tokio::time::sleep(Duration::from_secs(POLL_INTERVAL_SECS)).await;
+            attempt += 1;
+        }
+    }
+
+    /// Sends a request with server-side failover handling.
+    ///
+    /// This method implements the complete workflow:
+    /// 1. Polls indefinitely to get initial server assignment from leader (waits for leader if none available)
+    /// 2. Executes task on assigned server
+    /// 3. If server fails, polls indefinitely for reassignment
+    /// 4. Retries on new/recovered server indefinitely until success
     ///
     /// # Arguments
     ///
@@ -332,225 +545,90 @@ impl ClientMiddleware {
     ///
     /// # Returns
     ///
-    /// * `true` - If the request succeeded within the retry attempts
-    /// * `false` - If all retry attempts failed
+    /// * `true` - If the request succeeded
+    /// * `false` - If the request failed
     ///
-    /// # Retry Parameters
+    /// # Polling Parameters
     ///
-    /// - **Max retries**: 3 attempts
-    /// - **Timeout**: 10 seconds per attempt
-    /// - **Retry delay**: 5 seconds between attempts
+    /// - **Max poll attempts**: Unlimited - polls indefinitely per server failure
+    /// - **Poll interval**: 2 seconds
+    /// - **No timeout**: Request continues retrying indefinitely until success
     async fn send_request(
         &mut self,
         request_num: u64,
         image_name: String,
         text_to_embed: String,
     ) -> bool {
-        const MAX_RETRIES: u32 = 3;
-        const TIMEOUT_SECS: u64 = 10;
-        const RETRY_INTERVAL_SECS: u64 = 5;
+        const POLL_INTERVAL_SECS: u64 = 2;
 
-        for attempt in 1..=MAX_RETRIES {
-            if attempt > 1 {
-                info!(
-                    "🔄 {} Retry attempt {}/{} for task #{}",
-                    self.config.client.name, attempt, MAX_RETRIES, request_num
-                );
-                // Wait 5 seconds between retries
-                sleep(Duration::from_secs(RETRY_INTERVAL_SECS)).await;
-            }
+        // Step 1: Get initial task assignment (poll indefinitely if no leader available)
+        info!(
+            "📡 {} Getting task assignment for task #{}",
+            self.config.client.name, request_num
+        );
 
-            // Step 1: Find the leader
-            info!(
-                "Finding leader for task #{} (attempt {}/{})",
-                request_num, attempt, MAX_RETRIES
-            );
-
-            if !self.discover_leader().await {
-                warn!(
-                    "No leader found for task #{} on attempt {}/{}",
-                    request_num, attempt, MAX_RETRIES
-                );
-                continue;
-            }
-
-            let leader_id = match self.current_leader {
-                Some(id) => id,
-                None => {
+        let (assigned_server_id, assigned_address, leader_id) = loop {
+            match self.broadcast_assignment_request(request_num).await {
+                Ok(assignment) => break assignment,
+                Err(e) => {
                     warn!(
-                        "No leader available for task #{} on attempt {}/{}",
-                        request_num, attempt, MAX_RETRIES
+                        "Assignment request failed for task #{}: {} - waiting for leader...",
+                        request_num, e
                     );
-                    continue;
+                    tokio::time::sleep(Duration::from_secs(POLL_INTERVAL_SECS)).await;
                 }
-            };
+            }
+        };
 
-            info!(
-                "✅ {} Found leader: Server {} for task #{}",
-                self.config.client.name, leader_id, request_num
-            );
+        info!(
+            "✅ {} Task #{} assigned to Server {} by leader {}",
+            self.config.client.name, request_num, assigned_server_id, leader_id
+        );
 
-            // Step 2-4: Get assignment, send request, wait for response (with timeout)
-            let result = tokio::time::timeout(
-                Duration::from_secs(TIMEOUT_SECS),
-                self.process_request(
-                    leader_id,
-                    request_num,
-                    image_name.clone(),
-                    text_to_embed.clone(),
-                ),
+        // Step 2: Execute task on assigned server (handles failover internally)
+        let result = self
+            .execute_task(
+                assigned_server_id,
+                assigned_address,
+                leader_id,
+                request_num,
+                image_name,
+                text_to_embed,
             )
             .await;
 
-            match result {
-                Ok(Ok(())) => {
-                    info!(
-                        "✅ {} Task #{} completed successfully",
-                        self.config.client.name, request_num
-                    );
-                    return true;
-                }
-                Ok(Err(e)) => {
-                    warn!(
-                        "Task #{} failed on attempt {}/{}: {}",
-                        request_num, attempt, MAX_RETRIES, e
-                    );
-                }
-                Err(_) => {
-                    warn!(
-                        "Task #{} timed out after {}s on attempt {}/{}",
-                        request_num, TIMEOUT_SECS, attempt, MAX_RETRIES
-                    );
-                }
+        match result {
+            Ok(()) => {
+                info!(
+                    "✅ {} Task #{} completed successfully",
+                    self.config.client.name, request_num
+                );
+                true
+            }
+            Err(e) => {
+                error!(
+                    "❌ {} Task #{} FAILED: {}",
+                    self.config.client.name, request_num, e
+                );
+                false
             }
         }
-
-        error!(
-            "❌ {} Task #{} FAILED after {} attempts",
-            self.config.client.name, request_num, MAX_RETRIES
-        );
-        false
     }
 
-    /// Processes a single request by coordinating assignment and execution.
-    ///
-    /// This orchestrator method:
-    /// 1. Requests a server assignment from the leader
-    /// 2. Delegates task execution to `execute_task()`
-    ///
-    /// # Arguments
-    ///
-    /// * `leader_id` - ID of the current leader server
-    /// * `request_num` - Unique identifier for this request
-    /// * `image_name` - Name of the image file to process
-    /// * `text_to_embed` - Text to embed in the image
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(())` - If the request was successfully processed
-    /// * `Err(anyhow::Error)` - If assignment or execution failed
-    async fn process_request(
-        &mut self,
-        leader_id: u32,
-        request_num: u64,
-        image_name: String,
-        text_to_embed: String,
-    ) -> Result<()> {
-        // Step 2: Get assigned server ID from leader
-        let (assigned_server_id, assigned_address) =
-            self.get_server_assignment(leader_id, request_num).await?;
-
-        info!(
-            "✅ {} Task #{} assigned to Server {} at {}",
-            self.config.client.name, request_num, assigned_server_id, assigned_address
-        );
-
-        // Step 3: Execute the task on the assigned server
-        self.execute_task(
-            assigned_server_id,
-            assigned_address,
-            leader_id,
-            request_num,
-            image_name,
-            text_to_embed,
-        )
-        .await
-    }
-
-    /// Requests a server assignment from the leader.
+    /// Executes a task with automatic server-side failover handling.
     ///
     /// This method:
-    /// 1. Connects to the leader server
-    /// 2. Sends a `TaskAssignmentRequest` with client info and request ID
-    /// 3. Waits for a `TaskAssignmentResponse` with the assigned server details
-    /// 4. Returns the assigned server ID and address
+    /// 1. Reads the image file from the uploads directory and caches it
+    /// 2. Attempts to send task to assigned server
+    /// 3. If server fails (TCP disconnect), polls for reassignment **indefinitely**
+    /// 4. Polling: indefinite attempts, 2 seconds interval via broadcast to all servers
+    /// 5. Retries with new server - if that server also fails, polls again indefinitely
+    /// 6. Continues this cycle until the task succeeds
     ///
     /// # Arguments
     ///
-    /// * `leader_id` - ID of the current leader server
-    /// * `request_num` - Unique identifier for this request
-    ///
-    /// # Returns
-    ///
-    /// * `Ok((server_id, address))` - Assigned server ID and network address
-    /// * `Err(anyhow::Error)` - If connection, request, or response failed
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if:
-    /// - The leader ID is invalid (out of bounds)
-    /// - Connection to the leader fails
-    /// - The leader doesn't respond with a valid assignment
-    async fn get_server_assignment(
-        &self,
-        leader_id: u32,
-        request_num: u64,
-    ) -> Result<(u32, String)> {
-        let leader_idx = (leader_id - 1) as usize;
-        if leader_idx >= self.config.client.server_addresses.len() {
-            return Err(anyhow::anyhow!("Invalid leader index"));
-        }
-        let leader_address = self.config.client.server_addresses[leader_idx].clone();
-
-        info!(
-            "{} Requesting assignment for task #{} from leader {}",
-            self.config.client.name, request_num, leader_id
-        );
-
-        // Connect to leader
-        let stream = TcpStream::connect(&leader_address).await?;
-        let mut conn = Connection::new(stream);
-
-        // Ask for server assignment
-        let assignment_request = Message::TaskAssignmentRequest {
-            client_name: self.config.client.name.clone(),
-            request_id: request_num,
-        };
-
-        conn.write_message(&assignment_request).await?;
-
-        // Get assignment response
-        match conn.read_message().await? {
-            Some(Message::TaskAssignmentResponse {
-                request_id: _,
-                assigned_server_id,
-                assigned_server_address,
-            }) => Ok((assigned_server_id, assigned_server_address)),
-            _ => Err(anyhow::anyhow!("Failed to receive assignment response")),
-        }
-    }
-
-    /// Executes a task by reading the image file and delegating to the core client.
-    ///
-    /// This method:
-    /// 1. Reads the image file from the uploads directory
-    /// 2. Calls the core client's `send_and_receive_encrypted_image()` method
-    /// 3. The core handles connection, transmission, response, and verification
-    ///
-    /// # Arguments
-    ///
-    /// * `assigned_server_id` - ID of the server assigned to process this task
-    /// * `assigned_address` - Network address of the assigned server
+    /// * `assigned_server_id` - ID of the initially assigned server
+    /// * `assigned_address` - Network address of the initially assigned server
     /// * `leader_id` - ID of the leader that made the assignment
     /// * `request_num` - Unique identifier for this request
     /// * `image_name` - Name of the image file (relative to uploads directory)
@@ -558,36 +636,91 @@ impl ClientMiddleware {
     ///
     /// # Returns
     ///
-    /// * `Ok(())` - If the task completed successfully (sent, encrypted, verified)
-    /// * `Err(anyhow::Error)` - If file reading or core execution failed
+    /// * `Ok(())` - If the task completed successfully (possibly after multiple reassignments)
+    /// * `Err(anyhow::Error)` - Only for non-connection errors (e.g., file not found, validation errors)
+    ///
+    /// # Server Failover
+    ///
+    /// When the assigned server fails:
+    /// 1. Client detects TCP connection break
+    /// 2. Client polls all servers (broadcast TaskStatusQuery every 2s, indefinitely)
+    /// 3. Leader has detected failure and reassigned the task
+    /// 4. Client receives new assignment and retries
+    /// 5. If the new server also fails, repeat from step 1
+    /// 6. Continues indefinitely until success
     ///
     /// # File Locations
     ///
     /// - **Input**: `user-data/uploads/{image_name}`
-    /// - **Output**: Handled by core client at `user-data/outputs/encrypted_{client_name}_{image_name}`
+    /// - **Output**: `user-data/outputs/encrypted_{client_name}_{image_name}`
     async fn execute_task(
         &self,
         _assigned_server_id: u32,
-        assigned_address: String,
-        leader_id: u32,
+        mut assigned_address: String,
+        mut leader_id: u32,
         request_num: u64,
         image_name: String,
         text_to_embed: String,
     ) -> Result<()> {
-        // Read the image file from the uploads directory
+        // Read the image file once and cache it (avoid repeated disk I/O)
         let image_path = format!("user-data/uploads/{}", image_name);
         let image_data = std::fs::read(&image_path)?;
 
-        // Delegate to the core client to handle the actual transmission and verification
-        self.core
-            .send_and_receive_encrypted_image(
-                &assigned_address,
-                request_num,
-                image_data,
-                &image_name,
-                &text_to_embed,
-                leader_id,
-            )
-            .await
+        loop {
+            // Attempt to send task to assigned server
+            let result = self
+                .core
+                .send_and_receive_encrypted_image(
+                    &assigned_address,
+                    request_num,
+                    image_data.clone(), // Clone cached data
+                    &image_name,
+                    &text_to_embed,
+                    leader_id,
+                )
+                .await;
+
+            match result {
+                Ok(()) => {
+                    return Ok(());
+                }
+                Err(e) => {
+                    // Check if it's a connection error (server failure)
+                    let error_str = e.to_string();
+                    let is_connection_error = error_str.contains("Connection")
+                        || error_str.contains("connection")
+                        || error_str.contains("refused")
+                        || error_str.contains("timeout")
+                        || error_str.contains("broken pipe");
+
+                    if is_connection_error {
+                        warn!(
+                            "⚠️  {} Server failure detected for task #{} at {}: {}",
+                            self.config.client.name, request_num, assigned_address, e
+                        );
+
+                        // Store the failed address
+                        let failed_address = assigned_address.clone();
+
+                        // Poll indefinitely until we get a valid assignment
+                        // (prefer different server, but retry same server after 10 polls in case it recovered)
+                        let (new_server_id, new_address) = self
+                            .wait_for_reassignment(request_num, &failed_address)
+                            .await?;
+
+                        info!(
+                            "✅ {} Received assignment for task #{}: Server {} at {}",
+                            self.config.client.name, request_num, new_server_id, new_address
+                        );
+                        assigned_address = new_address;
+                        leader_id = new_server_id;
+                        // Continue loop to retry with assigned server
+                    } else {
+                        // Non-connection error (e.g., validation error, disk error, etc.)
+                        return Err(e);
+                    }
+                }
+            }
+        }
     }
 }

@@ -156,6 +156,49 @@ pub enum Message {
         error_message: Option<String>,
     },
 
+    /// **Task Acknowledgment**
+    ///
+    /// Sent by clients after successfully receiving a TaskResponse to confirm receipt.
+    /// This ensures the server knows the client got the result before removing it from
+    /// task history, preventing orphaned work if the response is lost in transit.
+    ///
+    /// # Fields
+    /// - `client_name`: Client that received the response
+    /// - `request_id`: ID of the completed task
+    TaskAck {
+        client_name: String,
+        request_id: u64,
+    },
+
+    /// **Task Status Query**
+    ///
+    /// Sent by clients (via broadcast) to check the status of a task when the originally
+    /// assigned server fails. Used for server-side failover - client polls to discover
+    /// if the task has been reassigned to a different server.
+    ///
+    /// # Fields
+    /// - `client_name`: Client asking about the task
+    /// - `request_id`: ID of the task to check
+    TaskStatusQuery {
+        client_name: String,
+        request_id: u64,
+    },
+
+    /// **Task Status Response**
+    ///
+    /// Response to TaskStatusQuery, indicating the current assignment status of a task.
+    /// Any server can respond by checking the shared task history.
+    ///
+    /// # Fields
+    /// - `request_id`: ID of the task being queried
+    /// - `assigned_server_id`: Current server assigned to process this task
+    /// - `assigned_server_address`: Network address of the assigned server
+    TaskStatusResponse {
+        request_id: u64,
+        assigned_server_id: u32,
+        assigned_server_address: String,
+    },
+
     // ========== FAULT TOLERANCE MESSAGES ==========
 
     /// **History Add**

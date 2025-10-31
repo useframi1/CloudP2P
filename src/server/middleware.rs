@@ -583,6 +583,48 @@ impl ServerMiddleware {
                 let am_i_leader = current_leader == Some(self.config.server.id);
 
                 if am_i_leader {
+                    // IDEMPOTENCY: Check if this task already exists in history
+                    let existing_assignment = self
+                        .task_history
+                        .read()
+                        .await
+                        .get(&(client_name.clone(), request_id))
+                        .map(|entry| entry.assigned_server_id);
+
+                    if let Some(assigned_server_id) = existing_assignment {
+                        // Task already assigned - return same assignment (idempotent retry)
+                        info!(
+                            "🔁 Task #{} from {} already assigned to Server {} (idempotent retry)",
+                            request_id, client_name, assigned_server_id
+                        );
+
+                        // Get the address of the assigned server
+                        let assigned_address = if assigned_server_id == self.config.server.id {
+                            self.config.server.address.clone()
+                        } else {
+                            self.config
+                                .peers
+                                .peers
+                                .iter()
+                                .find(|p| p.id == assigned_server_id)
+                                .map(|p| p.address.clone())
+                                .unwrap_or_default()
+                        };
+
+                        // Send response to client
+                        let response = Message::TaskAssignmentResponse {
+                            request_id,
+                            assigned_server_id,
+                            assigned_server_address: assigned_address,
+                        };
+
+                        if let Err(e) = conn.write_message(&response).await {
+                            error!("❌ Failed to send assignment response: {}", e);
+                        }
+                        return; // Early return - don't create duplicate assignment
+                    }
+
+                    // NEW TASK: Not in history, proceed with normal assignment
                     // We're the leader! Let's find the best server
 
                     // Get our own load
@@ -711,6 +753,93 @@ impl ServerMiddleware {
                     .remove(&(client_name, request_id));
             }
 
+            // Client acknowledges receipt of TaskResponse
+            Message::TaskAck {
+                client_name,
+                request_id,
+            } => {
+                info!(
+                    "✅ Server {} received ACK from client '{}' for task #{}",
+                    self.config.server.id, client_name, request_id
+                );
+
+                // Now we can safely remove from history and broadcast to all servers
+                let history_remove_msg = Message::HistoryRemove {
+                    client_name: client_name.clone(),
+                    request_id,
+                };
+
+                // Remove from own history
+                self.task_history
+                    .write()
+                    .await
+                    .remove(&(client_name, request_id));
+
+                // Broadcast to all peers so they also remove it
+                self.broadcast(history_remove_msg).await;
+
+                info!(
+                    "🗑️  Server {} removed task #{} from history after client ACK",
+                    self.config.server.id, request_id
+                );
+            }
+
+            // Client queries task status (polling for reassignment after server failure)
+            Message::TaskStatusQuery {
+                client_name,
+                request_id,
+            } => {
+                debug!(
+                    "🔍 Server {} received status query from '{}' for task #{}",
+                    self.config.server.id, client_name, request_id
+                );
+
+                // Check if task exists in history
+                let task_info = self
+                    .task_history
+                    .read()
+                    .await
+                    .get(&(client_name.clone(), request_id))
+                    .cloned();
+
+                if let Some(entry) = task_info {
+                    // Task found in history - respond with current assignment
+                    let assigned_address = if entry.assigned_server_id == self.config.server.id {
+                        self.config.server.address.clone()
+                    } else {
+                        self.config
+                            .peers
+                            .peers
+                            .iter()
+                            .find(|p| p.id == entry.assigned_server_id)
+                            .map(|p| p.address.clone())
+                            .unwrap_or_default()
+                    };
+
+                    let response = Message::TaskStatusResponse {
+                        request_id,
+                        assigned_server_id: entry.assigned_server_id,
+                        assigned_server_address: assigned_address,
+                    };
+
+                    info!(
+                        "✅ Server {} responding to status query: Task #{} assigned to Server {}",
+                        self.config.server.id, request_id, entry.assigned_server_id
+                    );
+
+                    if let Err(e) = conn.write_message(&response).await {
+                        error!("❌ Failed to send status response: {}", e);
+                    }
+                } else {
+                    // Task not found in history
+                    debug!(
+                        "⚠️  Server {} has no record of task #{} from '{}'",
+                        self.config.server.id, request_id, client_name
+                    );
+                    // Don't respond - client will try other servers
+                }
+            }
+
             _ => {
                 // Ignore other messages
             }
@@ -818,17 +947,24 @@ impl ServerMiddleware {
 
                 if !orphaned_tasks.is_empty() {
                     warn!(
-                        "🗑️  Server {} found {} orphaned task(s) assigned to failed Server {}",
+                        "🔄 Server {} found {} orphaned task(s) assigned to failed Server {}",
                         self.config.server.id,
                         orphaned_tasks.len(),
                         peer_id
                     );
 
-                    // Remove orphaned tasks from history
-                    let mut history = self.task_history.write().await;
-                    for key in &orphaned_tasks {
-                        history.remove(key);
-                        info!("   - Removed task: {:?}", key);
+                    // If we're the leader, reassign orphaned tasks to healthy servers
+                    let am_i_leader = current_leader == Some(self.config.server.id);
+
+                    if am_i_leader {
+                        // Use the helper function to reassign all orphaned tasks
+                        self.reassign_all_orphaned_tasks().await;
+                    } else {
+                        // Non-leader servers just wait for leader to reassign
+                        debug!(
+                            "   Server {} (non-leader) waiting for leader to reassign tasks",
+                            self.config.server.id
+                        );
                     }
                 }
 
@@ -920,6 +1056,13 @@ impl ServerMiddleware {
                 self.config.server.id
             );
             self.broadcast(coordinator_msg).await;
+
+            // As the new leader, check for and reassign any orphaned tasks
+            info!(
+                "🔍 Server {} (new leader) checking for orphaned tasks...",
+                self.config.server.id
+            );
+            self.reassign_all_orphaned_tasks().await;
         } else {
             info!(
                 "📊 Server {} lost election (higher load than others)",
@@ -931,6 +1074,101 @@ impl ServerMiddleware {
     // ========================================================================
     // HELPER FUNCTIONS
     // ========================================================================
+
+    /// Reassigns all orphaned tasks currently in the task history.
+    ///
+    /// This method scans the task history for tasks assigned to servers that are
+    /// no longer in the peer list (failed servers), and reassigns them to healthy servers.
+    ///
+    /// Should be called when:
+    /// - A server becomes the new leader (after winning election)
+    /// - A peer failure is detected (to immediately handle orphaned tasks)
+    ///
+    /// # Leadership Requirement
+    ///
+    /// This method should ONLY be called by the current leader.
+    async fn reassign_all_orphaned_tasks(&self) {
+        // Get list of healthy peer IDs
+        let healthy_peers: std::collections::HashSet<u32> = {
+            let peer_loads = self.peer_loads.read().await;
+            peer_loads.keys().copied().collect()
+        };
+
+        // Find all orphaned tasks (assigned to servers not in healthy_peers)
+        let orphaned_tasks: Vec<(String, u64, u32)> = {
+            let history = self.task_history.read().await;
+            history
+                .iter()
+                .filter(|(_, entry)| {
+                    entry.assigned_server_id != self.config.server.id
+                        && !healthy_peers.contains(&entry.assigned_server_id)
+                })
+                .map(|(key, entry)| (key.0.clone(), key.1, entry.assigned_server_id))
+                .collect()
+        };
+
+        if orphaned_tasks.is_empty() {
+            return;
+        }
+
+        info!(
+            "👑 Server {} (leader) reassigning {} orphaned task(s)...",
+            self.config.server.id,
+            orphaned_tasks.len()
+        );
+
+        for (client_name, request_id, failed_server_id) in &orphaned_tasks {
+            // Find the best (least-loaded) healthy server to reassign to
+            let my_load = self.metrics.get_load();
+            let peer_loads = self.peer_loads.read().await;
+
+            let mut lowest_load = my_load;
+            let mut best_server = self.config.server.id;
+
+            // Consider all healthy peers
+            for (peer_id, peer_load) in peer_loads.iter() {
+                if *peer_load < lowest_load {
+                    lowest_load = *peer_load;
+                    best_server = *peer_id;
+                }
+            }
+
+            info!(
+                "   ➡️  Reassigning task #{} from '{}': Server {} → Server {} (load: {:.2})",
+                request_id, client_name, failed_server_id, best_server, lowest_load
+            );
+
+            // Update task history with new assignment
+            let timestamp = current_timestamp();
+            let updated_entry = TaskHistoryEntry {
+                _client_name: client_name.clone(),
+                _request_id: *request_id,
+                assigned_server_id: best_server,
+                _timestamp: timestamp,
+            };
+
+            self.task_history
+                .write()
+                .await
+                .insert((client_name.clone(), *request_id), updated_entry);
+
+            // Broadcast updated history to all peers
+            let history_update = Message::HistoryAdd {
+                client_name: client_name.clone(),
+                request_id: *request_id,
+                assigned_server_id: best_server,
+                timestamp,
+            };
+
+            self.broadcast(history_update).await;
+        }
+
+        info!(
+            "✅ Server {} completed reassignment of {} orphaned task(s)",
+            self.config.server.id,
+            orphaned_tasks.len()
+        );
+    }
 
     /// Broadcast a message to all connected peers.
     ///
@@ -1043,6 +1281,13 @@ impl ServerMiddleware {
                 server.config.server.id, request_id, client_name
             );
 
+            // TESTING: Sleep for 5 seconds to simulate long-running task
+            info!(
+                "⏳ Server {} sleeping for 5 seconds (testing delay)...",
+                server.config.server.id
+            );
+            tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
+
             // Delegate to ServerCore for actual encryption
             let encryption_result = server
                 .core
@@ -1091,21 +1336,10 @@ impl ServerMiddleware {
                 }
             }
 
-            // Remove from history and broadcast to all servers
-            let history_remove_msg = Message::HistoryRemove {
-                client_name: client_name.clone(),
-                request_id,
-            };
-
-            // Remove from own history
-            server
-                .task_history
-                .write()
-                .await
-                .remove(&(client_name.clone(), request_id));
-
-            // Broadcast to all peers
-            server.broadcast(history_remove_msg).await;
+            // IMPORTANT: We do NOT remove from history here anymore!
+            // Task history will only be removed when we receive a TaskAck from the client,
+            // ensuring the client actually received the response.
+            // This prevents orphaned work if the TaskResponse is lost in transit.
 
             // FINISH TRACKING: Decrement active task count
             server.metrics.task_finished();

@@ -568,16 +568,19 @@ if Some(failed_peer_id) == current_leader {
 }
 ```
 
-### 3. Manual Trigger (Optional)
+### 3. New Leader Reassigns Orphaned Tasks
 
-Not currently implemented, but could add:
+**When**: After winning election
+
+**Action**: New leader checks task history for orphaned tasks and reassigns them
 
 ```rust
-// Via admin command or signal
-pub async fn force_election(&self) {
-    self.initiate_election().await;
-}
+// After announcing victory as new leader
+info!("🔍 Server {} (new leader) checking for orphaned tasks...");
+self.reassign_all_orphaned_tasks().await;
 ```
+
+This ensures any tasks assigned to failed servers are immediately reassigned to healthy servers.
 
 ## Edge Cases and Handling
 
@@ -673,38 +676,55 @@ S2 broadcasts Coordinator{2}, but S3 never receives it
 
 **Recovery Time**: Up to 3 seconds (heartbeat timeout)
 
-### 6. Server Joins Mid-Election
+### 6. Server Reassignment After Failure
 
-**Scenario**: New server S4 starts while election is in progress
+**Scenario**: Server fails while processing client tasks
 
-**Handling**:
-1. S4 starts own election after 3-second timer
-2. By this time, existing election has completed
-3. S4 receives Coordinator message from current leader
-4. S4 acknowledges leader, joins cluster
+**Handling (Server-Side)**:
+1. Servers detect failed peer (3+ seconds without heartbeat)
+2. Current leader identifies orphaned tasks from history
+3. Leader calls `reassign_all_orphaned_tasks()`
+4. Orphaned tasks reassigned to healthy servers
+5. Updated assignment broadcast via HistoryAdd
 
-**Result**: S4 integrates smoothly without disrupting ongoing election
+**Handling (Client-Side)**:
+1. Client detects TCP connection failure to assigned server
+2. Client broadcasts TaskStatusQuery to all servers (2s intervals)
+3. Any server responds with updated TaskStatusResponse
+4. Client accepts reassignment to different server immediately
+5. If same server returned after 10 polls, client retries (server may have recovered)
+6. Client continues polling indefinitely until gets valid assignment
+7. Client retries task with new server
 
-### 7. Crashed Server Restarts
+**Result**: Task completes despite server failure, no client retries limit
 
-**Scenario**: Server crashes and restarts during operation
+### 7. Task Acknowledgment and History Cleanup
+
+**Scenario**: Ensuring tasks are only removed from history after client confirms receipt
 
 **Timeline**:
 ```
-T+0s:  S2 crashes
-T+3s:  Others detect failure, elect new leader (S1)
-T+10s: S2 restarts
-T+13s: S2 starts election
+T+0s:  Server completes TaskResponse, sends to client
+T+1s:  Client receives TaskResponse, sends TaskAck
+T+1s:  Server receives TaskAck
+T+1s:  Server broadcasts HistoryRemove to all servers
+T+2s:  All servers remove task from history
 ```
 
-**Handling**:
-1. S2 calculates priority (might be low due to restart)
-2. S2 broadcasts election
-3. S1 (current leader) responds with Alive if better
-4. S2 receives Coordinator from S1, acknowledges
-5. S2 joins cluster as follower
+**Why Needed**:
+- Prevents orphaned work if TaskResponse is lost in transit
+- Ensures at-least-once delivery semantics
+- Client can safely retry if no ACK sent (server still has task in history)
 
-**Result**: Seamless recovery and integration
+**Handling**:
+1. Server completes task, sends TaskResponse
+2. Server DOES NOT remove from history yet
+3. Client receives TaskResponse, verifies encryption
+4. Client sends TaskAck back to server
+5. Server broadcasts HistoryRemove to all servers
+6. Task removed from history across cluster
+
+**Result**: Robust task completion guarantee
 
 ## Performance Characteristics
 

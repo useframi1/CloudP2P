@@ -207,6 +207,27 @@ impl ClientCore {
                         }
                     }
 
+                    // CRITICAL: Send acknowledgment to server that we received the response
+                    // This allows the server to safely remove the task from history
+                    let ack_message = Message::TaskAck {
+                        client_name: self.client_name.clone(),
+                        request_id: response_id,
+                    };
+
+                    if let Err(e) = conn.write_message(&ack_message).await {
+                        error!(
+                            "⚠️  {} Failed to send ACK for task #{}: {}",
+                            self.client_name, response_id, e
+                        );
+                        // Don't fail the entire task if ACK fails - the task succeeded
+                        // The server will retry later or detect orphaned task
+                    } else {
+                        info!(
+                            "📨 {} Sent ACK for task #{}",
+                            self.client_name, response_id
+                        );
+                    }
+
                     Ok(())
                 } else {
                     // Server reported task failure

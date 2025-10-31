@@ -207,13 +207,14 @@ For each request (up to 3 retries):
   4. On timeout/failure: wait 5s, retry
 ```
 
-**Retry Strategy**:
-- **Max retries**: 3
-- **Timeout per attempt**: 10 seconds
-- **Delay between retries**: 5 seconds
-- **Leader rediscovery**: On every retry
+**Server-Side Failover Strategy**:
+- **Initial assignment**: Broadcast TaskAssignmentRequest to all servers, leader responds (polls indefinitely with 2s intervals if no leader)
+- **Server failure detection**: Client detects TCP connection failure
+- **Reassignment polling**: Client broadcasts TaskStatusQuery to all servers (2s intervals, indefinitely)
+- **Reassignment preference**: Client immediately accepts different server, retries same server after 10 polls (20s) if it keeps being returned
+- **No retry limit**: Client continues indefinitely until task succeeds
 
-This ensures resilience against transient failures and server crashes.
+This ensures resilience against server failures without hard client-side retry limits.
 
 ## Data Flow Diagrams
 
@@ -224,49 +225,35 @@ This ensures resilience against transient failures and server crashes.
 │ Client │
 └───┬────┘
     │
-    │ 1. LeaderQuery
-    ├─────────────────────────────────────────┐
-    │                                         │
-    ▼                                         ▼
-┌─────────┐                              ┌─────────┐
-│Server 1 │                              │Server 2 │
-└───┬─────┘                              └───┬─────┘
-    │                                        │
-    │ 2. LeaderResponse{leader_id: 2}       │
-    └────────────────────────────────────────┤
-                                             │
-┌────────┐                                   │
-│ Client │◄──────────────────────────────────┘
+    │ 1. TaskAssignmentRequest{client:"C1", request_id:42}
+    │    (Broadcast to ALL servers)
+    ├─────────────┬─────────────┬─────────────┐
+    ▼             ▼             ▼             │
+┌─────────┐  ┌─────────┐  ┌─────────┐        │
+│Server 1 │  │Server 2 │  │Server 3 │        │
+│(follower│  │(LEADER) │  │(follower│        │
+└─────────┘  └───┬─────┘  └─────────┘        │
+                 │                            │
+                 │ Check loads:               │
+                 │ S1: 25.3                   │
+                 │ S2: 18.7 ← lowest          │
+                 │ S3: 42.1                   │
+                 │                            │
+                 │ 2a. HistoryAdd (broadcast) │
+                 ├─────────────┬──────────────┴─────────────┐
+                 ▼             ▼                            ▼
+             Server 1      Server 2                     Server 3
+             (tracks)      (tracks)                     (tracks)
+                 │
+                 │ 2b. TaskAssignmentResponse
+                 │     {assigned_server_id: 2,
+                 │      assigned_address: "..."}
+                 │
+┌────────┐       │
+│ Client │◄──────┘
 └───┬────┘
     │
-    │ 3. TaskAssignmentRequest{client:"C1", request_id:42}
-    └──────────────────────────────────────────┐
-                                               │
-                                               ▼
-                                        ┌─────────────┐
-                                        │ Leader (S2) │
-                                        └──────┬──────┘
-                                               │
-                                               │ Check loads:
-                                               │ S1: 25.3
-                                               │ S2: 18.7 ← lowest
-                                               │ S3: 42.1
-                                               │
-                                               │ 4a. HistoryAdd (broadcast)
-                                               ├─────────────┬─────────────┐
-                                               ▼             ▼             ▼
-                                           Server 1      Server 2      Server 3
-                                           (tracks)      (tracks)      (tracks)
-                                               │
-                                               │ 4b. TaskAssignmentResponse
-                                               │     {assigned_server_id: 2,
-                                               │      assigned_address: "..."}
-                                               │
-┌────────┐                                     │
-│ Client │◄────────────────────────────────────┘
-└───┬────┘
-    │
-    │ 5. TaskRequest{image_data, text_to_embed}
+    │ 3. TaskRequest{image_data, text_to_embed}
     └──────────────────────────────────────────┐
                                                │
                                                ▼
@@ -279,17 +266,29 @@ This ensures resilience against transient failures and server crashes.
                                         │ └─────────┘ │
                                         └──────┬──────┘
                                                │
-                                               │ 6a. Save to disk
-                                               │ 6b. TaskResponse
+                                               │ 4a. Save to disk
+                                               │ 4b. TaskResponse
                                                │     {encrypted_image_data}
                                                │
 ┌────────┐                                     │
 │ Client │◄────────────────────────────────────┘
 └───┬────┘
     │
-    │ 7. Verify extraction
-    │    8. Save locally
-    │
+    │ 5. Verify extraction
+    │    6. Save locally
+    │    7. Send TaskAck
+    └──────────────────────────────────────────┐
+                                               │
+                                               ▼
+                                        ┌─────────────┐
+                                        │  Server 2   │
+                                        └──────┬──────┘
+                                               │
+                                               │ 8. HistoryRemove (broadcast)
+                                               ├─────────────┬─────────────┐
+                                               ▼             ▼             ▼
+                                           Server 1      Server 2      Server 3
+                                           (removes)     (removes)     (removes)
     ▼
  SUCCESS
 ```
@@ -418,6 +417,19 @@ pub enum Message {
         encrypted_image_data: Vec<u8>,
         success: bool,
         error_message: Option<String>,
+    },
+    TaskAck {
+        client_name: String,
+        request_id: u64,
+    },
+    TaskStatusQuery {
+        client_name: String,
+        request_id: u64,
+    },
+    TaskStatusResponse {
+        request_id: u64,
+        assigned_server_id: u32,
+        assigned_server_address: String,
     },
 
     // Task History (Fault Tolerance)
@@ -769,39 +781,47 @@ for key in orphaned_tasks {
 - Client rediscovers leader
 - Client gets new assignment (possibly different server)
 
-### Client Retry Logic
+### Client Server-Side Failover Logic
 
 **Configuration**:
 ```rust
-const MAX_RETRIES: u32 = 3;
-const TIMEOUT_SECS: u64 = 10;
-const RETRY_INTERVAL_SECS: u64 = 5;
+const POLL_INTERVAL_SECS: u64 = 2;
+const MAX_SAME_SERVER_POLLS: u32 = 10;  // 20 seconds of same server before retry
+const CONNECTION_TIMEOUT_SECS: u64 = 2;
 ```
 
 **Process**:
 ```
-Attempt 1:
-  1. Discover leader (2s timeout per server)
-  2. Get assignment (10s timeout)
-  3. Execute task (10s timeout)
-  → If timeout or error: wait 5s
+Initial Assignment:
+  1. Broadcast TaskAssignmentRequest to ALL servers (2s timeout each)
+  2. Leader responds with TaskAssignmentResponse
+  → If no leader: poll every 2s indefinitely until leader available
 
-Attempt 2:
-  1. Rediscover leader (may have changed!)
-  2. Get new assignment
-  3. Execute task
-  → If timeout or error: wait 5s
+Task Execution:
+  1. Connect to assigned server
+  2. Send TaskRequest with image data
+  3. Receive TaskResponse
+  4. Send TaskAck to confirm receipt
+  5. Verify encryption locally
 
-Attempt 3:
-  1. Rediscover leader
-  2. Get assignment
-  3. Execute task
-  → If still fails: give up, report error
+Server Failure During Execution:
+  1. Detect TCP connection failure
+  2. Broadcast TaskStatusQuery to ALL servers (2s timeout each, polls indefinitely)
+  3. Any server responds with current TaskStatusResponse from shared history
+  4. If different server: accept immediately and retry task
+  5. If same server (10 consecutive polls): retry anyway (server may have recovered)
+  6. Continue until task succeeds
+
+Key Features:
+- NO retry limit: client continues indefinitely
+- Server-side reassignment: leader reassigns orphaned tasks to healthy servers
+- At-least-once delivery: TaskAck ensures tasks not removed from history prematurely
 ```
 
-**Success Rate**:
-- Single attempt: ~85% (under load)
-- With 3 retries: ~99.8%
+**Resilience**:
+- Client never gives up on tasks
+- Automatic server-side reassignment
+- Task history ensures no duplicate work
 
 ## Load Balancing Algorithm
 
