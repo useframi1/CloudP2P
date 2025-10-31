@@ -18,7 +18,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Message {
     // ========== LEADER ELECTION MESSAGES ==========
-
     /// **Election Message**
     ///
     /// Sent when a server initiates a leader election process.
@@ -30,10 +29,7 @@ pub enum Message {
     /// # Modified Bully Algorithm
     /// Unlike classic Bully Algorithm which uses static server IDs, this implementation
     /// uses dynamic load-based priority where lower values indicate less-loaded servers.
-    Election {
-        from_id: u32,
-        priority: f64,
-    },
+    Election { from_id: u32, priority: f64 },
 
     /// **Alive Message**
     ///
@@ -42,9 +38,7 @@ pub enum Message {
     ///
     /// # Fields
     /// - `from_id`: ID of the responding server
-    Alive {
-        from_id: u32,
-    },
+    Alive { from_id: u32 },
 
     /// **Coordinator Message**
     ///
@@ -52,9 +46,7 @@ pub enum Message {
     ///
     /// # Fields
     /// - `leader_id`: ID of the server that won the election
-    Coordinator {
-        leader_id: u32,
-    },
+    Coordinator { leader_id: u32 },
 
     /// **Heartbeat Message**
     ///
@@ -76,7 +68,6 @@ pub enum Message {
     },
 
     // ========== CLIENT-SERVER COMMUNICATION ==========
-
     /// **Leader Query**
     ///
     /// Sent by clients to discover which server is currently the leader.
@@ -89,9 +80,7 @@ pub enum Message {
     ///
     /// # Fields
     /// - `leader_id`: ID of the current leader server
-    LeaderResponse {
-        leader_id: u32,
-    },
+    LeaderResponse { leader_id: u32 },
 
     /// **Task Assignment Request**
     ///
@@ -135,7 +124,6 @@ pub enum Message {
         client_name: String,
         request_id: u64,
         image_data: Vec<u8>,
-        image_name: String,
         text_to_embed: String,
         assigned_by_leader: u32,
     },
@@ -200,7 +188,6 @@ pub enum Message {
     },
 
     // ========== FAULT TOLERANCE MESSAGES ==========
-
     /// **History Add**
     ///
     /// Broadcast by the leader when assigning a task to track which server is

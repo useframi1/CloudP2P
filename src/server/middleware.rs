@@ -542,7 +542,6 @@ impl ServerMiddleware {
                 client_name,
                 request_id,
                 image_data,
-                image_name,
                 text_to_embed,
                 assigned_by_leader,
             } => {
@@ -559,7 +558,7 @@ impl ServerMiddleware {
                     request_id,
                     client_name.clone(),
                     image_data,
-                    image_name,
+                    // image_name,
                     text_to_embed,
                     Some(tx),
                 )
@@ -1258,7 +1257,7 @@ impl ServerMiddleware {
         request_id: u64,
         client_name: String,
         image_data: Vec<u8>,
-        image_name: String,
+        // image_name: String,
         text_to_embed: String,
         response_tx: Option<mpsc::Sender<Message>>,
     ) {
@@ -1281,23 +1280,10 @@ impl ServerMiddleware {
                 server.config.server.id, request_id, client_name
             );
 
-            // TESTING: Sleep for 5 seconds to simulate long-running task
-            info!(
-                "⏳ Server {} sleeping for 5 seconds (testing delay)...",
-                server.config.server.id
-            );
-            tokio::time::sleep(tokio::time::Duration::from_secs(5)).await;
-
             // Delegate to ServerCore for actual encryption
             let encryption_result = server
                 .core
-                .encrypt_image(
-                    request_id,
-                    client_name.clone(),
-                    image_data,
-                    image_name,
-                    text_to_embed,
-                )
+                .encrypt_image(request_id, client_name.clone(), image_data, text_to_embed)
                 .await;
 
             let response = match encryption_result {

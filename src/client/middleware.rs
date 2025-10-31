@@ -674,7 +674,6 @@ impl ClientMiddleware {
                     &assigned_address,
                     request_num,
                     image_data.clone(), // Clone cached data
-                    &image_name,
                     &text_to_embed,
                     leader_id,
                 )

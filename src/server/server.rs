@@ -7,8 +7,7 @@
 //! are handled by the [`ServerMiddleware`](super::middleware::ServerMiddleware).
 
 use anyhow::Result;
-use log::{error, info};
-use std::fs;
+use log::info;
 
 use crate::processing::steganography;
 
@@ -70,7 +69,6 @@ impl ServerCore {
         request_id: u64,
         client_name: String,
         image_data: Vec<u8>,
-        image_name: String,
         text_to_embed: String,
     ) -> Result<Vec<u8>> {
         info!(
@@ -90,18 +88,6 @@ impl ServerCore {
             "✅ Server {} completed encryption for request #{}",
             self.server_id, request_id
         );
-
-        // Save encrypted image to disk for persistence
-        let output_path = format!("user-data/outputs/encrypted_{}", image_name);
-        if let Err(e) = fs::write(&output_path, &encryption_result) {
-            error!(
-                "❌ Server {} failed to save encrypted image to {}: {}",
-                self.server_id, output_path, e
-            );
-            // Don't fail the task if we can't save - still return the data
-        } else {
-            info!("💾 Server {} saved encrypted image to {}", self.server_id, output_path);
-        }
 
         Ok(encryption_result)
     }

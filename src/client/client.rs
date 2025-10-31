@@ -135,7 +135,6 @@ impl ClientCore {
         assigned_address: &str,
         request_id: u64,
         image_data: Vec<u8>,
-        image_name: &str,
         text_to_embed: &str,
         assigned_by_leader: u32,
     ) -> Result<()> {
@@ -153,7 +152,6 @@ impl ClientCore {
             client_name: self.client_name.clone(),
             request_id,
             image_data,
-            image_name: image_name.to_string(),
             text_to_embed: text_to_embed.to_string(),
             assigned_by_leader,
         };
@@ -169,18 +167,18 @@ impl ClientCore {
                 error_message,
             }) => {
                 if success {
-                    // Save the encrypted image to the outputs directory
-                    let output_path = format!(
-                        "user-data/outputs/encrypted_{}_{}",
-                        self.client_name, image_name
-                    );
+                    // // Save the encrypted image to the outputs directory
+                    // let output_path = format!(
+                    //     "user-data/outputs/encrypted_{}_{}",
+                    //     self.client_name, image_name
+                    // );
 
-                    std::fs::write(&output_path, &encrypted_image_data)?;
+                    // std::fs::write(&output_path, &encrypted_image_data)?;
 
-                    info!(
-                        "✅ {} Saved encrypted image for task #{}",
-                        self.client_name, response_id
-                    );
+                    // info!(
+                    //     "✅ {} Saved encrypted image for task #{}",
+                    //     self.client_name, response_id
+                    // );
 
                     // Verify the encryption by extracting the embedded text
                     match steganography::extract_text_bytes(&encrypted_image_data) {
@@ -195,7 +193,9 @@ impl ClientCore {
                                     "❌ {} Encryption MISMATCH for task #{}: expected '{}', got '{}'",
                                     self.client_name, response_id, text_to_embed, extracted_text
                                 );
-                                return Err(anyhow::anyhow!("Encryption verification failed: text mismatch"));
+                                return Err(anyhow::anyhow!(
+                                    "Encryption verification failed: text mismatch"
+                                ));
                             }
                         }
                         Err(e) => {
@@ -222,10 +222,7 @@ impl ClientCore {
                         // Don't fail the entire task if ACK fails - the task succeeded
                         // The server will retry later or detect orphaned task
                     } else {
-                        info!(
-                            "📨 {} Sent ACK for task #{}",
-                            self.client_name, response_id
-                        );
+                        info!("📨 {} Sent ACK for task #{}", self.client_name, response_id);
                     }
 
                     Ok(())
@@ -237,9 +234,7 @@ impl ClientCore {
                     ))
                 }
             }
-            _ => Err(anyhow::anyhow!(
-                "Unexpected response or connection closed"
-            )),
+            _ => Err(anyhow::anyhow!("Unexpected response or connection closed")),
         }
     }
 }
