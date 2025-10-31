@@ -7,7 +7,5 @@ server_addresses = [
 ]
 
 [requests]
-rate_per_second =0.05
+rate_per_second = 0.05
 duration_seconds = 60.0
-request_processing_ms = 20000
-load_per_request = 0.2
