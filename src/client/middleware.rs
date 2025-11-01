@@ -413,7 +413,7 @@ impl ClientMiddleware {
     /// * `Ok((assigned_server_id, assigned_address))` - Current server assignment
     /// * `Err` - If no server responded with valid status
     async fn broadcast_status_query(&self, request_num: u64) -> Result<(u32, String)> {
-        const CONNECTION_TIMEOUT_SECS: u64 = 2;
+        const CONNECTION_TIMEOUT_SECS: u64 = 10;
 
         info!(
             "🔍 {} Broadcasting status query for task #{} to {} servers",
@@ -439,7 +439,10 @@ impl ClientMiddleware {
 
                 match result {
                     Ok(Ok(status)) => Some(status),
-                    Ok(Err(_)) | Err(_) => None,
+                    Ok(Err(_)) | Err(_) => {
+                        error!("Invalid or no response from server");
+                        None
+                    }
                 }
             });
 
@@ -532,7 +535,7 @@ impl ClientMiddleware {
         request_num: u64,
         failed_address: &str,
     ) -> Result<(u32, String)> {
-        const POLL_INTERVAL_SECS: u64 = 2;
+        const POLL_INTERVAL_SECS: u64 = 5;
         const MAX_SAME_SERVER_POLLS: u32 = 10; // After 10 polls (20s), retry same server in case it recovered
 
         info!(

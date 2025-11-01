@@ -6,25 +6,37 @@
 # Each client gets a unique ID appended to the machine name.
 #
 # Usage:
-#   ./scripts/run_local_stress_test.sh [num_clients] [config_file]
+#   ./scripts/stress_test.sh <machine_id> [num_clients] [config_file]
 #
 # Examples:
-#   ./scripts/run_local_stress_test.sh 10                      # 10 clients, default config
-#   ./scripts/run_local_stress_test.sh 100 config/machine2.toml  # 100 clients, custom config
+#   ./scripts/stress_test.sh 1              # Machine 1, 10 clients, default config
+#   ./scripts/stress_test.sh 2 20           # Machine 2, 20 clients, default config
+#   ./scripts/stress_test.sh 1 100 config/custom.toml  # Machine 1, 100 clients, custom config
 
 set -e
 
+# Machine ID (required)
+if [ -z "$1" ]; then
+    echo "Error: Machine ID is required"
+    echo "Usage: $0 <machine_id> [num_clients] [config_file]"
+    echo "Example: $0 1 10"
+    exit 1
+fi
+
+MACHINE_ID=$1
+
 # Number of clients to run (default: 10)
-NUM_CLIENTS=${1:-10}
+NUM_CLIENTS=${2:-10}
 
 # Configuration (can be overridden via argument)
-STRESS_CONFIG="${2:-./config/client_stress.toml}"
+STRESS_CONFIG="${3:-./config/client_stress.toml}"
 METRICS_DIR="./metrics"
 CLIENT_BINARY="./target/release/client"
 
 echo "========================================"
-echo "CloudP2P Local Stress Test"
+echo "CloudP2P Stress Test"
 echo "========================================"
+echo "Machine ID:        $MACHINE_ID"
 echo "Number of Clients: $NUM_CLIENTS"
 echo "Config File:       $STRESS_CONFIG"
 echo "Metrics Directory: $METRICS_DIR"
@@ -42,6 +54,23 @@ if [ ! -f "$STRESS_CONFIG" ]; then
     echo "Error: Config not found at $STRESS_CONFIG"
     exit 1
 fi
+
+# Create a temporary config file with the correct machine name
+TEMP_CONFIG=$(mktemp /tmp/client_stress_machine${MACHINE_ID}.XXXXXX.toml)
+echo "Creating temporary config with Machine_${MACHINE_ID}..."
+
+# Replace the machine name in the config
+sed "s/name = \"Machine_[0-9]*\"/name = \"Machine_${MACHINE_ID}\"/" "$STRESS_CONFIG" > "$TEMP_CONFIG"
+
+# Verify the replacement worked
+if ! grep -q "name = \"Machine_${MACHINE_ID}\"" "$TEMP_CONFIG"; then
+    echo "Error: Failed to set machine name in config"
+    rm -f "$TEMP_CONFIG"
+    exit 1
+fi
+
+echo "Using config with name: Machine_${MACHINE_ID}"
+echo ""
 
 # Clean up old metrics
 echo "Cleaning up old metrics..."
@@ -62,6 +91,12 @@ cleanup() {
     done
     wait
     echo "All clients terminated."
+
+    # Remove temporary config file
+    if [ -f "$TEMP_CONFIG" ]; then
+        rm -f "$TEMP_CONFIG"
+        echo "Removed temporary config file."
+    fi
 }
 
 # Register cleanup function
@@ -82,7 +117,7 @@ for ((i=1; i<=NUM_CLIENTS; i++)); do
 
     # Run client in background with --client-id
     "$CLIENT_BINARY" \
-        --config "$STRESS_CONFIG" \
+        --config "$TEMP_CONFIG" \
         --client-id "$i" \
         --metrics-output "$METRICS_FILE" \
         > "$LOG_FILE" 2>&1 &

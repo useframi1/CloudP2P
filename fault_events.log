@@ -780,3 +780,675 @@
 [2025-11-01 19:09:11] Total Faults:       6
 [2025-11-01 19:09:11] Total Time:         277s
 [2025-11-01 19:09:11] =========================================
+[2025-11-01 19:32:09] Checking SSH connectivity to all servers...
+[2025-11-01 19:32:16] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 19:32:20] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 19:32:20] All SSH connectivity checks passed
+[2025-11-01 19:32:20] Verifying management scripts exist on all servers...
+[2025-11-01 19:32:22] Management scripts found on Server 1
+[2025-11-01 19:32:32] Management scripts found on Server 2
+[2025-11-01 19:32:32] All management scripts verified
+[2025-11-01 19:32:32] Starting fault simulation with ring algorithm
+[2025-11-01 19:32:32] Ring order: Server 1 2
+[2025-11-01 19:32:32] ===== CYCLE 1/3 =====
+[2025-11-01 19:32:32] Ring Algorithm: Processing Server 1
+[2025-11-01 19:32:32] Stopping Server 1 on g03-s2025@10.40.39.41 using stop_server.sh
+[2025-11-01 19:32:40]   [Server 1] Stopping Server 1 (PID: 101483)...
+[2025-11-01 19:32:40]   [Server 1] Sent SIGTERM to Server 1, waiting for graceful shutdown...
+[2025-11-01 19:32:40]   [Server 1] ✅ Server 1 stopped gracefully
+[2025-11-01 19:32:40] SUCCESS: Server 1 stopped on g03-s2025@10.40.39.41
+[2025-11-01 19:32:40] Server 1 is now DOWN
+[2025-11-01 19:32:40] Waiting 10s before restarting Server 1...
+[2025-11-01 19:32:50] Starting Server 1 on g03-s2025@10.40.39.41 using start_server.sh
+[2025-11-01 19:32:54]   [Server 1] Starting Server 1...
+[2025-11-01 19:32:54]   [Server 1]   Config: config/server1.toml
+[2025-11-01 19:32:54]   [Server 1]   Log:    logs/server_1.log
+[2025-11-01 19:32:54]   [Server 1]   PID:    logs/server_1.pid
+[2025-11-01 19:32:54]   [Server 1] 
+[2025-11-01 19:32:54]   [Server 1] ✅ Server 1 started successfully (PID: 102241)
+[2025-11-01 19:32:54]   [Server 1] 
+[2025-11-01 19:32:54]   [Server 1] To view logs in real-time:
+[2025-11-01 19:32:54]   [Server 1]   tail -f logs/server_1.log
+[2025-11-01 19:32:54]   [Server 1] 
+[2025-11-01 19:32:54]   [Server 1] To stop the server:
+[2025-11-01 19:32:54]   [Server 1]   ./scripts/stop_server.sh 1
+[2025-11-01 19:32:54] SUCCESS: Server 1 started on g03-s2025@10.40.39.41
+[2025-11-01 19:32:54] Server 1 is now UP
+[2025-11-01 19:32:54] Waiting 30s before moving to next server in ring...
+[2025-11-01 19:33:24] Ring Algorithm: Processing Server 2
+[2025-11-01 19:33:24] Stopping Server 2 on g03-s2025@10.40.38.47 using stop_server.sh
+[2025-11-01 19:33:34]   [Server 2] Stopping Server 2 (PID: 72489)...
+[2025-11-01 19:33:34]   [Server 2] Sent SIGTERM to Server 2, waiting for graceful shutdown...
+[2025-11-01 19:33:34]   [Server 2] ✅ Server 2 stopped gracefully
+[2025-11-01 19:33:34] SUCCESS: Server 2 stopped on g03-s2025@10.40.38.47
+[2025-11-01 19:33:34] Server 2 is now DOWN
+[2025-11-01 19:33:34] Waiting 10s before restarting Server 2...
+[2025-11-01 19:33:44] Starting Server 2 on g03-s2025@10.40.38.47 using start_server.sh
+[2025-11-01 19:33:54]   [Server 2] Starting Server 2...
+[2025-11-01 19:33:54]   [Server 2]   Config: config/server2.toml
+[2025-11-01 19:33:54]   [Server 2]   Log:    logs/server_2.log
+[2025-11-01 19:33:54]   [Server 2]   PID:    logs/server_2.pid
+[2025-11-01 19:33:54]   [Server 2] 
+[2025-11-01 19:33:54]   [Server 2] ✅ Server 2 started successfully (PID: 73124)
+[2025-11-01 19:33:54]   [Server 2] 
+[2025-11-01 19:33:54]   [Server 2] To view logs in real-time:
+[2025-11-01 19:33:54]   [Server 2]   tail -f logs/server_2.log
+[2025-11-01 19:33:54]   [Server 2] 
+[2025-11-01 19:33:54]   [Server 2] To stop the server:
+[2025-11-01 19:33:54]   [Server 2]   ./scripts/stop_server.sh 2
+[2025-11-01 19:33:54] SUCCESS: Server 2 started on g03-s2025@10.40.38.47
+[2025-11-01 19:33:54] Server 2 is now UP
+[2025-11-01 19:33:54] Waiting 30s before moving to next server in ring...
+[2025-11-01 19:34:24] ===== CYCLE 1 COMPLETED =====
+[2025-11-01 19:34:24] ===== CYCLE 2/3 =====
+[2025-11-01 19:34:24] Ring Algorithm: Processing Server 1
+[2025-11-01 19:34:24] Stopping Server 1 on g03-s2025@10.40.39.41 using stop_server.sh
+[2025-11-01 19:34:27]   [Server 1] Stopping Server 1 (PID: 102241)...
+[2025-11-01 19:34:27]   [Server 1] Sent SIGTERM to Server 1, waiting for graceful shutdown...
+[2025-11-01 19:34:27]   [Server 1] ✅ Server 1 stopped gracefully
+[2025-11-01 19:34:27] SUCCESS: Server 1 stopped on g03-s2025@10.40.39.41
+[2025-11-01 19:34:27] Server 1 is now DOWN
+[2025-11-01 19:34:27] Waiting 10s before restarting Server 1...
+[2025-11-01 19:34:37] Starting Server 1 on g03-s2025@10.40.39.41 using start_server.sh
+[2025-11-01 19:34:40]   [Server 1] Starting Server 1...
+[2025-11-01 19:34:40]   [Server 1]   Config: config/server1.toml
+[2025-11-01 19:34:40]   [Server 1]   Log:    logs/server_1.log
+[2025-11-01 19:34:40]   [Server 1]   PID:    logs/server_1.pid
+[2025-11-01 19:34:40]   [Server 1] 
+[2025-11-01 19:34:40]   [Server 1] ✅ Server 1 started successfully (PID: 102569)
+[2025-11-01 19:34:40]   [Server 1] 
+[2025-11-01 19:34:40]   [Server 1] To view logs in real-time:
+[2025-11-01 19:34:40]   [Server 1]   tail -f logs/server_1.log
+[2025-11-01 19:34:40]   [Server 1] 
+[2025-11-01 19:34:40]   [Server 1] To stop the server:
+[2025-11-01 19:34:40]   [Server 1]   ./scripts/stop_server.sh 1
+[2025-11-01 19:34:40] SUCCESS: Server 1 started on g03-s2025@10.40.39.41
+[2025-11-01 19:34:40] Server 1 is now UP
+[2025-11-01 19:34:40] Waiting 30s before moving to next server in ring...
+[2025-11-01 19:35:10] Ring Algorithm: Processing Server 2
+[2025-11-01 19:35:10] Stopping Server 2 on g03-s2025@10.40.38.47 using stop_server.sh
+[2025-11-01 19:35:15]   [Server 2] Stopping Server 2 (PID: 73124)...
+[2025-11-01 19:35:15]   [Server 2] Sent SIGTERM to Server 2, waiting for graceful shutdown...
+[2025-11-01 19:35:15]   [Server 2] ✅ Server 2 stopped gracefully
+[2025-11-01 19:35:15] SUCCESS: Server 2 stopped on g03-s2025@10.40.38.47
+[2025-11-01 19:35:15] Server 2 is now DOWN
+[2025-11-01 19:35:15] Waiting 10s before restarting Server 2...
+[2025-11-01 19:35:25] Starting Server 2 on g03-s2025@10.40.38.47 using start_server.sh
+[2025-11-01 19:35:30]   [Server 2] Starting Server 2...
+[2025-11-01 19:35:30]   [Server 2]   Config: config/server2.toml
+[2025-11-01 19:35:30]   [Server 2]   Log:    logs/server_2.log
+[2025-11-01 19:35:30]   [Server 2]   PID:    logs/server_2.pid
+[2025-11-01 19:35:31]   [Server 2] 
+[2025-11-01 19:35:31]   [Server 2] ✅ Server 2 started successfully (PID: 73442)
+[2025-11-01 19:35:31]   [Server 2] 
+[2025-11-01 19:35:31]   [Server 2] To view logs in real-time:
+[2025-11-01 19:35:31]   [Server 2]   tail -f logs/server_2.log
+[2025-11-01 19:35:31]   [Server 2] 
+[2025-11-01 19:35:31]   [Server 2] To stop the server:
+[2025-11-01 19:35:31]   [Server 2]   ./scripts/stop_server.sh 2
+[2025-11-01 19:35:31] SUCCESS: Server 2 started on g03-s2025@10.40.38.47
+[2025-11-01 19:35:31] Server 2 is now UP
+[2025-11-01 19:35:31] Waiting 30s before moving to next server in ring...
+[2025-11-01 19:36:01] ===== CYCLE 2 COMPLETED =====
+[2025-11-01 19:36:01] ===== CYCLE 3/3 =====
+[2025-11-01 19:36:01] Ring Algorithm: Processing Server 1
+[2025-11-01 19:36:01] Stopping Server 1 on g03-s2025@10.40.39.41 using stop_server.sh
+[2025-11-01 19:36:03]   [Server 1] Stopping Server 1 (PID: 102569)...
+[2025-11-01 19:36:03]   [Server 1] Sent SIGTERM to Server 1, waiting for graceful shutdown...
+[2025-11-01 19:36:03]   [Server 1] ✅ Server 1 stopped gracefully
+[2025-11-01 19:36:03] SUCCESS: Server 1 stopped on g03-s2025@10.40.39.41
+[2025-11-01 19:36:03] Server 1 is now DOWN
+[2025-11-01 19:36:03] Waiting 10s before restarting Server 1...
+[2025-11-01 19:36:13] Starting Server 1 on g03-s2025@10.40.39.41 using start_server.sh
+[2025-11-01 19:36:16]   [Server 1] Starting Server 1...
+[2025-11-01 19:36:16]   [Server 1]   Config: config/server1.toml
+[2025-11-01 19:36:16]   [Server 1]   Log:    logs/server_1.log
+[2025-11-01 19:36:16]   [Server 1]   PID:    logs/server_1.pid
+[2025-11-01 19:36:16]   [Server 1] 
+[2025-11-01 19:36:16]   [Server 1] ✅ Server 1 started successfully (PID: 102880)
+[2025-11-01 19:36:16]   [Server 1] 
+[2025-11-01 19:36:16]   [Server 1] To view logs in real-time:
+[2025-11-01 19:36:16]   [Server 1]   tail -f logs/server_1.log
+[2025-11-01 19:36:16]   [Server 1] 
+[2025-11-01 19:36:16]   [Server 1] To stop the server:
+[2025-11-01 19:36:16]   [Server 1]   ./scripts/stop_server.sh 1
+[2025-11-01 19:36:16] SUCCESS: Server 1 started on g03-s2025@10.40.39.41
+[2025-11-01 19:36:16] Server 1 is now UP
+[2025-11-01 19:36:16] Waiting 30s before moving to next server in ring...
+[2025-11-01 19:36:46] Ring Algorithm: Processing Server 2
+[2025-11-01 19:36:46] Stopping Server 2 on g03-s2025@10.40.38.47 using stop_server.sh
+[2025-11-01 19:36:49]   [Server 2] Stopping Server 2 (PID: 73442)...
+[2025-11-01 19:36:49]   [Server 2] Sent SIGTERM to Server 2, waiting for graceful shutdown...
+[2025-11-01 19:36:49]   [Server 2] ✅ Server 2 stopped gracefully
+[2025-11-01 19:36:49] SUCCESS: Server 2 stopped on g03-s2025@10.40.38.47
+[2025-11-01 19:36:49] Server 2 is now DOWN
+[2025-11-01 19:36:49] Waiting 10s before restarting Server 2...
+[2025-11-01 19:36:59] Starting Server 2 on g03-s2025@10.40.38.47 using start_server.sh
+[2025-11-01 19:37:09]   [Server 2] Starting Server 2...
+[2025-11-01 19:37:09]   [Server 2]   Config: config/server2.toml
+[2025-11-01 19:37:09]   [Server 2]   Log:    logs/server_2.log
+[2025-11-01 19:37:09]   [Server 2]   PID:    logs/server_2.pid
+[2025-11-01 19:37:09]   [Server 2] 
+[2025-11-01 19:37:09]   [Server 2] ✅ Server 2 started successfully (PID: 73749)
+[2025-11-01 19:37:09]   [Server 2] 
+[2025-11-01 19:37:09]   [Server 2] To view logs in real-time:
+[2025-11-01 19:37:09]   [Server 2]   tail -f logs/server_2.log
+[2025-11-01 19:37:09]   [Server 2] 
+[2025-11-01 19:37:09]   [Server 2] To stop the server:
+[2025-11-01 19:37:09]   [Server 2]   ./scripts/stop_server.sh 2
+[2025-11-01 19:37:09] SUCCESS: Server 2 started on g03-s2025@10.40.38.47
+[2025-11-01 19:37:09] Server 2 is now UP
+[2025-11-01 19:37:09] Waiting 30s before moving to next server in ring...
+[2025-11-01 19:37:39] ===== CYCLE 3 COMPLETED =====
+[2025-11-01 19:37:39] =========================================
+[2025-11-01 19:37:39] Fault Simulation Completed!
+[2025-11-01 19:37:39] =========================================
+[2025-11-01 19:37:39] Total Cycles:       3
+[2025-11-01 19:37:39] Servers Processed:  2
+[2025-11-01 19:37:39] Total Faults:       6
+[2025-11-01 19:37:39] Total Time:         307s
+[2025-11-01 19:37:39] =========================================
+[2025-11-01 19:51:39] Checking SSH connectivity to all servers...
+[2025-11-01 19:51:44] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 19:51:48] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 19:51:48] All SSH connectivity checks passed
+[2025-11-01 19:51:48] Verifying management scripts exist on all servers...
+[2025-11-01 19:51:57] Management scripts found on Server 1
+[2025-11-01 19:52:04] Management scripts found on Server 2
+[2025-11-01 19:52:04] All management scripts verified
+[2025-11-01 19:52:04] Starting fault simulation with ring algorithm
+[2025-11-01 19:52:04] Ring order: Server 1 2
+[2025-11-01 19:52:04] ===== CYCLE 1/3 =====
+[2025-11-01 19:52:04] Ring Algorithm: Processing Server 1
+[2025-11-01 19:52:04] Stopping Server 1 on g03-s2025@10.40.39.41 using stop_server.sh
+[2025-11-01 19:52:15]   [Server 1] Stopping Server 1 (PID: 102880)...
+[2025-11-01 19:52:15]   [Server 1] Sent SIGTERM to Server 1, waiting for graceful shutdown...
+[2025-11-01 19:52:15]   [Server 1] ✅ Server 1 stopped gracefully
+[2025-11-01 19:52:15] SUCCESS: Server 1 stopped on g03-s2025@10.40.39.41
+[2025-11-01 19:52:15] Server 1 is now DOWN
+[2025-11-01 19:52:15] Waiting 10s before restarting Server 1...
+[2025-11-01 19:52:25] Starting Server 1 on g03-s2025@10.40.39.41 using start_server.sh
+[2025-11-01 19:52:28]   [Server 1] Starting Server 1...
+[2025-11-01 19:52:28]   [Server 1]   Config: config/server1.toml
+[2025-11-01 19:52:28]   [Server 1]   Log:    logs/server_1.log
+[2025-11-01 19:52:28]   [Server 1]   PID:    logs/server_1.pid
+[2025-11-01 19:52:28]   [Server 1] 
+[2025-11-01 19:52:28]   [Server 1] ✅ Server 1 started successfully (PID: 104330)
+[2025-11-01 19:52:28]   [Server 1] 
+[2025-11-01 19:52:28]   [Server 1] To view logs in real-time:
+[2025-11-01 19:52:28]   [Server 1]   tail -f logs/server_1.log
+[2025-11-01 19:52:28]   [Server 1] 
+[2025-11-01 19:52:28]   [Server 1] To stop the server:
+[2025-11-01 19:52:28]   [Server 1]   ./scripts/stop_server.sh 1
+[2025-11-01 19:52:28] SUCCESS: Server 1 started on g03-s2025@10.40.39.41
+[2025-11-01 19:52:28] Server 1 is now UP
+[2025-11-01 19:52:28] Waiting 30s before moving to next server in ring...
+[2025-11-01 19:52:58] Ring Algorithm: Processing Server 2
+[2025-11-01 19:52:58] Stopping Server 2 on g03-s2025@10.40.38.47 using stop_server.sh
+[2025-11-01 19:53:05]   [Server 2] Stopping Server 2 (PID: 73749)...
+[2025-11-01 19:53:05]   [Server 2] Sent SIGTERM to Server 2, waiting for graceful shutdown...
+[2025-11-01 19:53:05]   [Server 2] ✅ Server 2 stopped gracefully
+[2025-11-01 19:53:05] SUCCESS: Server 2 stopped on g03-s2025@10.40.38.47
+[2025-11-01 19:53:05] Server 2 is now DOWN
+[2025-11-01 19:53:05] Waiting 10s before restarting Server 2...
+[2025-11-01 19:53:15] Starting Server 2 on g03-s2025@10.40.38.47 using start_server.sh
+[2025-11-01 19:53:26]   [Server 2] Starting Server 2...
+[2025-11-01 19:53:26]   [Server 2]   Config: config/server2.toml
+[2025-11-01 19:53:26]   [Server 2]   Log:    logs/server_2.log
+[2025-11-01 19:53:26]   [Server 2]   PID:    logs/server_2.pid
+[2025-11-01 19:53:26]   [Server 2] 
+[2025-11-01 19:53:26]   [Server 2] ✅ Server 2 started successfully (PID: 74956)
+[2025-11-01 19:53:26]   [Server 2] 
+[2025-11-01 19:53:26]   [Server 2] To view logs in real-time:
+[2025-11-01 19:53:26]   [Server 2]   tail -f logs/server_2.log
+[2025-11-01 19:53:26]   [Server 2] 
+[2025-11-01 19:53:26]   [Server 2] To stop the server:
+[2025-11-01 19:53:26]   [Server 2]   ./scripts/stop_server.sh 2
+[2025-11-01 19:53:26] SUCCESS: Server 2 started on g03-s2025@10.40.38.47
+[2025-11-01 19:53:26] Server 2 is now UP
+[2025-11-01 19:53:26] Waiting 30s before moving to next server in ring...
+[2025-11-01 19:53:56] ===== CYCLE 1 COMPLETED =====
+[2025-11-01 19:53:56] ===== CYCLE 2/3 =====
+[2025-11-01 19:53:56] Ring Algorithm: Processing Server 1
+[2025-11-01 19:53:56] Stopping Server 1 on g03-s2025@10.40.39.41 using stop_server.sh
+[2025-11-01 19:54:01]   [Server 1] Stopping Server 1 (PID: 104330)...
+[2025-11-01 19:54:01]   [Server 1] Sent SIGTERM to Server 1, waiting for graceful shutdown...
+[2025-11-01 19:54:01]   [Server 1] ✅ Server 1 stopped gracefully
+[2025-11-01 19:54:01] SUCCESS: Server 1 stopped on g03-s2025@10.40.39.41
+[2025-11-01 19:54:01] Server 1 is now DOWN
+[2025-11-01 19:54:01] Waiting 10s before restarting Server 1...
+[2025-11-01 19:54:11] Starting Server 1 on g03-s2025@10.40.39.41 using start_server.sh
+[2025-11-01 19:54:14]   [Server 1] Starting Server 1...
+[2025-11-01 19:54:14]   [Server 1]   Config: config/server1.toml
+[2025-11-01 19:54:14]   [Server 1]   Log:    logs/server_1.log
+[2025-11-01 19:54:14]   [Server 1]   PID:    logs/server_1.pid
+[2025-11-01 19:54:14]   [Server 1] 
+[2025-11-01 19:54:14]   [Server 1] ✅ Server 1 started successfully (PID: 104678)
+[2025-11-01 19:54:14]   [Server 1] 
+[2025-11-01 19:54:14]   [Server 1] To view logs in real-time:
+[2025-11-01 19:54:14]   [Server 1]   tail -f logs/server_1.log
+[2025-11-01 19:54:14]   [Server 1] 
+[2025-11-01 19:54:14]   [Server 1] To stop the server:
+[2025-11-01 19:54:14]   [Server 1]   ./scripts/stop_server.sh 1
+[2025-11-01 19:54:14] SUCCESS: Server 1 started on g03-s2025@10.40.39.41
+[2025-11-01 19:54:14] Server 1 is now UP
+[2025-11-01 19:54:14] Waiting 30s before moving to next server in ring...
+[2025-11-01 19:54:44] Ring Algorithm: Processing Server 2
+[2025-11-01 19:54:44] Stopping Server 2 on g03-s2025@10.40.38.47 using stop_server.sh
+[2025-11-01 19:54:49]   [Server 2] Stopping Server 2 (PID: 74956)...
+[2025-11-01 19:54:49]   [Server 2] Sent SIGTERM to Server 2, waiting for graceful shutdown...
+[2025-11-01 19:54:49]   [Server 2] ✅ Server 2 stopped gracefully
+[2025-11-01 19:54:49] SUCCESS: Server 2 stopped on g03-s2025@10.40.38.47
+[2025-11-01 19:54:49] Server 2 is now DOWN
+[2025-11-01 19:54:49] Waiting 10s before restarting Server 2...
+[2025-11-01 19:54:59] Starting Server 2 on g03-s2025@10.40.38.47 using start_server.sh
+[2025-11-01 19:55:07]   [Server 2] Starting Server 2...
+[2025-11-01 19:55:07]   [Server 2]   Config: config/server2.toml
+[2025-11-01 19:55:07]   [Server 2]   Log:    logs/server_2.log
+[2025-11-01 19:55:07]   [Server 2]   PID:    logs/server_2.pid
+[2025-11-01 19:55:07]   [Server 2] 
+[2025-11-01 19:55:07]   [Server 2] ✅ Server 2 started successfully (PID: 75259)
+[2025-11-01 19:55:07]   [Server 2] 
+[2025-11-01 19:55:07]   [Server 2] To view logs in real-time:
+[2025-11-01 19:55:07]   [Server 2]   tail -f logs/server_2.log
+[2025-11-01 19:55:07]   [Server 2] 
+[2025-11-01 19:55:07]   [Server 2] To stop the server:
+[2025-11-01 19:55:07]   [Server 2]   ./scripts/stop_server.sh 2
+[2025-11-01 19:55:07] SUCCESS: Server 2 started on g03-s2025@10.40.38.47
+[2025-11-01 19:55:07] Server 2 is now UP
+[2025-11-01 19:55:07] Waiting 30s before moving to next server in ring...
+[2025-11-01 19:55:37] ===== CYCLE 2 COMPLETED =====
+[2025-11-01 19:55:37] ===== CYCLE 3/3 =====
+[2025-11-01 19:55:37] Ring Algorithm: Processing Server 1
+[2025-11-01 19:55:37] Stopping Server 1 on g03-s2025@10.40.39.41 using stop_server.sh
+[2025-11-01 19:55:43]   [Server 1] Stopping Server 1 (PID: 104678)...
+[2025-11-01 19:55:43]   [Server 1] Sent SIGTERM to Server 1, waiting for graceful shutdown...
+[2025-11-01 19:55:43]   [Server 1] ✅ Server 1 stopped gracefully
+[2025-11-01 19:55:43] SUCCESS: Server 1 stopped on g03-s2025@10.40.39.41
+[2025-11-01 19:55:43] Server 1 is now DOWN
+[2025-11-01 19:55:43] Waiting 10s before restarting Server 1...
+[2025-11-01 19:55:53] Starting Server 1 on g03-s2025@10.40.39.41 using start_server.sh
+[2025-11-01 19:55:56]   [Server 1] Starting Server 1...
+[2025-11-01 19:55:56]   [Server 1]   Config: config/server1.toml
+[2025-11-01 19:55:56]   [Server 1]   Log:    logs/server_1.log
+[2025-11-01 19:55:56]   [Server 1]   PID:    logs/server_1.pid
+[2025-11-01 19:55:56]   [Server 1] 
+[2025-11-01 19:55:56]   [Server 1] ✅ Server 1 started successfully (PID: 105000)
+[2025-11-01 19:55:56]   [Server 1] 
+[2025-11-01 19:55:56]   [Server 1] To view logs in real-time:
+[2025-11-01 19:55:56]   [Server 1]   tail -f logs/server_1.log
+[2025-11-01 19:55:56]   [Server 1] 
+[2025-11-01 19:55:56]   [Server 1] To stop the server:
+[2025-11-01 19:55:56]   [Server 1]   ./scripts/stop_server.sh 1
+[2025-11-01 19:55:56] SUCCESS: Server 1 started on g03-s2025@10.40.39.41
+[2025-11-01 19:55:56] Server 1 is now UP
+[2025-11-01 19:55:56] Waiting 30s before moving to next server in ring...
+[2025-11-01 19:56:26] Ring Algorithm: Processing Server 2
+[2025-11-01 19:56:26] Stopping Server 2 on g03-s2025@10.40.38.47 using stop_server.sh
+[2025-11-01 19:56:28]   [Server 2] Stopping Server 2 (PID: 75259)...
+[2025-11-01 19:56:28]   [Server 2] Sent SIGTERM to Server 2, waiting for graceful shutdown...
+[2025-11-01 19:56:28]   [Server 2] ✅ Server 2 stopped gracefully
+[2025-11-01 19:56:28] SUCCESS: Server 2 stopped on g03-s2025@10.40.38.47
+[2025-11-01 19:56:28] Server 2 is now DOWN
+[2025-11-01 19:56:28] Waiting 10s before restarting Server 2...
+[2025-11-01 19:56:38] Starting Server 2 on g03-s2025@10.40.38.47 using start_server.sh
+[2025-11-01 19:56:48]   [Server 2] Starting Server 2...
+[2025-11-01 19:56:48]   [Server 2]   Config: config/server2.toml
+[2025-11-01 19:56:48]   [Server 2]   Log:    logs/server_2.log
+[2025-11-01 19:56:48]   [Server 2]   PID:    logs/server_2.pid
+[2025-11-01 19:56:48]   [Server 2] 
+[2025-11-01 19:56:48]   [Server 2] ✅ Server 2 started successfully (PID: 75550)
+[2025-11-01 19:56:48]   [Server 2] 
+[2025-11-01 19:56:48]   [Server 2] To view logs in real-time:
+[2025-11-01 19:56:48]   [Server 2]   tail -f logs/server_2.log
+[2025-11-01 19:56:48]   [Server 2] 
+[2025-11-01 19:56:48]   [Server 2] To stop the server:
+[2025-11-01 19:56:48]   [Server 2]   ./scripts/stop_server.sh 2
+[2025-11-01 19:56:48] SUCCESS: Server 2 started on g03-s2025@10.40.38.47
+[2025-11-01 19:56:48] Server 2 is now UP
+[2025-11-01 19:56:48] Waiting 30s before moving to next server in ring...
+[2025-11-01 19:57:18] ===== CYCLE 3 COMPLETED =====
+[2025-11-01 19:57:18] =========================================
+[2025-11-01 19:57:18] Fault Simulation Completed!
+[2025-11-01 19:57:18] =========================================
+[2025-11-01 19:57:18] Total Cycles:       3
+[2025-11-01 19:57:18] Servers Processed:  2
+[2025-11-01 19:57:18] Total Faults:       6
+[2025-11-01 19:57:18] Total Time:         314s
+[2025-11-01 19:57:18] =========================================
+[2025-11-01 20:02:10] Checking SSH connectivity to all servers...
+[2025-11-01 20:02:12] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 20:02:15] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 20:02:15] All SSH connectivity checks passed
+[2025-11-01 20:02:15] Verifying management scripts exist on all servers...
+[2025-11-01 20:02:21] Management scripts found on Server 1
+[2025-11-01 20:02:27] Management scripts found on Server 2
+[2025-11-01 20:02:27] All management scripts verified
+[2025-11-01 20:02:27] Starting fault simulation with ring algorithm
+[2025-11-01 20:02:27] Ring order: Server 1 2
+[2025-11-01 20:02:27] ===== CYCLE 1/3 =====
+[2025-11-01 20:02:27] Ring Algorithm: Processing Server 1
+[2025-11-01 20:02:27] Stopping Server 1 on g03-s2025@10.40.39.41 using stop_server.sh
+[2025-11-01 20:02:32]   [Server 1] Stopping Server 1 (PID: 105000)...
+[2025-11-01 20:02:32]   [Server 1] Sent SIGTERM to Server 1, waiting for graceful shutdown...
+[2025-11-01 20:02:32]   [Server 1] ✅ Server 1 stopped gracefully
+[2025-11-01 20:02:32] SUCCESS: Server 1 stopped on g03-s2025@10.40.39.41
+[2025-11-01 20:02:32] Server 1 is now DOWN
+[2025-11-01 20:02:32] Waiting 10s before restarting Server 1...
+[2025-11-01 20:02:42] Starting Server 1 on g03-s2025@10.40.39.41 using start_server.sh
+[2025-11-01 20:02:44]   [Server 1] Starting Server 1...
+[2025-11-01 20:02:44]   [Server 1]   Config: config/server1.toml
+[2025-11-01 20:02:44]   [Server 1]   Log:    logs/server_1.log
+[2025-11-01 20:02:44]   [Server 1]   PID:    logs/server_1.pid
+[2025-11-01 20:02:44]   [Server 1] 
+[2025-11-01 20:02:44]   [Server 1] ✅ Server 1 started successfully (PID: 105781)
+[2025-11-01 20:02:44]   [Server 1] 
+[2025-11-01 20:02:44]   [Server 1] To view logs in real-time:
+[2025-11-01 20:02:44]   [Server 1]   tail -f logs/server_1.log
+[2025-11-01 20:02:44]   [Server 1] 
+[2025-11-01 20:02:44]   [Server 1] To stop the server:
+[2025-11-01 20:02:44]   [Server 1]   ./scripts/stop_server.sh 1
+[2025-11-01 20:02:44] SUCCESS: Server 1 started on g03-s2025@10.40.39.41
+[2025-11-01 20:02:44] Server 1 is now UP
+[2025-11-01 20:02:44] Waiting 30s before moving to next server in ring...
+[2025-11-01 20:03:14] Ring Algorithm: Processing Server 2
+[2025-11-01 20:03:14] Stopping Server 2 on g03-s2025@10.40.38.47 using stop_server.sh
+[2025-11-01 20:03:23]   [Server 2] Stopping Server 2 (PID: 75550)...
+[2025-11-01 20:03:23]   [Server 2] Sent SIGTERM to Server 2, waiting for graceful shutdown...
+[2025-11-01 20:03:23]   [Server 2] ✅ Server 2 stopped gracefully
+[2025-11-01 20:03:23] SUCCESS: Server 2 stopped on g03-s2025@10.40.38.47
+[2025-11-01 20:03:23] Server 2 is now DOWN
+[2025-11-01 20:03:23] Waiting 10s before restarting Server 2...
+[2025-11-01 20:03:33] Starting Server 2 on g03-s2025@10.40.38.47 using start_server.sh
+[2025-11-01 20:03:38]   [Server 2] Starting Server 2...
+[2025-11-01 20:03:38]   [Server 2]   Config: config/server2.toml
+[2025-11-01 20:03:38]   [Server 2]   Log:    logs/server_2.log
+[2025-11-01 20:03:38]   [Server 2]   PID:    logs/server_2.pid
+[2025-11-01 20:03:38]   [Server 2] 
+[2025-11-01 20:03:38]   [Server 2] ✅ Server 2 started successfully (PID: 76268)
+[2025-11-01 20:03:38]   [Server 2] 
+[2025-11-01 20:03:38]   [Server 2] To view logs in real-time:
+[2025-11-01 20:03:38]   [Server 2]   tail -f logs/server_2.log
+[2025-11-01 20:03:38]   [Server 2] 
+[2025-11-01 20:03:38]   [Server 2] To stop the server:
+[2025-11-01 20:03:38]   [Server 2]   ./scripts/stop_server.sh 2
+[2025-11-01 20:03:38] SUCCESS: Server 2 started on g03-s2025@10.40.38.47
+[2025-11-01 20:03:38] Server 2 is now UP
+[2025-11-01 20:03:38] Waiting 30s before moving to next server in ring...
+[2025-11-01 20:04:08] ===== CYCLE 1 COMPLETED =====
+[2025-11-01 20:04:08] ===== CYCLE 2/3 =====
+[2025-11-01 20:04:08] Ring Algorithm: Processing Server 1
+[2025-11-01 20:04:08] Stopping Server 1 on g03-s2025@10.40.39.41 using stop_server.sh
+[2025-11-01 20:04:14]   [Server 1] Stopping Server 1 (PID: 105781)...
+[2025-11-01 20:04:14]   [Server 1] Sent SIGTERM to Server 1, waiting for graceful shutdown...
+[2025-11-01 20:04:14]   [Server 1] ✅ Server 1 stopped gracefully
+[2025-11-01 20:04:14] SUCCESS: Server 1 stopped on g03-s2025@10.40.39.41
+[2025-11-01 20:04:14] Server 1 is now DOWN
+[2025-11-01 20:04:14] Waiting 10s before restarting Server 1...
+[2025-11-01 20:04:24] Starting Server 1 on g03-s2025@10.40.39.41 using start_server.sh
+[2025-11-01 20:04:27]   [Server 1] Starting Server 1...
+[2025-11-01 20:04:27]   [Server 1]   Config: config/server1.toml
+[2025-11-01 20:04:27]   [Server 1]   Log:    logs/server_1.log
+[2025-11-01 20:04:27]   [Server 1]   PID:    logs/server_1.pid
+[2025-11-01 20:04:27]   [Server 1] 
+[2025-11-01 20:04:27]   [Server 1] ✅ Server 1 started successfully (PID: 106111)
+[2025-11-01 20:04:27]   [Server 1] 
+[2025-11-01 20:04:27]   [Server 1] To view logs in real-time:
+[2025-11-01 20:04:27]   [Server 1]   tail -f logs/server_1.log
+[2025-11-01 20:04:27]   [Server 1] 
+[2025-11-01 20:04:27]   [Server 1] To stop the server:
+[2025-11-01 20:04:27]   [Server 1]   ./scripts/stop_server.sh 1
+[2025-11-01 20:04:27] SUCCESS: Server 1 started on g03-s2025@10.40.39.41
+[2025-11-01 20:04:27] Server 1 is now UP
+[2025-11-01 20:04:27] Waiting 30s before moving to next server in ring...
+[2025-11-01 20:04:57] Ring Algorithm: Processing Server 2
+[2025-11-01 20:04:57] Stopping Server 2 on g03-s2025@10.40.38.47 using stop_server.sh
+[2025-11-01 20:05:03]   [Server 2] Stopping Server 2 (PID: 76268)...
+[2025-11-01 20:05:03]   [Server 2] Sent SIGTERM to Server 2, waiting for graceful shutdown...
+[2025-11-01 20:05:03]   [Server 2] ✅ Server 2 stopped gracefully
+[2025-11-01 20:05:03] SUCCESS: Server 2 stopped on g03-s2025@10.40.38.47
+[2025-11-01 20:05:03] Server 2 is now DOWN
+[2025-11-01 20:05:03] Waiting 10s before restarting Server 2...
+[2025-11-01 20:05:13] Starting Server 2 on g03-s2025@10.40.38.47 using start_server.sh
+[2025-11-01 20:05:21]   [Server 2] Starting Server 2...
+[2025-11-01 20:05:21]   [Server 2]   Config: config/server2.toml
+[2025-11-01 20:05:21]   [Server 2]   Log:    logs/server_2.log
+[2025-11-01 20:05:21]   [Server 2]   PID:    logs/server_2.pid
+[2025-11-01 20:05:21]   [Server 2] 
+[2025-11-01 20:05:21]   [Server 2] ✅ Server 2 started successfully (PID: 76580)
+[2025-11-01 20:05:22]   [Server 2] 
+[2025-11-01 20:05:22]   [Server 2] To view logs in real-time:
+[2025-11-01 20:05:22]   [Server 2]   tail -f logs/server_2.log
+[2025-11-01 20:05:22]   [Server 2] 
+[2025-11-01 20:05:22]   [Server 2] To stop the server:
+[2025-11-01 20:05:22]   [Server 2]   ./scripts/stop_server.sh 2
+[2025-11-01 20:05:22] SUCCESS: Server 2 started on g03-s2025@10.40.38.47
+[2025-11-01 20:05:22] Server 2 is now UP
+[2025-11-01 20:05:22] Waiting 30s before moving to next server in ring...
+[2025-11-01 20:05:52] ===== CYCLE 2 COMPLETED =====
+[2025-11-01 20:05:52] ===== CYCLE 3/3 =====
+[2025-11-01 20:05:52] Ring Algorithm: Processing Server 1
+[2025-11-01 20:05:52] Stopping Server 1 on g03-s2025@10.40.39.41 using stop_server.sh
+[2025-11-01 20:05:53]   [Server 1] Stopping Server 1 (PID: 106111)...
+[2025-11-01 20:05:53]   [Server 1] Sent SIGTERM to Server 1, waiting for graceful shutdown...
+[2025-11-01 20:05:53]   [Server 1] ✅ Server 1 stopped gracefully
+[2025-11-01 20:05:53] SUCCESS: Server 1 stopped on g03-s2025@10.40.39.41
+[2025-11-01 20:05:53] Server 1 is now DOWN
+[2025-11-01 20:05:53] Waiting 10s before restarting Server 1...
+[2025-11-01 20:06:03] Starting Server 1 on g03-s2025@10.40.39.41 using start_server.sh
+[2025-11-01 20:06:09]   [Server 1] Starting Server 1...
+[2025-11-01 20:06:09]   [Server 1]   Config: config/server1.toml
+[2025-11-01 20:06:09]   [Server 1]   Log:    logs/server_1.log
+[2025-11-01 20:06:09]   [Server 1]   PID:    logs/server_1.pid
+[2025-11-01 20:06:09]   [Server 1] 
+[2025-11-01 20:06:09]   [Server 1] ✅ Server 1 started successfully (PID: 106419)
+[2025-11-01 20:06:09]   [Server 1] 
+[2025-11-01 20:06:09]   [Server 1] To view logs in real-time:
+[2025-11-01 20:06:09]   [Server 1]   tail -f logs/server_1.log
+[2025-11-01 20:06:09]   [Server 1] 
+[2025-11-01 20:06:09]   [Server 1] To stop the server:
+[2025-11-01 20:06:09]   [Server 1]   ./scripts/stop_server.sh 1
+[2025-11-01 20:06:09] SUCCESS: Server 1 started on g03-s2025@10.40.39.41
+[2025-11-01 20:06:09] Server 1 is now UP
+[2025-11-01 20:06:09] Waiting 30s before moving to next server in ring...
+[2025-11-01 20:06:39] Ring Algorithm: Processing Server 2
+[2025-11-01 20:06:39] Stopping Server 2 on g03-s2025@10.40.38.47 using stop_server.sh
+[2025-11-01 20:06:47]   [Server 2] Stopping Server 2 (PID: 76580)...
+[2025-11-01 20:06:47]   [Server 2] Sent SIGTERM to Server 2, waiting for graceful shutdown...
+[2025-11-01 20:06:47]   [Server 2] ✅ Server 2 stopped gracefully
+[2025-11-01 20:06:47] SUCCESS: Server 2 stopped on g03-s2025@10.40.38.47
+[2025-11-01 20:06:47] Server 2 is now DOWN
+[2025-11-01 20:06:47] Waiting 10s before restarting Server 2...
+[2025-11-01 20:06:57] Starting Server 2 on g03-s2025@10.40.38.47 using start_server.sh
+[2025-11-01 20:07:06]   [Server 2] Starting Server 2...
+[2025-11-01 20:07:06]   [Server 2]   Config: config/server2.toml
+[2025-11-01 20:07:06]   [Server 2]   Log:    logs/server_2.log
+[2025-11-01 20:07:06]   [Server 2]   PID:    logs/server_2.pid
+[2025-11-01 20:07:06]   [Server 2] 
+[2025-11-01 20:07:06]   [Server 2] ✅ Server 2 started successfully (PID: 76894)
+[2025-11-01 20:07:06]   [Server 2] 
+[2025-11-01 20:07:06]   [Server 2] To view logs in real-time:
+[2025-11-01 20:07:06]   [Server 2]   tail -f logs/server_2.log
+[2025-11-01 20:07:06]   [Server 2] 
+[2025-11-01 20:07:06]   [Server 2] To stop the server:
+[2025-11-01 20:07:06]   [Server 2]   ./scripts/stop_server.sh 2
+[2025-11-01 20:07:06] SUCCESS: Server 2 started on g03-s2025@10.40.38.47
+[2025-11-01 20:07:06] Server 2 is now UP
+[2025-11-01 20:07:06] Waiting 30s before moving to next server in ring...
+[2025-11-01 20:07:36] ===== CYCLE 3 COMPLETED =====
+[2025-11-01 20:07:36] =========================================
+[2025-11-01 20:07:36] Fault Simulation Completed!
+[2025-11-01 20:07:36] =========================================
+[2025-11-01 20:07:36] Total Cycles:       3
+[2025-11-01 20:07:36] Servers Processed:  2
+[2025-11-01 20:07:36] Total Faults:       6
+[2025-11-01 20:07:36] Total Time:         309s
+[2025-11-01 20:07:36] =========================================
+[2025-11-01 20:33:23] Checking SSH connectivity to all servers...
+[2025-11-01 20:33:28] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 20:33:32] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 20:33:32] All SSH connectivity checks passed
+[2025-11-01 20:33:32] Verifying management scripts exist on all servers...
+[2025-11-01 20:33:42] Management scripts found on Server 1
+[2025-11-01 20:33:52] Management scripts found on Server 2
+[2025-11-01 20:33:52] All management scripts verified
+[2025-11-01 20:33:52] Starting fault simulation with ring algorithm
+[2025-11-01 20:33:52] Ring order: Server 1 2
+[2025-11-01 20:33:52] ===== CYCLE 1/3 =====
+[2025-11-01 20:33:52] Ring Algorithm: Processing Server 1
+[2025-11-01 20:33:52] Stopping Server 1 on g03-s2025@10.40.39.41 using stop_server.sh
+[2025-11-01 20:34:01]   [Server 1] Stopping Server 1 (PID: 106419)...
+[2025-11-01 20:34:01]   [Server 1] Sent SIGTERM to Server 1, waiting for graceful shutdown...
+[2025-11-01 20:34:01]   [Server 1] ✅ Server 1 stopped gracefully
+[2025-11-01 20:34:01] SUCCESS: Server 1 stopped on g03-s2025@10.40.39.41
+[2025-11-01 20:34:01] Server 1 is now DOWN
+[2025-11-01 20:34:01] Waiting 10s before restarting Server 1...
+[2025-11-01 20:34:11] Starting Server 1 on g03-s2025@10.40.39.41 using start_server.sh
+[2025-11-01 20:34:14]   [Server 1] Starting Server 1...
+[2025-11-01 20:34:14]   [Server 1]   Config: config/server1.toml
+[2025-11-01 20:34:14]   [Server 1]   Log:    logs/server_1.log
+[2025-11-01 20:34:14]   [Server 1]   PID:    logs/server_1.pid
+[2025-11-01 20:34:14]   [Server 1] 
+[2025-11-01 20:34:14]   [Server 1] ✅ Server 1 started successfully (PID: 108276)
+[2025-11-01 20:34:14]   [Server 1] 
+[2025-11-01 20:34:14]   [Server 1] To view logs in real-time:
+[2025-11-01 20:34:14]   [Server 1]   tail -f logs/server_1.log
+[2025-11-01 20:34:14]   [Server 1] 
+[2025-11-01 20:34:14]   [Server 1] To stop the server:
+[2025-11-01 20:34:14]   [Server 1]   ./scripts/stop_server.sh 1
+[2025-11-01 20:34:14] SUCCESS: Server 1 started on g03-s2025@10.40.39.41
+[2025-11-01 20:34:14] Server 1 is now UP
+[2025-11-01 20:34:14] Waiting 30s before moving to next server in ring...
+[2025-11-01 20:34:44] Ring Algorithm: Processing Server 2
+[2025-11-01 20:34:44] Stopping Server 2 on g03-s2025@10.40.38.47 using stop_server.sh
+[2025-11-01 20:34:47]   [Server 2] Stopping Server 2 (PID: 76894)...
+[2025-11-01 20:34:47]   [Server 2] Sent SIGTERM to Server 2, waiting for graceful shutdown...
+[2025-11-01 20:34:47]   [Server 2] ✅ Server 2 stopped gracefully
+[2025-11-01 20:34:47] SUCCESS: Server 2 stopped on g03-s2025@10.40.38.47
+[2025-11-01 20:34:47] Server 2 is now DOWN
+[2025-11-01 20:34:47] Waiting 10s before restarting Server 2...
+[2025-11-01 20:34:57] Starting Server 2 on g03-s2025@10.40.38.47 using start_server.sh
+[2025-11-01 20:35:00]   [Server 2] Starting Server 2...
+[2025-11-01 20:35:00]   [Server 2]   Config: config/server2.toml
+[2025-11-01 20:35:00]   [Server 2]   Log:    logs/server_2.log
+[2025-11-01 20:35:00]   [Server 2]   PID:    logs/server_2.pid
+[2025-11-01 20:35:00]   [Server 2] 
+[2025-11-01 20:35:00]   [Server 2] ✅ Server 2 started successfully (PID: 78315)
+[2025-11-01 20:35:00]   [Server 2] 
+[2025-11-01 20:35:00]   [Server 2] To view logs in real-time:
+[2025-11-01 20:35:00]   [Server 2]   tail -f logs/server_2.log
+[2025-11-01 20:35:00]   [Server 2] 
+[2025-11-01 20:35:00]   [Server 2] To stop the server:
+[2025-11-01 20:35:00]   [Server 2]   ./scripts/stop_server.sh 2
+[2025-11-01 20:35:00] SUCCESS: Server 2 started on g03-s2025@10.40.38.47
+[2025-11-01 20:35:00] Server 2 is now UP
+[2025-11-01 20:35:00] Waiting 30s before moving to next server in ring...
+[2025-11-01 20:35:30] ===== CYCLE 1 COMPLETED =====
+[2025-11-01 20:35:30] ===== CYCLE 2/3 =====
+[2025-11-01 20:35:30] Ring Algorithm: Processing Server 1
+[2025-11-01 20:35:31] Stopping Server 1 on g03-s2025@10.40.39.41 using stop_server.sh
+[2025-11-01 20:35:32]   [Server 1] Stopping Server 1 (PID: 108276)...
+[2025-11-01 20:35:32]   [Server 1] Sent SIGTERM to Server 1, waiting for graceful shutdown...
+[2025-11-01 20:35:32]   [Server 1] ✅ Server 1 stopped gracefully
+[2025-11-01 20:35:32] SUCCESS: Server 1 stopped on g03-s2025@10.40.39.41
+[2025-11-01 20:35:32] Server 1 is now DOWN
+[2025-11-01 20:35:32] Waiting 10s before restarting Server 1...
+[2025-11-01 20:35:42] Starting Server 1 on g03-s2025@10.40.39.41 using start_server.sh
+[2025-11-01 20:35:45]   [Server 1] Starting Server 1...
+[2025-11-01 20:35:45]   [Server 1]   Config: config/server1.toml
+[2025-11-01 20:35:45]   [Server 1]   Log:    logs/server_1.log
+[2025-11-01 20:35:45]   [Server 1]   PID:    logs/server_1.pid
+[2025-11-01 20:35:45]   [Server 1] 
+[2025-11-01 20:35:45]   [Server 1] ✅ Server 1 started successfully (PID: 108581)
+[2025-11-01 20:35:45]   [Server 1] 
+[2025-11-01 20:35:45]   [Server 1] To view logs in real-time:
+[2025-11-01 20:35:45]   [Server 1]   tail -f logs/server_1.log
+[2025-11-01 20:35:45]   [Server 1] 
+[2025-11-01 20:35:45]   [Server 1] To stop the server:
+[2025-11-01 20:35:45]   [Server 1]   ./scripts/stop_server.sh 1
+[2025-11-01 20:35:45] SUCCESS: Server 1 started on g03-s2025@10.40.39.41
+[2025-11-01 20:35:45] Server 1 is now UP
+[2025-11-01 20:35:45] Waiting 30s before moving to next server in ring...
+[2025-11-01 20:36:15] Ring Algorithm: Processing Server 2
+[2025-11-01 20:36:15] Stopping Server 2 on g03-s2025@10.40.38.47 using stop_server.sh
+[2025-11-01 20:36:18]   [Server 2] Stopping Server 2 (PID: 78315)...
+[2025-11-01 20:36:18]   [Server 2] Sent SIGTERM to Server 2, waiting for graceful shutdown...
+[2025-11-01 20:36:18]   [Server 2] ✅ Server 2 stopped gracefully
+[2025-11-01 20:36:18] SUCCESS: Server 2 stopped on g03-s2025@10.40.38.47
+[2025-11-01 20:36:18] Server 2 is now DOWN
+[2025-11-01 20:36:18] Waiting 10s before restarting Server 2...
+[2025-11-01 20:36:28] Starting Server 2 on g03-s2025@10.40.38.47 using start_server.sh
+[2025-11-01 20:36:36]   [Server 2] Starting Server 2...
+[2025-11-01 20:36:36]   [Server 2]   Config: config/server2.toml
+[2025-11-01 20:36:36]   [Server 2]   Log:    logs/server_2.log
+[2025-11-01 20:36:36]   [Server 2]   PID:    logs/server_2.pid
+[2025-11-01 20:36:36]   [Server 2] 
+[2025-11-01 20:36:36]   [Server 2] ✅ Server 2 started successfully (PID: 78600)
+[2025-11-01 20:36:36]   [Server 2] 
+[2025-11-01 20:36:36]   [Server 2] To view logs in real-time:
+[2025-11-01 20:36:36]   [Server 2]   tail -f logs/server_2.log
+[2025-11-01 20:36:36]   [Server 2] 
+[2025-11-01 20:36:36]   [Server 2] To stop the server:
+[2025-11-01 20:36:36]   [Server 2]   ./scripts/stop_server.sh 2
+[2025-11-01 20:36:36] SUCCESS: Server 2 started on g03-s2025@10.40.38.47
+[2025-11-01 20:36:36] Server 2 is now UP
+[2025-11-01 20:36:36] Waiting 30s before moving to next server in ring...
+[2025-11-01 20:37:06] ===== CYCLE 2 COMPLETED =====
+[2025-11-01 20:37:06] ===== CYCLE 3/3 =====
+[2025-11-01 20:37:06] Ring Algorithm: Processing Server 1
+[2025-11-01 20:37:06] Stopping Server 1 on g03-s2025@10.40.39.41 using stop_server.sh
+[2025-11-01 20:37:08]   [Server 1] Stopping Server 1 (PID: 108581)...
+[2025-11-01 20:37:08]   [Server 1] Sent SIGTERM to Server 1, waiting for graceful shutdown...
+[2025-11-01 20:37:08]   [Server 1] ✅ Server 1 stopped gracefully
+[2025-11-01 20:37:08] SUCCESS: Server 1 stopped on g03-s2025@10.40.39.41
+[2025-11-01 20:37:08] Server 1 is now DOWN
+[2025-11-01 20:37:08] Waiting 10s before restarting Server 1...
+[2025-11-01 20:37:18] Starting Server 1 on g03-s2025@10.40.39.41 using start_server.sh
+[2025-11-01 20:37:20]   [Server 1] Starting Server 1...
+[2025-11-01 20:37:20]   [Server 1]   Config: config/server1.toml
+[2025-11-01 20:37:21]   [Server 1]   Log:    logs/server_1.log
+[2025-11-01 20:37:21]   [Server 1]   PID:    logs/server_1.pid
+[2025-11-01 20:37:21]   [Server 1] 
+[2025-11-01 20:37:21]   [Server 1] ✅ Server 1 started successfully (PID: 108919)
+[2025-11-01 20:37:21]   [Server 1] 
+[2025-11-01 20:37:21]   [Server 1] To view logs in real-time:
+[2025-11-01 20:37:21]   [Server 1]   tail -f logs/server_1.log
+[2025-11-01 20:37:21]   [Server 1] 
+[2025-11-01 20:37:21]   [Server 1] To stop the server:
+[2025-11-01 20:37:21]   [Server 1]   ./scripts/stop_server.sh 1
+[2025-11-01 20:37:21] SUCCESS: Server 1 started on g03-s2025@10.40.39.41
+[2025-11-01 20:37:21] Server 1 is now UP
+[2025-11-01 20:37:21] Waiting 30s before moving to next server in ring...
+[2025-11-01 20:37:51] Ring Algorithm: Processing Server 2
+[2025-11-01 20:37:51] Stopping Server 2 on g03-s2025@10.40.38.47 using stop_server.sh
+[2025-11-01 20:37:52]   [Server 2] Stopping Server 2 (PID: 78600)...
+[2025-11-01 20:37:52]   [Server 2] Sent SIGTERM to Server 2, waiting for graceful shutdown...
+[2025-11-01 20:37:52]   [Server 2] ✅ Server 2 stopped gracefully
+[2025-11-01 20:37:52] SUCCESS: Server 2 stopped on g03-s2025@10.40.38.47
+[2025-11-01 20:37:52] Server 2 is now DOWN
+[2025-11-01 20:37:52] Waiting 10s before restarting Server 2...
+[2025-11-01 20:38:02] Starting Server 2 on g03-s2025@10.40.38.47 using start_server.sh
+[2025-11-01 20:38:08]   [Server 2] Starting Server 2...
+[2025-11-01 20:38:08]   [Server 2]   Config: config/server2.toml
+[2025-11-01 20:38:08]   [Server 2]   Log:    logs/server_2.log
+[2025-11-01 20:38:08]   [Server 2]   PID:    logs/server_2.pid
+[2025-11-01 20:38:08]   [Server 2] 
+[2025-11-01 20:38:08]   [Server 2] ✅ Server 2 started successfully (PID: 78905)
+[2025-11-01 20:38:08]   [Server 2] 
+[2025-11-01 20:38:08]   [Server 2] To view logs in real-time:
+[2025-11-01 20:38:08]   [Server 2]   tail -f logs/server_2.log
+[2025-11-01 20:38:08]   [Server 2] 
+[2025-11-01 20:38:08]   [Server 2] To stop the server:
+[2025-11-01 20:38:08]   [Server 2]   ./scripts/stop_server.sh 2
+[2025-11-01 20:38:08] SUCCESS: Server 2 started on g03-s2025@10.40.38.47
+[2025-11-01 20:38:08] Server 2 is now UP
+[2025-11-01 20:38:08] Waiting 30s before moving to next server in ring...
+[2025-11-01 20:38:38] ===== CYCLE 3 COMPLETED =====
+[2025-11-01 20:38:38] =========================================
+[2025-11-01 20:38:38] Fault Simulation Completed!
+[2025-11-01 20:38:38] =========================================
+[2025-11-01 20:38:38] Total Cycles:       3
+[2025-11-01 20:38:38] Servers Processed:  2
+[2025-11-01 20:38:38] Total Faults:       6
+[2025-11-01 20:38:38] Total Time:         286s
+[2025-11-01 20:38:38] =========================================
