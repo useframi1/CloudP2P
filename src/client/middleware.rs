@@ -545,7 +545,7 @@ impl ClientMiddleware {
     ) -> Result<(u32, String)> {
         const POLL_INTERVAL_SECS: u64 = 2;
         const MAX_SAME_SERVER_POLLS: u32 = 10; // After 10 polls (100s), retry same server in case it recovered
-        const MAX_CONSECUTIVE_FAILURES: u32 = 10; // After 6 consecutive failures (60s), assume task is lost
+        const MAX_CONSECUTIVE_FAILURES: u32 = 5; // After 5 consecutive failures (10s), assume task is lost
 
         info!(
             "⏳ {} Polling for task #{} assignment after {} failed (max {} consecutive failures before resubmission)...",
@@ -650,7 +650,7 @@ impl ClientMiddleware {
         secret_image_data: Vec<u8>,
     ) -> Option<Vec<u8>> {
         const POLL_INTERVAL_SECS: u64 = 2;
-        const MAX_RESUBMISSION_ATTEMPTS: u32 = 3;
+        const MAX_RESUBMISSION_ATTEMPTS: u32 = 5;
 
         // Start tracking latency
         let start_time = Instant::now();
