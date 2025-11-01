@@ -12,7 +12,7 @@
 #
 # Prerequisites:
 #   - SSH key-based authentication configured for all server hosts
-#   - Server binary and config files deployed on server machines
+#   - start_server.sh and stop_server.sh scripts deployed on server machines
 
 set -e
 
@@ -39,28 +39,20 @@ fi
 
 # Build server list from configuration
 declare -a SERVER_HOSTS
-declare -a SERVER_CONFIGS
 declare -a SERVER_WORK_DIRS
-declare -a SERVER_BINARIES
 declare -a SERVER_IDS
 
 # Parse server configurations
 for i in {1..10}; do
     HOST_VAR="SERVER_${i}_HOST"
-    CONFIG_VAR="SERVER_${i}_CONFIG"
     WORK_DIR_VAR="SERVER_${i}_WORK_DIR"
-    BINARY_VAR="SERVER_${i}_BINARY"
 
     HOST="${!HOST_VAR}"
-    CONFIG="${!CONFIG_VAR}"
     WORK_DIR="${!WORK_DIR_VAR}"
-    BINARY="${!BINARY_VAR}"
 
     if [ -n "$HOST" ]; then
         SERVER_HOSTS+=("$HOST")
-        SERVER_CONFIGS+=("$CONFIG")
         SERVER_WORK_DIRS+=("${WORK_DIR:-/root/CloudP2P}")
-        SERVER_BINARIES+=("${BINARY:-./target/release/server}")
         SERVER_IDS+=("$i")
     fi
 done
@@ -69,7 +61,7 @@ NUM_SERVERS=${#SERVER_HOSTS[@]}
 
 if [ "$NUM_SERVERS" -eq 0 ]; then
     echo "Error: No servers configured"
-    echo "Please configure at least SERVER_1_HOST and SERVER_1_CONFIG"
+    echo "Please configure at least SERVER_1_HOST and SERVER_1_WORK_DIR"
     exit 1
 fi
 
@@ -84,159 +76,87 @@ log_event() {
     echo "[$timestamp] $message" | tee -a "$LOG_FILE"
 }
 
-# Function to get server PID via SSH
-get_server_pid() {
+# Function to stop server via SSH using stop_server.sh script
+stop_server() {
     local host="$1"
-    local config_path="$2"
-
-    # Extract server ID from config path (e.g., server1.toml -> 1)
-    local server_id=$(basename "$config_path" | grep -o '[0-9]\+')
-
-    # First, try to read from PID file (more reliable)
-    local pid=$(ssh -o ConnectTimeout=5 "$host" "cat logs/server_${server_id}.pid 2>/dev/null" || echo "")
-
-    # Verify the PID is actually running
-    if [ -n "$pid" ]; then
-        local is_running=$(ssh -o ConnectTimeout=5 "$host" "ps -p $pid > /dev/null 2>&1 && echo 'yes' || echo 'no'")
-        if [ "$is_running" = "yes" ]; then
-            echo "$pid"
-            return
-        fi
-    fi
-
-    # Fallback: Try to find process by pattern
-    pid=$(ssh -o ConnectTimeout=5 "$host" "pgrep -f 'server.*config.*server${server_id}' | head -1" 2>/dev/null || echo "")
-
-    echo "$pid"
-}
-
-# Function to kill server via SSH
-kill_server() {
-    local host="$1"
-    local config_path="$2"
+    local work_dir="$2"
     local server_id="$3"
-    local work_dir="$4"
 
-    log_event "Attempting to kill Server $server_id on $host"
+    log_event "Stopping Server $server_id on $host using stop_server.sh"
 
-    local pid=$(get_server_pid "$host" "$config_path")
+    # Check if stop script exists
+    local script_exists=$(ssh "$host" "test -f $work_dir/scripts/stop_server.sh && echo 'yes' || echo 'no'")
 
-    if [ -z "$pid" ]; then
-        log_event "WARNING: Server $server_id not running on $host (no PID found)"
+    if [ "$script_exists" != "yes" ]; then
+        log_event "ERROR: stop_server.sh not found at $work_dir/scripts/stop_server.sh on $host"
         return 1
     fi
 
-    log_event "Found Server $server_id PID: $pid on $host"
+    # Run the stop script via SSH (exactly as if you ran it locally)
+    local output=$(ssh "$host" "cd $work_dir && ./scripts/stop_server.sh $server_id 2>&1")
+    local exit_code=$?
 
-    # Try multiple kill methods
-    # Method 1: Direct kill -9 (kill process and its parent)
-    if ssh "$host" "kill -9 $pid" 2>/dev/null; then
-        # Also kill the parent process (nohup or wrapper)
-        ssh "$host" "ppid=\$(ps -o ppid= -p $pid 2>/dev/null | tr -d ' '); if [ -n \"\$ppid\" ] && [ \"\$ppid\" != \"1\" ]; then kill -9 \$ppid 2>/dev/null; fi" 2>/dev/null || true
+    # Log the output
+    echo "$output" | while IFS= read -r line; do
+        log_event "  [Server $server_id] $line"
+    done
 
-        # Kill any lingering nohup processes
-        ssh "$host" "pkill -9 -f 'nohup.*server.*server${server_id}'" 2>/dev/null || true
-
-        sleep 1
-        # Verify it's actually dead
-        local new_pid=$(get_server_pid "$host" "$config_path")
-        if [ -z "$new_pid" ] || [ "$new_pid" != "$pid" ]; then
-            log_event "SUCCESS: Killed Server $server_id (PID $pid) on $host"
-            # Remove PID file to prevent tracking issues
-            ssh "$host" "cd $work_dir && rm -f logs/server_${server_id}.pid"
-            log_event "Removed PID file: ${work_dir}/logs/server_${server_id}.pid"
-            return 0
-        fi
+    if [ $exit_code -eq 0 ]; then
+        log_event "SUCCESS: Server $server_id stopped on $host"
+        return 0
+    else
+        log_event "ERROR: Failed to stop Server $server_id on $host (exit code: $exit_code)"
+        return 1
     fi
-
-    # Method 2: Try pkill with pattern
-    local config_basename=$(basename "$config_path")
-    if ssh "$host" "pkill -9 -f 'server.*$config_basename'" 2>/dev/null; then
-        sleep 1
-        local new_pid=$(get_server_pid "$host" "$config_path")
-        if [ -z "$new_pid" ]; then
-            log_event "SUCCESS: Killed Server $server_id on $host using pkill"
-            # Remove PID file to prevent tracking issues
-            ssh "$host" "cd $work_dir && rm -f logs/server_${server_id}.pid"
-            log_event "Removed PID file: ${work_dir}/logs/server_${server_id}.pid"
-            return 0
-        fi
-    fi
-
-    # Method 3: Try killing all server processes (last resort)
-    if ssh "$host" "pkill -9 -f 'target/release/server'" 2>/dev/null; then
-        sleep 1
-        local new_pid=$(get_server_pid "$host" "$config_path")
-        if [ -z "$new_pid" ]; then
-            log_event "SUCCESS: Killed Server $server_id on $host using pkill (all servers)"
-            # Remove PID file to prevent tracking issues
-            ssh "$host" "cd $work_dir && rm -f logs/server_${server_id}.pid"
-            log_event "Removed PID file: ${work_dir}/logs/server_${server_id}.pid"
-            return 0
-        fi
-    fi
-
-    log_event "ERROR: Failed to kill Server $server_id on $host (process may have restarted)"
-    return 1
 }
 
-# Function to restart server via SSH
-restart_server() {
+# Function to start server via SSH using start_server.sh script
+start_server() {
     local host="$1"
-    local config_path="$2"
-    local work_dir="$3"
-    local binary="$4"
-    local server_id="$5"
+    local work_dir="$2"
+    local server_id="$3"
 
-    log_event "Attempting to restart Server $server_id on $host"
+    log_event "Starting Server $server_id on $host using start_server.sh"
 
-    # Check if server is already running (may have auto-restarted)
-    local pid=$(get_server_pid "$host" "$config_path")
-    if [ -n "$pid" ]; then
-        log_event "SUCCESS: Server $server_id already running on $host (PID $pid) - auto-restarted"
-        return 0
+    # Check if start script exists
+    local script_exists=$(ssh "$host" "test -f $work_dir/scripts/start_server.sh && echo 'yes' || echo 'no'")
+
+    if [ "$script_exists" != "yes" ]; then
+        log_event "ERROR: start_server.sh not found at $work_dir/scripts/start_server.sh on $host"
+        return 1
     fi
 
-    # Use the start_server.sh script if it exists, otherwise fallback to manual start
-    local start_script_exists=$(ssh "$host" "test -f $work_dir/scripts/start_server.sh && echo 'yes' || echo 'no'")
+    # Run the start script via SSH (exactly as if you ran it locally)
+    local output=$(ssh "$host" "cd $work_dir && ./scripts/start_server.sh $server_id 2>&1")
+    local exit_code=$?
 
-    if [ "$start_script_exists" = "yes" ]; then
-        # Use our management script
-        if ssh "$host" "cd $work_dir && ./scripts/start_server.sh $server_id > /dev/null 2>&1"; then
-            sleep 2  # Give server time to start
+    # Log the output
+    echo "$output" | while IFS= read -r line; do
+        log_event "  [Server $server_id] $line"
+    done
 
-            # Verify server started
-            pid=$(get_server_pid "$host" "$config_path")
-            if [ -n "$pid" ]; then
-                log_event "SUCCESS: Restarted Server $server_id on $host (PID $pid) using start script"
-                return 0
-            else
-                log_event "ERROR: Server $server_id failed to start on $host"
-                return 1
-            fi
-        else
-            log_event "ERROR: Failed to execute start script for Server $server_id on $host"
-            return 1
-        fi
+    if [ $exit_code -eq 0 ]; then
+        log_event "SUCCESS: Server $server_id started on $host"
+        return 0
     else
-        # Fallback to manual start with nohup
-        log_event "WARNING: start_server.sh not found, using manual start"
-        if ssh "$host" "cd $work_dir && mkdir -p logs && nohup $binary --config $config_path > logs/server_${server_id}.log 2>&1 & echo \$! > logs/server_${server_id}.pid"; then
-            sleep 2  # Give server time to start
+        log_event "ERROR: Failed to start Server $server_id on $host (exit code: $exit_code)"
+        return 1
+    fi
+}
 
-            # Verify server started
-            pid=$(get_server_pid "$host" "$config_path")
-            if [ -n "$pid" ]; then
-                log_event "SUCCESS: Restarted Server $server_id on $host (PID $pid)"
-                return 0
-            else
-                log_event "ERROR: Server $server_id failed to start on $host"
-                return 1
-            fi
-        else
-            log_event "ERROR: Failed to execute restart command for Server $server_id on $host"
-            return 1
-        fi
+# Function to check server status via SSH using status_server.sh script
+check_server_status() {
+    local host="$1"
+    local work_dir="$2"
+    local server_id="$3"
+
+    # Check if status script exists
+    local script_exists=$(ssh "$host" "test -f $work_dir/scripts/status_server.sh && echo 'yes' || echo 'no'")
+
+    if [ "$script_exists" = "yes" ]; then
+        ssh "$host" "cd $work_dir && ./scripts/status_server.sh $server_id 2>&1" || true
+    else
+        echo "Status script not found"
     fi
 }
 
@@ -268,9 +188,7 @@ echo ""
 # Display server configuration
 for i in "${!SERVER_HOSTS[@]}"; do
     echo "Server ${SERVER_IDS[$i]}: ${SERVER_HOSTS[$i]}"
-    echo "  Config:   ${SERVER_CONFIGS[$i]}"
     echo "  Work Dir: ${SERVER_WORK_DIRS[$i]}"
-    echo "  Binary:   ${SERVER_BINARIES[$i]}"
 done
 
 echo ""
@@ -300,6 +218,39 @@ fi
 log_event "All SSH connectivity checks passed"
 echo ""
 
+# Verify management scripts exist on all servers
+log_event "Verifying management scripts exist on all servers..."
+SCRIPTS_OK=true
+for i in "${!SERVER_HOSTS[@]}"; do
+    SERVER_ID="${SERVER_IDS[$i]}"
+    SERVER_HOST="${SERVER_HOSTS[$i]}"
+    SERVER_WORK_DIR="${SERVER_WORK_DIRS[$i]}"
+
+    echo "Checking Server ${SERVER_ID} (${SERVER_HOST})..."
+
+    start_exists=$(ssh "$SERVER_HOST" "test -f $SERVER_WORK_DIR/scripts/start_server.sh && echo 'yes' || echo 'no'")
+    stop_exists=$(ssh "$SERVER_HOST" "test -f $SERVER_WORK_DIR/scripts/stop_server.sh && echo 'yes' || echo 'no'")
+
+    if [ "$start_exists" != "yes" ] || [ "$stop_exists" != "yes" ]; then
+        log_event "ERROR: Management scripts not found on Server $SERVER_ID"
+        echo "  start_server.sh: $start_exists"
+        echo "  stop_server.sh: $stop_exists"
+        SCRIPTS_OK=false
+    else
+        log_event "Management scripts found on Server $SERVER_ID"
+    fi
+done
+
+if [ "$SCRIPTS_OK" = false ]; then
+    log_event "ERROR: Management scripts missing on one or more servers"
+    echo ""
+    echo "Please deploy scripts/start_server.sh and scripts/stop_server.sh to all server machines"
+    exit 1
+fi
+
+log_event "All management scripts verified"
+echo ""
+
 # Main fault simulation loop
 log_event "Starting fault simulation with ring algorithm"
 log_event "Ring order: Server ${SERVER_IDS[*]}"
@@ -313,28 +264,26 @@ for ((cycle=1; cycle<=NUM_CYCLES; cycle++)); do
     for i in "${!SERVER_HOSTS[@]}"; do
         SERVER_ID="${SERVER_IDS[$i]}"
         SERVER_HOST="${SERVER_HOSTS[$i]}"
-        SERVER_CONFIG="${SERVER_CONFIGS[$i]}"
         SERVER_WORK_DIR="${SERVER_WORK_DIRS[$i]}"
-        SERVER_BINARY="${SERVER_BINARIES[$i]}"
 
         log_event "Ring Algorithm: Processing Server $SERVER_ID"
 
-        # Step 1: Kill server
-        if kill_server "$SERVER_HOST" "$SERVER_CONFIG" "$SERVER_ID" "$SERVER_WORK_DIR"; then
+        # Step 1: Stop server using stop_server.sh
+        if stop_server "$SERVER_HOST" "$SERVER_WORK_DIR" "$SERVER_ID"; then
             log_event "Server $SERVER_ID is now DOWN"
         else
-            log_event "WARNING: Server $SERVER_ID kill operation had issues"
+            log_event "WARNING: Server $SERVER_ID stop operation had issues"
         fi
 
-        # Step 2: Wait for restart delay
+        # Step 2: Wait for restart delay (server stays down)
         log_event "Waiting ${RESTART_DELAY_SECS}s before restarting Server $SERVER_ID..."
         sleep "$RESTART_DELAY_SECS"
 
-        # Step 3: Restart server
-        if restart_server "$SERVER_HOST" "$SERVER_CONFIG" "$SERVER_WORK_DIR" "$SERVER_BINARY" "$SERVER_ID"; then
+        # Step 3: Start server using start_server.sh
+        if start_server "$SERVER_HOST" "$SERVER_WORK_DIR" "$SERVER_ID"; then
             log_event "Server $SERVER_ID is now UP"
         else
-            log_event "WARNING: Server $SERVER_ID restart operation had issues"
+            log_event "WARNING: Server $SERVER_ID start operation had issues"
         fi
 
         # Step 4: Wait for fault interval before moving to next server

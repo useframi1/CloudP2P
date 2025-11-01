@@ -1,130 +1,222 @@
-[18:15:32S] [INFO] Client 'Machine_1_Client_9' starting
-[18:15:32S] [INFO] Client 'Machine_1_Client_9' sending 50 requests (delay: 100-2000ms, 1 images available)...
-[18:15:32S] [INFO] 📡 Machine_1_Client_9 Getting task assignment for task #1
-[18:15:32S] [INFO] 📡 Machine_1_Client_9 Broadcasting assignment request for task #1 to 3 servers
-[18:15:32S] [INFO] ✅ Machine_1_Client_9 Received assignment from leader (Server 2): Task #1 → Server 2
-[18:15:32S] [INFO] ✅ Machine_1_Client_9 Task #1 assigned to Server 2 by leader 2
-[18:15:32S] [INFO] 📤 Machine_1_Client_9 Sending task #1 to server at 10.40.38.47:8001
-[18:16:02S] [INFO] 🔍 Machine_1_Client_9 Verifying encryption for task #1 (carrier image size: 15189737 bytes)
-[18:16:03S] [INFO] ✅ Machine_1_Client_9 Successfully extracted embedded image for task #1 (size: 517862 bytes)
-[18:16:03S] [INFO] ✅ Machine_1_Client_9 Encryption VERIFIED for task #1
-[18:16:03S] [INFO] 📨 Machine_1_Client_9 Sent ACK for task #1
-[18:16:03S] [INFO] ✅ Machine_1_Client_9 Task #1 completed successfully
-[18:16:03S] [INFO] 📡 Machine_1_Client_9 Getting task assignment for task #2
-[18:16:03S] [INFO] 📡 Machine_1_Client_9 Broadcasting assignment request for task #2 to 3 servers
-[18:16:04S] [INFO] ✅ Machine_1_Client_9 Received assignment from leader (Server 2): Task #2 → Server 2
-[18:16:04S] [INFO] ✅ Machine_1_Client_9 Task #2 assigned to Server 2 by leader 2
-[18:16:04S] [INFO] 📤 Machine_1_Client_9 Sending task #2 to server at 10.40.38.47:8001
-[18:16:12S] [WARN] ⚠️  Machine_1_Client_9 Server failure detected for task #2 at 10.40.38.47:8001: early eof
-[18:16:12S] [INFO] ⏳ Machine_1_Client_9 Polling for task #2 assignment after 10.40.38.47:8001 failed (indefinitely, 2s interval)...
-[18:16:12S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 1 for task #2
-[18:16:12S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:12S] [WARN] Polling attempt 1 failed for task #2: No server responded with task status (task may not exist)
-[18:16:14S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 2 for task #2
-[18:16:14S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:14S] [WARN] Polling attempt 2 failed for task #2: No server responded with task status (task may not exist)
-[18:16:16S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 3 for task #2
-[18:16:16S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:16S] [WARN] Polling attempt 3 failed for task #2: No server responded with task status (task may not exist)
-[18:16:18S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 4 for task #2
-[18:16:18S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:18S] [WARN] Polling attempt 4 failed for task #2: No server responded with task status (task may not exist)
-[18:16:20S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 5 for task #2
-[18:16:20S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:20S] [WARN] Polling attempt 5 failed for task #2: No server responded with task status (task may not exist)
-[18:16:22S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 6 for task #2
-[18:16:22S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:22S] [WARN] Polling attempt 6 failed for task #2: No server responded with task status (task may not exist)
-[18:16:24S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 7 for task #2
-[18:16:24S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:24S] [WARN] Polling attempt 7 failed for task #2: No server responded with task status (task may not exist)
-[18:16:26S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 8 for task #2
-[18:16:26S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:26S] [WARN] Polling attempt 8 failed for task #2: No server responded with task status (task may not exist)
-[18:16:28S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 9 for task #2
-[18:16:28S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:28S] [WARN] Polling attempt 9 failed for task #2: No server responded with task status (task may not exist)
-[18:16:30S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 10 for task #2
-[18:16:30S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:30S] [WARN] Polling attempt 10 failed for task #2: No server responded with task status (task may not exist)
-[18:16:32S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 11 for task #2
-[18:16:32S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:32S] [WARN] Polling attempt 11 failed for task #2: No server responded with task status (task may not exist)
-[18:16:34S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 12 for task #2
-[18:16:34S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:34S] [WARN] Polling attempt 12 failed for task #2: No server responded with task status (task may not exist)
-[18:16:36S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 13 for task #2
-[18:16:36S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:36S] [WARN] Polling attempt 13 failed for task #2: No server responded with task status (task may not exist)
-[18:16:38S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 14 for task #2
-[18:16:38S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:38S] [WARN] Polling attempt 14 failed for task #2: No server responded with task status (task may not exist)
-[18:16:40S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 15 for task #2
-[18:16:40S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:40S] [WARN] Polling attempt 15 failed for task #2: No server responded with task status (task may not exist)
-[18:16:42S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 16 for task #2
-[18:16:42S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:43S] [WARN] Polling attempt 16 failed for task #2: No server responded with task status (task may not exist)
-[18:16:45S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 17 for task #2
-[18:16:45S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:45S] [WARN] Polling attempt 17 failed for task #2: No server responded with task status (task may not exist)
-[18:16:47S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 18 for task #2
-[18:16:47S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:47S] [WARN] Polling attempt 18 failed for task #2: No server responded with task status (task may not exist)
-[18:16:49S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 19 for task #2
-[18:16:49S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:49S] [WARN] Polling attempt 19 failed for task #2: No server responded with task status (task may not exist)
-[18:16:51S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 20 for task #2
-[18:16:51S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:51S] [WARN] Polling attempt 20 failed for task #2: No server responded with task status (task may not exist)
-[18:16:53S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 21 for task #2
-[18:16:53S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:53S] [WARN] Polling attempt 21 failed for task #2: No server responded with task status (task may not exist)
-[18:16:55S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 22 for task #2
-[18:16:55S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:55S] [WARN] Polling attempt 22 failed for task #2: No server responded with task status (task may not exist)
-[18:16:57S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 23 for task #2
-[18:16:57S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:57S] [WARN] Polling attempt 23 failed for task #2: No server responded with task status (task may not exist)
-[18:16:59S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 24 for task #2
-[18:16:59S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:16:59S] [WARN] Polling attempt 24 failed for task #2: No server responded with task status (task may not exist)
-[18:17:01S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 25 for task #2
-[18:17:01S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:01S] [WARN] Polling attempt 25 failed for task #2: No server responded with task status (task may not exist)
-[18:17:03S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 26 for task #2
-[18:17:03S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:03S] [WARN] Polling attempt 26 failed for task #2: No server responded with task status (task may not exist)
-[18:17:05S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 27 for task #2
-[18:17:05S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:05S] [WARN] Polling attempt 27 failed for task #2: No server responded with task status (task may not exist)
-[18:17:07S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 28 for task #2
-[18:17:07S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:07S] [WARN] Polling attempt 28 failed for task #2: No server responded with task status (task may not exist)
-[18:17:09S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 29 for task #2
-[18:17:09S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:09S] [WARN] Polling attempt 29 failed for task #2: No server responded with task status (task may not exist)
-[18:17:11S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 30 for task #2
-[18:17:11S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:11S] [WARN] Polling attempt 30 failed for task #2: No server responded with task status (task may not exist)
-[18:17:13S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 31 for task #2
-[18:17:13S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:13S] [WARN] Polling attempt 31 failed for task #2: No server responded with task status (task may not exist)
-[18:17:15S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 32 for task #2
-[18:17:15S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:15S] [WARN] Polling attempt 32 failed for task #2: No server responded with task status (task may not exist)
-[18:17:17S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 33 for task #2
-[18:17:17S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:17S] [WARN] Polling attempt 33 failed for task #2: No server responded with task status (task may not exist)
-[18:17:19S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 34 for task #2
-[18:17:19S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:19S] [WARN] Polling attempt 34 failed for task #2: No server responded with task status (task may not exist)
-[18:17:21S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 35 for task #2
-[18:17:21S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:22S] [WARN] Polling attempt 35 failed for task #2: No server responded with task status (task may not exist)
-[18:17:24S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 36 for task #2
-[18:17:24S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:24S] [WARN] Polling attempt 36 failed for task #2: No server responded with task status (task may not exist)
-[18:17:26S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 37 for task #2
-[18:17:26S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
-[18:17:26S] [WARN] Polling attempt 37 failed for task #2: No server responded with task status (task may not exist)
+[19:06:55S] [INFO] Client 'Machine_1_Client_9' starting
+[19:06:55S] [INFO] Client 'Machine_1_Client_9' sending 50 requests (delay: 100-2000ms, 1 images available)...
+[19:06:55S] [INFO] 📡 Machine_1_Client_9 Getting task assignment for task #1
+[19:06:55S] [INFO] 📡 Machine_1_Client_9 Broadcasting assignment request for task #1 to 3 servers
+[19:06:55S] [INFO] ✅ Machine_1_Client_9 Received assignment from leader (Server 1): Task #1 → Server 1
+[19:06:55S] [INFO] ✅ Machine_1_Client_9 Task #1 assigned to Server 1 by leader 1
+[19:06:55S] [INFO] 📤 Machine_1_Client_9 Sending task #1 to server at 10.40.39.41:8001
+[19:07:31S] [INFO] 🔍 Machine_1_Client_9 Verifying encryption for task #1 (carrier image size: 15189737 bytes)
+[19:07:31S] [INFO] ✅ Machine_1_Client_9 Successfully extracted embedded image for task #1 (size: 517862 bytes)
+[19:07:31S] [INFO] ✅ Machine_1_Client_9 Encryption VERIFIED for task #1
+[19:07:31S] [INFO] 📨 Machine_1_Client_9 Sent ACK for task #1
+[19:07:31S] [INFO] ✅ Machine_1_Client_9 Task #1 completed successfully
+[19:07:32S] [INFO] 📡 Machine_1_Client_9 Getting task assignment for task #2
+[19:07:32S] [INFO] 📡 Machine_1_Client_9 Broadcasting assignment request for task #2 to 3 servers
+[19:07:33S] [INFO] ✅ Machine_1_Client_9 Received assignment from leader (Server 2): Task #2 → Server 1
+[19:07:33S] [INFO] ✅ Machine_1_Client_9 Task #2 assigned to Server 1 by leader 2
+[19:07:33S] [INFO] 📤 Machine_1_Client_9 Sending task #2 to server at 10.40.39.41:8001
+[19:07:33S] [WARN] ⚠️  Machine_1_Client_9 Server failure detected for task #2 at 10.40.39.41:8001: Connection refused (os error 61)
+[19:07:33S] [INFO] ⏳ Machine_1_Client_9 Polling for task #2 assignment after 10.40.39.41:8001 failed (indefinitely, 2s interval)...
+[19:07:33S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 1 for task #2
+[19:07:33S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:07:34S] [INFO] ✅ Machine_1_Client_9 Task #2 is assigned to Server 1
+[19:07:34S] [WARN] ⏸️  Machine_1_Client_9 Poll 1: Task #2 still at 10.40.39.41:8001 (1/10 polls) - waiting for reassignment or recovery...
+[19:07:36S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 2 for task #2
+[19:07:36S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:07:36S] [INFO] ✅ Machine_1_Client_9 Task #2 is assigned to Server 1
+[19:07:36S] [WARN] ⏸️  Machine_1_Client_9 Poll 2: Task #2 still at 10.40.39.41:8001 (2/10 polls) - waiting for reassignment or recovery...
+[19:07:38S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 3 for task #2
+[19:07:38S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:07:38S] [INFO] ✅ Machine_1_Client_9 Task #2 is assigned to Server 1
+[19:07:38S] [WARN] ⏸️  Machine_1_Client_9 Poll 3: Task #2 still at 10.40.39.41:8001 (3/10 polls) - waiting for reassignment or recovery...
+[19:07:40S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 4 for task #2
+[19:07:40S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:07:41S] [INFO] ✅ Machine_1_Client_9 Task #2 is assigned to Server 2
+[19:07:41S] [INFO] ✅ Machine_1_Client_9 Task #2 reassigned to different Server 2 at 10.40.38.47:8001
+[19:07:41S] [INFO] ✅ Machine_1_Client_9 Received assignment for task #2: Server 2 at 10.40.38.47:8001
+[19:07:41S] [INFO] 📤 Machine_1_Client_9 Sending task #2 to server at 10.40.38.47:8001
+[19:08:20S] [WARN] ⚠️  Machine_1_Client_9 Server failure detected for task #2 at 10.40.38.47:8001: early eof
+[19:08:20S] [INFO] ⏳ Machine_1_Client_9 Polling for task #2 assignment after 10.40.38.47:8001 failed (indefinitely, 2s interval)...
+[19:08:20S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 1 for task #2
+[19:08:20S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:08:22S] [WARN] Polling attempt 1 failed for task #2: No server responded with task status (task may not exist)
+[19:08:24S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 2 for task #2
+[19:08:24S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:08:26S] [WARN] Polling attempt 2 failed for task #2: No server responded with task status (task may not exist)
+[19:08:28S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 3 for task #2
+[19:08:28S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:08:30S] [WARN] Polling attempt 3 failed for task #2: No server responded with task status (task may not exist)
+[19:08:32S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 4 for task #2
+[19:08:32S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:08:34S] [WARN] Polling attempt 4 failed for task #2: No server responded with task status (task may not exist)
+[19:08:36S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 5 for task #2
+[19:08:36S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:08:38S] [WARN] Polling attempt 5 failed for task #2: No server responded with task status (task may not exist)
+[19:08:40S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 6 for task #2
+[19:08:40S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:08:42S] [WARN] Polling attempt 6 failed for task #2: No server responded with task status (task may not exist)
+[19:08:44S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 7 for task #2
+[19:08:44S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:08:46S] [WARN] Polling attempt 7 failed for task #2: No server responded with task status (task may not exist)
+[19:08:48S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 8 for task #2
+[19:08:48S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:08:50S] [WARN] Polling attempt 8 failed for task #2: No server responded with task status (task may not exist)
+[19:08:52S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 9 for task #2
+[19:08:52S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:08:54S] [WARN] Polling attempt 9 failed for task #2: No server responded with task status (task may not exist)
+[19:08:56S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 10 for task #2
+[19:08:56S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:08:58S] [WARN] Polling attempt 10 failed for task #2: No server responded with task status (task may not exist)
+[19:09:00S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 11 for task #2
+[19:09:00S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:02S] [WARN] Polling attempt 11 failed for task #2: No server responded with task status (task may not exist)
+[19:09:04S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 12 for task #2
+[19:09:04S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:06S] [WARN] Polling attempt 12 failed for task #2: No server responded with task status (task may not exist)
+[19:09:08S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 13 for task #2
+[19:09:08S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:10S] [WARN] Polling attempt 13 failed for task #2: No server responded with task status (task may not exist)
+[19:09:12S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 14 for task #2
+[19:09:12S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:14S] [WARN] Polling attempt 14 failed for task #2: No server responded with task status (task may not exist)
+[19:09:16S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 15 for task #2
+[19:09:16S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:18S] [WARN] Polling attempt 15 failed for task #2: No server responded with task status (task may not exist)
+[19:09:20S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 16 for task #2
+[19:09:20S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:22S] [WARN] Polling attempt 16 failed for task #2: No server responded with task status (task may not exist)
+[19:09:24S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 17 for task #2
+[19:09:24S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:26S] [WARN] Polling attempt 17 failed for task #2: No server responded with task status (task may not exist)
+[19:09:28S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 18 for task #2
+[19:09:28S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:30S] [WARN] Polling attempt 18 failed for task #2: No server responded with task status (task may not exist)
+[19:09:32S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 19 for task #2
+[19:09:32S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:34S] [WARN] Polling attempt 19 failed for task #2: No server responded with task status (task may not exist)
+[19:09:36S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 20 for task #2
+[19:09:36S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:38S] [WARN] Polling attempt 20 failed for task #2: No server responded with task status (task may not exist)
+[19:09:40S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 21 for task #2
+[19:09:40S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:42S] [WARN] Polling attempt 21 failed for task #2: No server responded with task status (task may not exist)
+[19:09:44S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 22 for task #2
+[19:09:44S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:46S] [WARN] Polling attempt 22 failed for task #2: No server responded with task status (task may not exist)
+[19:09:48S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 23 for task #2
+[19:09:48S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:50S] [WARN] Polling attempt 23 failed for task #2: No server responded with task status (task may not exist)
+[19:09:52S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 24 for task #2
+[19:09:52S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:54S] [WARN] Polling attempt 24 failed for task #2: No server responded with task status (task may not exist)
+[19:09:56S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 25 for task #2
+[19:09:56S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:09:58S] [WARN] Polling attempt 25 failed for task #2: No server responded with task status (task may not exist)
+[19:10:00S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 26 for task #2
+[19:10:00S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:02S] [WARN] Polling attempt 26 failed for task #2: No server responded with task status (task may not exist)
+[19:10:04S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 27 for task #2
+[19:10:04S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:06S] [WARN] Polling attempt 27 failed for task #2: No server responded with task status (task may not exist)
+[19:10:08S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 28 for task #2
+[19:10:08S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:10S] [WARN] Polling attempt 28 failed for task #2: No server responded with task status (task may not exist)
+[19:10:12S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 29 for task #2
+[19:10:12S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:14S] [WARN] Polling attempt 29 failed for task #2: No server responded with task status (task may not exist)
+[19:10:16S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 30 for task #2
+[19:10:16S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:18S] [WARN] Polling attempt 30 failed for task #2: No server responded with task status (task may not exist)
+[19:10:20S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 31 for task #2
+[19:10:20S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:22S] [WARN] Polling attempt 31 failed for task #2: No server responded with task status (task may not exist)
+[19:10:24S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 32 for task #2
+[19:10:24S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:26S] [WARN] Polling attempt 32 failed for task #2: No server responded with task status (task may not exist)
+[19:10:28S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 33 for task #2
+[19:10:28S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:30S] [WARN] Polling attempt 33 failed for task #2: No server responded with task status (task may not exist)
+[19:10:32S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 34 for task #2
+[19:10:32S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:34S] [WARN] Polling attempt 34 failed for task #2: No server responded with task status (task may not exist)
+[19:10:36S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 35 for task #2
+[19:10:36S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:38S] [WARN] Polling attempt 35 failed for task #2: No server responded with task status (task may not exist)
+[19:10:40S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 36 for task #2
+[19:10:40S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:42S] [WARN] Polling attempt 36 failed for task #2: No server responded with task status (task may not exist)
+[19:10:44S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 37 for task #2
+[19:10:44S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:46S] [WARN] Polling attempt 37 failed for task #2: No server responded with task status (task may not exist)
+[19:10:48S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 38 for task #2
+[19:10:48S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:50S] [WARN] Polling attempt 38 failed for task #2: No server responded with task status (task may not exist)
+[19:10:52S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 39 for task #2
+[19:10:52S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:54S] [WARN] Polling attempt 39 failed for task #2: No server responded with task status (task may not exist)
+[19:10:56S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 40 for task #2
+[19:10:56S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:10:58S] [WARN] Polling attempt 40 failed for task #2: No server responded with task status (task may not exist)
+[19:11:00S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 41 for task #2
+[19:11:00S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:02S] [WARN] Polling attempt 41 failed for task #2: No server responded with task status (task may not exist)
+[19:11:04S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 42 for task #2
+[19:11:04S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:06S] [WARN] Polling attempt 42 failed for task #2: No server responded with task status (task may not exist)
+[19:11:08S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 43 for task #2
+[19:11:08S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:10S] [WARN] Polling attempt 43 failed for task #2: No server responded with task status (task may not exist)
+[19:11:12S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 44 for task #2
+[19:11:12S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:14S] [WARN] Polling attempt 44 failed for task #2: No server responded with task status (task may not exist)
+[19:11:16S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 45 for task #2
+[19:11:16S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:18S] [WARN] Polling attempt 45 failed for task #2: No server responded with task status (task may not exist)
+[19:11:20S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 46 for task #2
+[19:11:20S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:22S] [WARN] Polling attempt 46 failed for task #2: No server responded with task status (task may not exist)
+[19:11:24S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 47 for task #2
+[19:11:24S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:26S] [WARN] Polling attempt 47 failed for task #2: No server responded with task status (task may not exist)
+[19:11:28S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 48 for task #2
+[19:11:28S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:30S] [WARN] Polling attempt 48 failed for task #2: No server responded with task status (task may not exist)
+[19:11:32S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 49 for task #2
+[19:11:32S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:34S] [WARN] Polling attempt 49 failed for task #2: No server responded with task status (task may not exist)
+[19:11:36S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 50 for task #2
+[19:11:36S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:38S] [WARN] Polling attempt 50 failed for task #2: No server responded with task status (task may not exist)
+[19:11:40S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 51 for task #2
+[19:11:40S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:42S] [WARN] Polling attempt 51 failed for task #2: No server responded with task status (task may not exist)
+[19:11:44S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 52 for task #2
+[19:11:44S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:46S] [WARN] Polling attempt 52 failed for task #2: No server responded with task status (task may not exist)
+[19:11:48S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 53 for task #2
+[19:11:48S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:50S] [WARN] Polling attempt 53 failed for task #2: No server responded with task status (task may not exist)
+[19:11:52S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 54 for task #2
+[19:11:52S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:54S] [WARN] Polling attempt 54 failed for task #2: No server responded with task status (task may not exist)
+[19:11:56S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 55 for task #2
+[19:11:56S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:11:58S] [WARN] Polling attempt 55 failed for task #2: No server responded with task status (task may not exist)
+[19:12:00S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 56 for task #2
+[19:12:00S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:12:02S] [WARN] Polling attempt 56 failed for task #2: No server responded with task status (task may not exist)
+[19:12:04S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 57 for task #2
+[19:12:04S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:12:06S] [WARN] Polling attempt 57 failed for task #2: No server responded with task status (task may not exist)
+[19:12:08S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 58 for task #2
+[19:12:08S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:12:10S] [WARN] Polling attempt 58 failed for task #2: No server responded with task status (task may not exist)
+[19:12:12S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 59 for task #2
+[19:12:12S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:12:14S] [WARN] Polling attempt 59 failed for task #2: No server responded with task status (task may not exist)
+[19:12:16S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 60 for task #2
+[19:12:16S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:12:18S] [WARN] Polling attempt 60 failed for task #2: No server responded with task status (task may not exist)
+[19:12:20S] [INFO] 🔄 Machine_1_Client_9 Polling attempt 61 for task #2
+[19:12:20S] [INFO] 🔍 Machine_1_Client_9 Broadcasting status query for task #2 to 3 servers
+[19:12:22S] [WARN] Polling attempt 61 failed for task #2: No server responded with task status (task may not exist)
