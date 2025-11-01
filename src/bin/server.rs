@@ -19,7 +19,6 @@ use clap::Parser;
 use env_logger::Builder;
 use log::LevelFilter;
 use std::io::Write;
-use std::sync::Arc;
 
 // Import from the library crate
 use cloud_p2p::common::config::load_config;
@@ -68,7 +67,10 @@ async fn main() -> anyhow::Result<()> {
     let config: ServerConfig = load_config(&args.config)?;
 
     // Create the server core (handles encryption)
-    let core = Arc::new(ServerCore::new(config.server.id));
+    // ServerCore will load the cover image from the path specified in config
+    let core = std::sync::Arc::new(
+        ServerCore::new(config.server.id, &config.server.cover_image)?
+    );
 
     // Create the server middleware (handles distributed coordination)
     let middleware = ServerMiddleware::new(config, core);

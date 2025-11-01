@@ -5,7 +5,13 @@ server_addresses = [
     "127.0.0.1:8002",
     "127.0.0.1:8003"
 ]
+image_dir = "test_images/secrets"
 
 [requests]
-rate_per_second = 0.1
-duration_seconds = 60.0
+# Total number of requests this client will send
+total_requests = 50
+
+# Random delay range between requests (milliseconds)
+# Each request will wait a random time between min and max before sending the next one
+min_delay_ms = 100
+max_delay_ms = 2000

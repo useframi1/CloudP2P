@@ -90,6 +90,13 @@ pub struct ServerInfo {
     pub id: u32,
     /// Network address where this server listens (e.g., "127.0.0.1:8001")
     pub address: String,
+    /// Path to the cover/carrier image file (default: "test_images/medium.jpg")
+    #[serde(default = "default_cover_image_path")]
+    pub cover_image: String,
+}
+
+fn default_cover_image_path() -> String {
+    "test_images/medium.jpg".to_string()
 }
 
 #[allow(dead_code)]
@@ -541,8 +548,7 @@ impl ServerMiddleware {
             Message::TaskRequest {
                 client_name,
                 request_id,
-                image_data,
-                text_to_embed,
+                secret_image_data,
                 assigned_by_leader,
             } => {
                 info!(
@@ -557,9 +563,7 @@ impl ServerMiddleware {
                 self.process_task(
                     request_id,
                     client_name.clone(),
-                    image_data,
-                    // image_name,
-                    text_to_embed,
+                    secret_image_data,
                     Some(tx),
                 )
                 .await;
@@ -1237,15 +1241,13 @@ impl ServerMiddleware {
     /// # Arguments
     /// - `request_id`: Unique identifier for this task
     /// - `client_name`: Name of the client that submitted this task
-    /// - `image_data`: Raw image bytes
-    /// - `image_name`: Original filename
-    /// - `text_to_embed`: Text to hide in the image
+    /// - `secret_image_data`: Raw image bytes (the secret image to hide)
     /// - `response_tx`: Optional channel to send response on
     ///
     /// # Process
     ///
     /// 1. Increment active task counter (for load calculation)
-    /// 2. Spawn async task to perform encryption via ServerCore
+    /// 2. Spawn async task to perform encryption via ServerCore (embedding secret into carrier)
     /// 3. Send response back through channel (if provided)
     /// 4. Remove task from history (broadcast to all peers)
     /// 5. Decrement active task counter
@@ -1256,9 +1258,7 @@ impl ServerMiddleware {
         &self,
         request_id: u64,
         client_name: String,
-        image_data: Vec<u8>,
-        // image_name: String,
-        text_to_embed: String,
+        secret_image_data: Vec<u8>,
         response_tx: Option<mpsc::Sender<Message>>,
     ) {
         // START TRACKING: Increment active task count
@@ -1283,7 +1283,7 @@ impl ServerMiddleware {
             // Delegate to ServerCore for actual encryption
             let encryption_result = server
                 .core
-                .encrypt_image(request_id, client_name.clone(), image_data, text_to_embed)
+                .encrypt_image(request_id, client_name.clone(), secret_image_data)
                 .await;
 
             let response = match encryption_result {

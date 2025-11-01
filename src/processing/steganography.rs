@@ -243,3 +243,215 @@ pub fn extract_text_bytes(image_bytes: &[u8]) -> Result<String> {
     // Convert bytes to UTF-8 string
     Ok(String::from_utf8(text_bytes)?)
 }
+
+/// Embed an image into another (carrier) image using LSB steganography.
+///
+/// The embedded image is prefixed with its length (4 bytes, big-endian) and then embedded
+/// into the least significant bits of the carrier image's RGB channels.
+///
+/// # Arguments
+/// - `carrier_image_bytes`: Raw bytes of the carrier image (the image that will hide data)
+/// - `secret_image_bytes`: Raw bytes of the secret image to embed
+///
+/// # Returns
+/// - `Ok(Vec<u8>)`: PNG image bytes with embedded secret image
+/// - `Err`: If carrier image is too small, can't be loaded, or encoding fails
+///
+/// # Errors
+/// - Carrier image is too small to hold the secret image
+/// - Image format is invalid
+/// - Encoding to PNG fails
+///
+/// # Example
+/// ```ignore
+/// let carrier = std::fs::read("carrier.jpg")?;
+/// let secret = std::fs::read("secret.png")?;
+/// let result = embed_image_bytes(&carrier, &secret)?;
+/// std::fs::write("output.png", result)?;
+/// ```
+pub fn embed_image_bytes(carrier_image_bytes: &[u8], secret_image_bytes: &[u8]) -> Result<Vec<u8>> {
+    // Load the carrier image
+    let img = image::load_from_memory(carrier_image_bytes)?;
+    let (width, height) = img.dimensions();
+
+    // Convert to RGBA format for consistent pixel manipulation
+    let mut img = img.to_rgba8();
+
+    // Prepare data to embed: [4 bytes length][secret image bytes]
+    let length = secret_image_bytes.len() as u32;
+    let mut data_to_embed = Vec::new();
+
+    // Add length prefix (4 bytes, big-endian)
+    data_to_embed.extend_from_slice(&length.to_be_bytes());
+    // Add secret image content
+    data_to_embed.extend_from_slice(secret_image_bytes);
+
+    // Check if carrier image has enough capacity
+    // Each pixel has 3 usable channels (R, G, B), so 3 bits per pixel
+    let available_bits = (width * height * 3) as usize;
+    let required_bits = data_to_embed.len() * 8;
+
+    if required_bits > available_bits {
+        return Err(anyhow::anyhow!(
+            "Carrier image too small: need {} bits but only have {} bits available. Secret image size: {} bytes",
+            required_bits, available_bits, secret_image_bytes.len()
+        ));
+    }
+
+    // Embed data into LSBs of image pixels
+    let mut data_index = 0; // Current byte being embedded
+    let mut bit_index = 0;  // Current bit within the byte (0-7)
+
+    'outer: for y in 0..height {
+        for x in 0..width {
+            // Stop if all data has been embedded
+            if data_index >= data_to_embed.len() {
+                break 'outer;
+            }
+
+            let pixel = img.get_pixel(x, y);
+            let mut new_pixel = *pixel;
+
+            // Embed into R, G, B channels (skip Alpha channel for compatibility)
+            for channel in 0..3 {
+                if data_index >= data_to_embed.len() {
+                    break 'outer;
+                }
+
+                // Extract the current bit from data (MSB first)
+                let bit = (data_to_embed[data_index] >> (7 - bit_index)) & 1;
+
+                // Clear LSB and set it to our data bit
+                new_pixel[channel] = (pixel[channel] & 0xFE) | bit;
+
+                // Move to next bit
+                bit_index += 1;
+                if bit_index == 8 {
+                    bit_index = 0;
+                    data_index += 1;
+                }
+            }
+
+            img.put_pixel(x, y, new_pixel);
+        }
+    }
+
+    // Encode the modified image as PNG
+    let mut output_bytes = Vec::new();
+    img.write_to(
+        &mut std::io::Cursor::new(&mut output_bytes),
+        image::ImageFormat::Png,
+    )?;
+
+    Ok(output_bytes)
+}
+
+/// Extract an embedded image from a carrier image using LSB steganography.
+///
+/// Reads the 4-byte length prefix, then extracts that many bytes from the
+/// LSBs of the carrier image's RGB channels.
+///
+/// # Arguments
+/// - `carrier_image_bytes`: Raw bytes of the steganography-encoded carrier image
+///
+/// # Returns
+/// - `Ok(Vec<u8>)`: The extracted secret image bytes
+/// - `Err`: If image can't be loaded or extraction fails
+///
+/// # Errors
+/// - Image format is invalid
+/// - Length prefix is corrupted
+/// - Not enough data in the image
+///
+/// # Example
+/// ```ignore
+/// let carrier = std::fs::read("carrier_with_secret.png")?;
+/// let secret_image = extract_image_bytes(&carrier)?;
+/// std::fs::write("extracted_secret.png", secret_image)?;
+/// ```
+pub fn extract_image_bytes(carrier_image_bytes: &[u8]) -> Result<Vec<u8>> {
+    // Load the carrier image
+    let img = image::load_from_memory(carrier_image_bytes)?;
+    let img = img.to_rgba8();
+    let (width, height) = img.dimensions();
+
+    // ========== STEP 1: Extract length (first 4 bytes = 32 bits) ==========
+
+    let mut length_bytes = [0u8; 4];
+    let mut data_index = 0;
+    let mut bit_index = 0;
+
+    'length_loop: for y in 0..height {
+        for x in 0..width {
+            if data_index >= 4 {
+                break 'length_loop;
+            }
+
+            let pixel = img.get_pixel(x, y);
+
+            // Extract from R, G, B channels
+            for channel in 0..3 {
+                if data_index >= 4 {
+                    break 'length_loop;
+                }
+
+                // Get the LSB from this channel
+                let bit = pixel[channel] & 1;
+
+                // Set this bit in our length bytes (MSB first)
+                length_bytes[data_index] |= bit << (7 - bit_index);
+
+                bit_index += 1;
+                if bit_index == 8 {
+                    bit_index = 0;
+                    data_index += 1;
+                }
+            }
+        }
+    }
+
+    let length = u32::from_be_bytes(length_bytes) as usize;
+
+    // ========== STEP 2: Extract image data ==========
+
+    let mut image_bytes = vec![0u8; length];
+    data_index = 0;
+    bit_index = 0;
+    let mut skip_bits = 32; // Skip the length prefix we already read
+
+    'outer: for y in 0..height {
+        for x in 0..width {
+            if data_index >= length {
+                break 'outer;
+            }
+
+            let pixel = img.get_pixel(x, y);
+
+            for channel in 0..3 {
+                // Skip the first 32 bits (length prefix)
+                if skip_bits > 0 {
+                    skip_bits -= 1;
+                    continue;
+                }
+
+                if data_index >= length {
+                    break 'outer;
+                }
+
+                // Get the LSB from this channel
+                let bit = pixel[channel] & 1;
+
+                // Set this bit in our image bytes (MSB first)
+                image_bytes[data_index] |= bit << (7 - bit_index);
+
+                bit_index += 1;
+                if bit_index == 8 {
+                    bit_index = 0;
+                    data_index += 1;
+                }
+            }
+        }
+    }
+
+    Ok(image_bytes)
+}

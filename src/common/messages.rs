@@ -116,15 +116,12 @@ pub enum Message {
     /// # Fields
     /// - `client_name`: Name of the client submitting the task
     /// - `request_id`: Unique ID for tracking
-    /// - `image_data`: Raw bytes of the image file
-    /// - `image_name`: Original filename of the image
-    /// - `text_to_embed`: Text to embed into the image using LSB steganography
+    /// - `secret_image_data`: Raw bytes of the secret image to hide in the server's carrier image
     /// - `assigned_by_leader`: ID of the leader that assigned this task (for validation)
     TaskRequest {
         client_name: String,
         request_id: u64,
-        image_data: Vec<u8>,
-        text_to_embed: String,
+        secret_image_data: Vec<u8>,
         assigned_by_leader: u32,
     },
 
@@ -134,7 +131,7 @@ pub enum Message {
     ///
     /// # Fields
     /// - `request_id`: ID of the request being answered
-    /// - `encrypted_image_data`: Encrypted image bytes with embedded text (PNG format)
+    /// - `encrypted_image_data`: Carrier image bytes with embedded secret image (PNG format)
     /// - `success`: Whether the encryption succeeded
     /// - `error_message`: Error details if success is false
     TaskResponse {

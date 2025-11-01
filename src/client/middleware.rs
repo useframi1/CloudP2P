@@ -268,12 +268,12 @@ impl ClientMiddleware {
 
         // Send all requests with random delays and random image selection
         for i in 1..=total_requests {
-            // Randomly select an image
+            // Randomly select a secret image to hide
             let image_index = (rand::random::<f64>() * image_files.len() as f64) as usize;
             let image_name = &image_files[image_index % image_files.len()];
 
             let success = self
-                .send_request(i, image_name.clone(), "username:alice,views:5".to_string())
+                .send_request(i, image_name.clone())
                 .await;
 
             // Random delay between requests (only if task succeeded)
@@ -603,8 +603,7 @@ impl ClientMiddleware {
     /// # Arguments
     ///
     /// * `request_num` - Unique identifier for this request
-    /// * `image_name` - Name of the image file to process (relative to uploads directory)
-    /// * `text_to_embed` - Text to embed in the image using steganography
+    /// * `image_name` - Name of the secret image file to hide (relative to uploads directory)
     ///
     /// # Returns
     ///
@@ -620,7 +619,6 @@ impl ClientMiddleware {
         &mut self,
         request_num: u64,
         image_name: String,
-        text_to_embed: String,
     ) -> bool {
         const POLL_INTERVAL_SECS: u64 = 2;
 
@@ -659,7 +657,6 @@ impl ClientMiddleware {
                 leader_id,
                 request_num,
                 image_name,
-                text_to_embed,
             )
             .await;
 
@@ -719,8 +716,7 @@ impl ClientMiddleware {
     /// * `assigned_address` - Network address of the initially assigned server
     /// * `leader_id` - ID of the leader that made the assignment
     /// * `request_num` - Unique identifier for this request
-    /// * `image_name` - Name of the image file (relative to uploads directory)
-    /// * `text_to_embed` - Text to embed in the image
+    /// * `image_name` - Name of the secret image file (relative to uploads directory)
     ///
     /// # Returns
     ///
@@ -739,8 +735,8 @@ impl ClientMiddleware {
     ///
     /// # File Locations
     ///
-    /// - **Input**: `user-data/uploads/{image_name}`
-    /// - **Output**: `user-data/outputs/encrypted_{client_name}_{image_name}`
+    /// - **Input**: `user-data/uploads/{image_name}` (secret image to hide)
+    /// - **Output**: Carrier image with embedded secret (returned by server)
     async fn execute_task(
         &self,
         _assigned_server_id: u32,
@@ -748,11 +744,10 @@ impl ClientMiddleware {
         mut leader_id: u32,
         request_num: u64,
         image_name: String,
-        text_to_embed: String,
     ) -> Result<()> {
-        // Read the image file once and cache it (avoid repeated disk I/O)
+        // Read the secret image file once and cache it (avoid repeated disk I/O)
         let image_path = format!("{}/{}", self.config.client.image_dir, image_name);
-        let image_data = std::fs::read(&image_path)?;
+        let secret_image_data = std::fs::read(&image_path)?;
 
         loop {
             // Attempt to send task to assigned server
@@ -761,8 +756,7 @@ impl ClientMiddleware {
                 .send_and_receive_encrypted_image(
                     &assigned_address,
                     request_num,
-                    image_data.clone(), // Clone cached data
-                    &text_to_embed,
+                    secret_image_data.clone(), // Clone cached data
                     leader_id,
                 )
                 .await;
