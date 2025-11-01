@@ -272,10 +272,20 @@ impl ClientMiddleware {
             let image_index = (rand::random::<f64>() * image_files.len() as f64) as usize;
             let image_name = &image_files[image_index % image_files.len()];
 
-            let success = self.send_request(i, image_name.clone()).await;
+            // Read the image file
+            let image_path = format!("{}/{}", self.config.client.image_dir, image_name);
+            let secret_image_data = match std::fs::read(&image_path) {
+                Ok(data) => data,
+                Err(e) => {
+                    error!("Failed to read image file '{}': {}", image_path, e);
+                    continue;
+                }
+            };
+
+            let result = self.send_request(i, secret_image_data).await;
 
             // Random delay between requests (only if task succeeded)
-            if success && i < total_requests {
+            if result.is_some() && i < total_requests {
                 let range = max_delay - min_delay;
                 let random_offset = (rand::random::<f64>() * range as f64) as u64;
                 let delay = Duration::from_millis(min_delay + random_offset);
@@ -601,19 +611,19 @@ impl ClientMiddleware {
     /// # Arguments
     ///
     /// * `request_num` - Unique identifier for this request
-    /// * `image_name` - Name of the secret image file to hide (relative to uploads directory)
+    /// * `secret_image_data` - Binary data of the secret image to hide
     ///
     /// # Returns
     ///
-    /// * `true` - If the request succeeded
-    /// * `false` - If the request failed
+    /// * `Some(Vec<u8>)` - If the request succeeded, returns the encrypted carrier image
+    /// * `None` - If the request failed
     ///
     /// # Polling Parameters
     ///
     /// - **Max poll attempts**: Unlimited - polls indefinitely per server failure
     /// - **Poll interval**: 2 seconds
     /// - **No timeout**: Request continues retrying indefinitely until success
-    async fn send_request(&mut self, request_num: u64, image_name: String) -> bool {
+    async fn send_request(&mut self, request_num: u64, secret_image_data: Vec<u8>) -> Option<Vec<u8>> {
         const POLL_INTERVAL_SECS: u64 = 2;
 
         // Start tracking latency
@@ -650,7 +660,7 @@ impl ClientMiddleware {
                 assigned_address,
                 leader_id,
                 request_num,
-                image_name,
+                secret_image_data,
             )
             .await;
 
@@ -677,19 +687,19 @@ impl ClientMiddleware {
         }
 
         match result {
-            Ok(()) => {
+            Ok(encrypted_image_data) => {
                 info!(
-                    "✅ {} Task #{} completed successfully",
-                    self.config.client.name, request_num
+                    "✅ {} Task #{} completed successfully ({} bytes)",
+                    self.config.client.name, request_num, encrypted_image_data.len()
                 );
-                true
+                Some(encrypted_image_data)
             }
             Err(e) => {
                 error!(
                     "❌ {} Task #{} FAILED: {}",
                     self.config.client.name, request_num, e
                 );
-                false
+                None
             }
         }
     }
@@ -697,7 +707,7 @@ impl ClientMiddleware {
     /// Executes a task with automatic server-side failover handling.
     ///
     /// This method:
-    /// 1. Reads the image file from the uploads directory and caches it
+    /// 1. Uses the provided image data directly (already loaded)
     /// 2. Attempts to send task to assigned server
     /// 3. If server fails (TCP disconnect), polls for reassignment **indefinitely**
     /// 4. Polling: indefinite attempts, 2 seconds interval via broadcast to all servers
@@ -710,12 +720,12 @@ impl ClientMiddleware {
     /// * `assigned_address` - Network address of the initially assigned server
     /// * `leader_id` - ID of the leader that made the assignment
     /// * `request_num` - Unique identifier for this request
-    /// * `image_name` - Name of the secret image file (relative to uploads directory)
+    /// * `secret_image_data` - Binary data of the secret image to hide
     ///
     /// # Returns
     ///
-    /// * `Ok(())` - If the task completed successfully (possibly after multiple reassignments)
-    /// * `Err(anyhow::Error)` - Only for non-connection errors (e.g., file not found, validation errors)
+    /// * `Ok(Vec<u8>)` - The encrypted carrier image with embedded secret
+    /// * `Err(anyhow::Error)` - Only for non-connection errors (e.g., validation errors)
     ///
     /// # Server Failover
     ///
@@ -726,22 +736,14 @@ impl ClientMiddleware {
     /// 4. Client receives new assignment and retries
     /// 5. If the new server also fails, repeat from step 1
     /// 6. Continues indefinitely until success
-    ///
-    /// # File Locations
-    ///
-    /// - **Input**: `user-data/uploads/{image_name}` (secret image to hide)
-    /// - **Output**: Carrier image with embedded secret (returned by server)
     async fn execute_task(
         &self,
         _assigned_server_id: u32,
         mut assigned_address: String,
         mut leader_id: u32,
         request_num: u64,
-        image_name: String,
-    ) -> Result<()> {
-        // Read the secret image file once and cache it (avoid repeated disk I/O)
-        let image_path = format!("{}/{}", self.config.client.image_dir, image_name);
-        let secret_image_data = std::fs::read(&image_path)?;
+        secret_image_data: Vec<u8>,
+    ) -> Result<Vec<u8>> {
 
         loop {
             // Attempt to send task to assigned server
@@ -756,8 +758,8 @@ impl ClientMiddleware {
                 .await;
 
             match result {
-                Ok(()) => {
-                    return Ok(());
+                Ok(encrypted_image_data) => {
+                    return Ok(encrypted_image_data);
                 }
                 Err(e) => {
                     // Check if it's a connection error (server failure)
@@ -798,6 +800,36 @@ impl ClientMiddleware {
                     // }
                 }
             }
+        }
+    }
+
+    /// Submits a task for web requests by calling send_request.
+    ///
+    /// This method wraps `send_request` to provide a simpler interface for web requests.
+    ///
+    /// # Arguments
+    ///
+    /// * `request_id` - Unique identifier for this request
+    /// * `secret_image_data` - Binary data of the secret image to hide
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Vec<u8>)` - The encrypted carrier image with embedded secret
+    /// * `Err(anyhow::Error)` - If the task submission failed
+    pub async fn submit_task(
+        &mut self,
+        request_id: u64,
+        secret_image_data: Vec<u8>,
+    ) -> anyhow::Result<Vec<u8>> {
+        info!(
+            "🌐 Web request #{}: Submitting image ({} bytes)",
+            request_id,
+            secret_image_data.len()
+        );
+
+        match self.send_request(request_id, secret_image_data).await {
+            Some(encrypted_image_data) => Ok(encrypted_image_data),
+            None => Err(anyhow::anyhow!("Task submission failed")),
         }
     }
 }
