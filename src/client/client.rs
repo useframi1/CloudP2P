@@ -132,7 +132,7 @@ impl ClientCore {
         request_id: u64,
         secret_image_data: Vec<u8>,
         assigned_by_leader: u32,
-    ) -> Result<()> {
+    ) -> Result<Vec<u8>> {
         info!(
             "📤 {} Sending task #{} to server at {}",
             self.client_name, request_id, assigned_address
@@ -229,7 +229,7 @@ impl ClientCore {
                         info!("📨 {} Sent ACK for task #{}", self.client_name, response_id);
                     }
 
-                    Ok(())
+                    Ok(encrypted_image_data)
                 } else {
                     // Server reported task failure
                     Err(anyhow::anyhow!(
