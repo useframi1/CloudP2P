@@ -1,0 +1,190 @@
+[2025-11-01 00:16:14] Checking if servers are running...
+[2025-11-01 00:16:14] WARNING: Server 1 is not running
+[2025-11-01 00:16:14] WARNING: Server 2 is not running
+[2025-11-01 00:16:14] WARNING: Server 3 is not running
+[2025-11-01 00:16:14] WARNING: Not all servers are running. Continuing anyway...
+[2025-11-01 00:16:14] Starting fault simulation with ring algorithm
+[2025-11-01 00:16:14] Ring order: Server 1 2 3
+[2025-11-01 00:16:14] ===== CYCLE 1/2 =====
+[2025-11-01 00:16:14] Ring Algorithm: Processing Server 1
+[2025-11-01 00:16:14] Attempting to kill Server 1 (local)
+[2025-11-01 00:16:15] WARNING: Server 1 not running (no PID found)
+[2025-11-01 00:16:15] WARNING: Server 1 kill operation had issues
+[2025-11-01 00:16:15] Waiting 5s before restarting Server 1...
+[2025-11-01 00:16:20] Attempting to restart Server 1 (local)
+[2025-11-01 00:16:22] ERROR: Server 1 failed to start
+[2025-11-01 00:16:22] WARNING: Server 1 restart operation had issues
+[2025-11-01 00:16:22] Waiting 20s before moving to next server in ring...
+[2025-11-01 00:16:42] Ring Algorithm: Processing Server 2
+[2025-11-01 00:16:42] Attempting to kill Server 2 (local)
+[2025-11-01 00:16:42] WARNING: Server 2 not running (no PID found)
+[2025-11-01 00:16:42] WARNING: Server 2 kill operation had issues
+[2025-11-01 00:16:42] Waiting 5s before restarting Server 2...
+[2025-11-01 00:16:47] Attempting to restart Server 2 (local)
+[2025-11-01 00:16:49] ERROR: Server 2 failed to start
+[2025-11-01 00:16:49] WARNING: Server 2 restart operation had issues
+[2025-11-01 00:16:49] Waiting 20s before moving to next server in ring...
+[2025-11-01 00:27:35] Checking if servers are running...
+[2025-11-01 00:27:35] Debug: Looking for server processes with config files:
+[2025-11-01 00:27:35]   - server1.toml
+[2025-11-01 00:27:35]   - server2.toml
+[2025-11-01 00:27:35]   - server3.toml
+[2025-11-01 00:27:35] Server 1 is running (PID 97642)
+[2025-11-01 00:27:35] Server 2 is running (PID 97707)
+[2025-11-01 00:27:35] Server 3 is running (PID 97756)
+[2025-11-01 00:27:35] Starting fault simulation with ring algorithm
+[2025-11-01 00:27:35] Ring order: Server 1 2 3
+[2025-11-01 00:27:35] ===== CYCLE 1/2 =====
+[2025-11-01 00:27:35] Ring Algorithm: Processing Server 1
+[2025-11-01 00:27:35] Attempting to kill Server 1 (local)
+[2025-11-01 00:27:35] Found Server 1 PID: 97642
+[2025-11-01 00:27:36] SUCCESS: Killed Server 1 (PID 97642)
+[2025-11-01 00:27:36] Server 1 is now DOWN
+[2025-11-01 00:27:36] Waiting 5s before restarting Server 1...
+[2025-11-01 00:27:41] Attempting to restart Server 1 (local)
+[2025-11-01 00:27:43] SUCCESS: Restarted Server 1 (PID 3235)
+[2025-11-01 00:27:43] Server 1 is now UP
+[2025-11-01 00:27:43] Waiting 20s before moving to next server in ring...
+[2025-11-01 00:28:03] Ring Algorithm: Processing Server 2
+[2025-11-01 00:28:03] Attempting to kill Server 2 (local)
+[2025-11-01 00:28:03] Found Server 2 PID: 97707
+[2025-11-01 00:28:04] SUCCESS: Killed Server 2 (PID 97707)
+[2025-11-01 00:28:04] Server 2 is now DOWN
+[2025-11-01 00:28:04] Waiting 5s before restarting Server 2...
+[2025-11-01 00:28:09] Attempting to restart Server 2 (local)
+[2025-11-01 00:28:11] SUCCESS: Restarted Server 2 (PID 3371)
+[2025-11-01 00:28:11] Server 2 is now UP
+[2025-11-01 00:28:11] Waiting 20s before moving to next server in ring...
+[2025-11-01 00:28:31] Ring Algorithm: Processing Server 3
+[2025-11-01 00:28:31] Attempting to kill Server 3 (local)
+[2025-11-01 00:28:31] Found Server 3 PID: 97756
+[2025-11-01 00:28:32] SUCCESS: Killed Server 3 (PID 97756)
+[2025-11-01 00:28:32] Server 3 is now DOWN
+[2025-11-01 00:28:32] Waiting 5s before restarting Server 3...
+[2025-11-01 00:28:37] Attempting to restart Server 3 (local)
+[2025-11-01 00:28:39] SUCCESS: Restarted Server 3 (PID 3499)
+[2025-11-01 00:28:39] Server 3 is now UP
+[2025-11-01 00:28:39] Waiting 20s before moving to next server in ring...
+[2025-11-01 00:28:59] ===== CYCLE 1 COMPLETED =====
+[2025-11-01 00:28:59] ===== CYCLE 2/2 =====
+[2025-11-01 00:28:59] Ring Algorithm: Processing Server 1
+[2025-11-01 00:28:59] Attempting to kill Server 1 (local)
+[2025-11-01 00:28:59] Found Server 1 PID: 3235
+[2025-11-01 00:29:00] SUCCESS: Killed Server 1 (PID 3235)
+[2025-11-01 00:29:00] Server 1 is now DOWN
+[2025-11-01 00:29:00] Waiting 5s before restarting Server 1...
+[2025-11-01 00:29:05] Attempting to restart Server 1 (local)
+[2025-11-01 00:29:07] SUCCESS: Restarted Server 1 (PID 3586)
+[2025-11-01 00:29:07] Server 1 is now UP
+[2025-11-01 00:29:07] Waiting 20s before moving to next server in ring...
+[2025-11-01 00:29:27] Ring Algorithm: Processing Server 2
+[2025-11-01 00:29:27] Attempting to kill Server 2 (local)
+[2025-11-01 00:29:27] Found Server 2 PID: 3371
+[2025-11-01 00:29:28] SUCCESS: Killed Server 2 (PID 3371)
+[2025-11-01 00:29:28] Server 2 is now DOWN
+[2025-11-01 00:29:28] Waiting 5s before restarting Server 2...
+[2025-11-01 00:29:33] Attempting to restart Server 2 (local)
+[2025-11-01 00:29:36] SUCCESS: Restarted Server 2 (PID 3678)
+[2025-11-01 00:29:36] Server 2 is now UP
+[2025-11-01 00:29:36] Waiting 20s before moving to next server in ring...
+[2025-11-01 00:29:56] Ring Algorithm: Processing Server 3
+[2025-11-01 00:29:56] Attempting to kill Server 3 (local)
+[2025-11-01 00:29:56] Found Server 3 PID: 3499
+[2025-11-01 00:29:57] SUCCESS: Killed Server 3 (PID 3499)
+[2025-11-01 00:29:57] Server 3 is now DOWN
+[2025-11-01 00:29:57] Waiting 5s before restarting Server 3...
+[2025-11-01 00:30:02] Attempting to restart Server 3 (local)
+[2025-11-01 00:30:04] SUCCESS: Restarted Server 3 (PID 3759)
+[2025-11-01 00:30:04] Server 3 is now UP
+[2025-11-01 00:30:04] Waiting 20s before moving to next server in ring...
+[2025-11-01 00:30:24] ===== CYCLE 2 COMPLETED =====
+[2025-11-01 00:30:24] =========================================
+[2025-11-01 00:30:24] Fault Simulation Completed!
+[2025-11-01 00:30:24] =========================================
+[2025-11-01 00:30:24] Total Cycles:       2
+[2025-11-01 00:30:24] Servers Processed:  3
+[2025-11-01 00:30:24] Total Faults:       6
+[2025-11-01 00:30:24] Total Time:         169s
+[2025-11-01 00:30:24] =========================================
+[2025-11-01 02:09:14] Checking if servers are running...
+[2025-11-01 02:09:14] Debug: Looking for server processes with config files:
+[2025-11-01 02:09:14]   - server1.toml
+[2025-11-01 02:09:14]   - server2.toml
+[2025-11-01 02:09:14]   - server3.toml
+[2025-11-01 02:09:14] Server 1 is running (PID 16222)
+[2025-11-01 02:09:14] Server 2 is running (PID 16233)
+[2025-11-01 02:09:14] Server 3 is running (PID 16253)
+[2025-11-01 02:09:14] Starting fault simulation with ring algorithm
+[2025-11-01 02:09:14] Ring order: Server 1 2 3
+[2025-11-01 02:09:14] ===== CYCLE 1/2 =====
+[2025-11-01 02:09:14] Ring Algorithm: Processing Server 1
+[2025-11-01 02:09:14] Attempting to kill Server 1 (local)
+[2025-11-01 02:09:14] Found Server 1 PID: 16222
+[2025-11-01 02:09:15] SUCCESS: Killed Server 1 (PID 16222)
+[2025-11-01 02:09:15] Server 1 is now DOWN
+[2025-11-01 02:09:15] Waiting 5s before restarting Server 1...
+[2025-11-01 02:09:20] Attempting to restart Server 1 (local)
+[2025-11-01 02:09:22] SUCCESS: Restarted Server 1 (PID 17448)
+[2025-11-01 02:09:22] Server 1 is now UP
+[2025-11-01 02:09:22] Waiting 20s before moving to next server in ring...
+[2025-11-01 02:09:42] Ring Algorithm: Processing Server 2
+[2025-11-01 02:09:42] Attempting to kill Server 2 (local)
+[2025-11-01 02:09:42] Found Server 2 PID: 16233
+[2025-11-01 02:09:43] SUCCESS: Killed Server 2 (PID 16233)
+[2025-11-01 02:09:43] Server 2 is now DOWN
+[2025-11-01 02:09:43] Waiting 5s before restarting Server 2...
+[2025-11-01 02:09:48] Attempting to restart Server 2 (local)
+[2025-11-01 02:09:50] SUCCESS: Restarted Server 2 (PID 17675)
+[2025-11-01 02:09:50] Server 2 is now UP
+[2025-11-01 02:09:50] Waiting 20s before moving to next server in ring...
+[2025-11-01 02:10:10] Ring Algorithm: Processing Server 3
+[2025-11-01 02:10:10] Attempting to kill Server 3 (local)
+[2025-11-01 02:10:10] Found Server 3 PID: 16253
+[2025-11-01 02:10:11] SUCCESS: Killed Server 3 (PID 16253)
+[2025-11-01 02:10:11] Server 3 is now DOWN
+[2025-11-01 02:10:11] Waiting 5s before restarting Server 3...
+[2025-11-01 02:10:17] Attempting to restart Server 3 (local)
+[2025-11-01 02:10:19] SUCCESS: Restarted Server 3 (PID 17880)
+[2025-11-01 02:10:19] Server 3 is now UP
+[2025-11-01 02:10:19] Waiting 20s before moving to next server in ring...
+[2025-11-01 02:10:39] ===== CYCLE 1 COMPLETED =====
+[2025-11-01 02:10:39] ===== CYCLE 2/2 =====
+[2025-11-01 02:10:39] Ring Algorithm: Processing Server 1
+[2025-11-01 02:10:39] Attempting to kill Server 1 (local)
+[2025-11-01 02:10:39] Found Server 1 PID: 17448
+[2025-11-01 02:10:40] SUCCESS: Killed Server 1 (PID 17448)
+[2025-11-01 02:10:40] Server 1 is now DOWN
+[2025-11-01 02:10:40] Waiting 5s before restarting Server 1...
+[2025-11-01 02:10:45] Attempting to restart Server 1 (local)
+[2025-11-01 02:10:47] SUCCESS: Restarted Server 1 (PID 18159)
+[2025-11-01 02:10:47] Server 1 is now UP
+[2025-11-01 02:10:47] Waiting 20s before moving to next server in ring...
+[2025-11-01 02:11:07] Ring Algorithm: Processing Server 2
+[2025-11-01 02:11:07] Attempting to kill Server 2 (local)
+[2025-11-01 02:11:07] Found Server 2 PID: 17675
+[2025-11-01 02:11:08] SUCCESS: Killed Server 2 (PID 17675)
+[2025-11-01 02:11:08] Server 2 is now DOWN
+[2025-11-01 02:11:08] Waiting 5s before restarting Server 2...
+[2025-11-01 02:11:13] Attempting to restart Server 2 (local)
+[2025-11-01 02:11:15] SUCCESS: Restarted Server 2 (PID 18269)
+[2025-11-01 02:11:15] Server 2 is now UP
+[2025-11-01 02:11:15] Waiting 20s before moving to next server in ring...
+[2025-11-01 02:11:35] Ring Algorithm: Processing Server 3
+[2025-11-01 02:11:35] Attempting to kill Server 3 (local)
+[2025-11-01 02:11:35] Found Server 3 PID: 17880
+[2025-11-01 02:11:36] SUCCESS: Killed Server 3 (PID 17880)
+[2025-11-01 02:11:36] Server 3 is now DOWN
+[2025-11-01 02:11:36] Waiting 5s before restarting Server 3...
+[2025-11-01 02:11:41] Attempting to restart Server 3 (local)
+[2025-11-01 02:11:43] SUCCESS: Restarted Server 3 (PID 18356)
+[2025-11-01 02:11:43] Server 3 is now UP
+[2025-11-01 02:11:43] Waiting 20s before moving to next server in ring...
+[2025-11-01 02:12:03] ===== CYCLE 2 COMPLETED =====
+[2025-11-01 02:12:03] =========================================
+[2025-11-01 02:12:03] Fault Simulation Completed!
+[2025-11-01 02:12:03] =========================================
+[2025-11-01 02:12:03] Total Cycles:       2
+[2025-11-01 02:12:03] Servers Processed:  3
+[2025-11-01 02:12:03] Total Faults:       6
+[2025-11-01 02:12:03] Total Time:         169s
+[2025-11-01 02:12:03] =========================================

@@ -49,11 +49,12 @@ use anyhow::Result;
 use log::{error, info, warn};
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::sync::Arc;
-use std::time::Duration;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 use tokio::net::TcpStream;
 
 use crate::client::client::ClientCore;
+use crate::client::metrics::ClientMetrics;
 use crate::common::connection::Connection;
 use crate::common::messages::Message;
 
@@ -72,8 +73,6 @@ use crate::common::messages::Message;
 /// [requests]
 /// rate_per_second = 2.0
 /// duration_seconds = 30.0
-/// request_processing_ms = 100
-/// load_per_request = 0.5
 /// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ClientConfig {
@@ -93,22 +92,26 @@ pub struct ClientInfo {
     pub name: String,
     /// List of server addresses to query for leader discovery (e.g., ["127.0.0.1:5001", "127.0.0.1:5002"])
     pub server_addresses: Vec<String>,
+    /// Directory containing images to randomly select from (default: "test_images")
+    #[serde(default = "default_image_dir")]
+    pub image_dir: String,
 }
 
-/// Request rate and load configuration.
+fn default_image_dir() -> String {
+    "test_images".to_string()
+}
+
+/// Request configuration for stress testing.
 ///
-/// Defines how frequently the client sends requests and the simulated
-/// load characteristics of each request.
+/// Defines how many requests to send and the delay between them.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RequestConfig {
-    /// Number of requests to send per second
-    pub rate_per_second: f64,
-    /// Total duration to send requests (in seconds)
-    pub duration_seconds: f64,
-    /// Simulated processing time per request (in milliseconds)
-    pub request_processing_ms: u64,
-    /// Simulated CPU load per request (arbitrary units)
-    pub load_per_request: f64,
+    /// Total number of requests to send
+    pub total_requests: u64,
+    /// Minimum delay between requests in milliseconds
+    pub min_delay_ms: u64,
+    /// Maximum delay between requests in milliseconds
+    pub max_delay_ms: u64,
 }
 
 impl ClientConfig {
@@ -152,6 +155,8 @@ pub struct ClientMiddleware {
     config: ClientConfig,
     /// Core client for image transmission (shared via Arc for potential future multi-threading)
     core: Arc<ClientCore>,
+    /// Optional metrics collector for stress testing
+    metrics: Option<Arc<Mutex<ClientMetrics>>>,
 }
 
 impl ClientMiddleware {
@@ -174,7 +179,21 @@ impl ClientMiddleware {
     /// let middleware = ClientMiddleware::new(config, core);
     /// ```
     pub fn new(config: ClientConfig, core: Arc<ClientCore>) -> Self {
-        Self { config, core }
+        Self {
+            config,
+            core,
+            metrics: None,
+        }
+    }
+
+    /// Sets the metrics collector for stress testing.
+    ///
+    /// # Arguments
+    ///
+    /// * `metrics` - Arc-wrapped mutex-protected metrics collector
+    pub fn with_metrics(mut self, metrics: Arc<Mutex<ClientMetrics>>) -> Self {
+        self.metrics = Some(metrics);
+        self
     }
 
     /// Runs the main client loop, sending requests at the configured rate.
@@ -196,28 +215,66 @@ impl ClientMiddleware {
     pub async fn run(&mut self) {
         info!("Client '{}' starting", self.config.client.name);
 
+        let total_requests = self.config.requests.total_requests;
+        let min_delay = self.config.requests.min_delay_ms;
+        let max_delay = self.config.requests.max_delay_ms;
+
+        // Load all image files from the directory
+        let image_files: Vec<String> = match fs::read_dir(&self.config.client.image_dir) {
+            Ok(entries) => entries
+                .filter_map(|e| e.ok())
+                .filter(|e| e.path().is_file())
+                .filter_map(|e| {
+                    let path = e.path();
+                    if let Some(ext) = path.extension() {
+                        let ext = ext.to_str().unwrap_or("");
+                        if ext == "jpg" || ext == "jpeg" || ext == "png" {
+                            path.file_name()
+                                .and_then(|n| n.to_str())
+                                .map(|s| s.to_string())
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                })
+                .collect(),
+            Err(e) => {
+                error!("Failed to read image directory '{}': {}", self.config.client.image_dir, e);
+                return;
+            }
+        };
+
+        if image_files.is_empty() {
+            error!("No images found in directory: {}", self.config.client.image_dir);
+            return;
+        }
+
         info!(
-            "Client '{}' sending requests for {} seconds...",
-            self.config.client.name, self.config.requests.duration_seconds
+            "Client '{}' sending {} requests (delay: {}-{}ms, {} images available)...",
+            self.config.client.name, total_requests, min_delay, max_delay, image_files.len()
         );
 
-        // Calculate delay between requests based on rate
-        let delay = Duration::from_millis((1000.0 / self.config.requests.rate_per_second) as u64);
-        let total_requests = (self.config.requests.rate_per_second
-            * self.config.requests.duration_seconds as f64) as u64;
-
-        // Send requests according to the configured rate
+        // Send all requests with random delays and random image selection
         for i in 1..=total_requests {
+            // Randomly select an image
+            let image_index = (rand::random::<f64>() * image_files.len() as f64) as usize;
+            let image_name = &image_files[image_index % image_files.len()];
+
             let success = self
                 .send_request(
                     i,
-                    "test_image.jpg".to_string(),
+                    image_name.clone(),
                     "username:alice,views:5".to_string(),
                 )
                 .await;
 
-            // Only sleep if task succeeded; if failed, immediately try next task
-            if success {
+            // Random delay between requests (only if task succeeded)
+            if success && i < total_requests {
+                let range = max_delay - min_delay;
+                let random_offset = (rand::random::<f64>() * range as f64) as u64;
+                let delay = Duration::from_millis(min_delay + random_offset);
                 tokio::time::sleep(delay).await;
             }
         }
@@ -561,6 +618,9 @@ impl ClientMiddleware {
     ) -> bool {
         const POLL_INTERVAL_SECS: u64 = 2;
 
+        // Start tracking latency
+        let start_time = Instant::now();
+
         // Step 1: Get initial task assignment (poll indefinitely if no leader available)
         info!(
             "📡 {} Getting task assignment for task #{}",
@@ -596,6 +656,28 @@ impl ClientMiddleware {
                 text_to_embed,
             )
             .await;
+
+        // Calculate total latency
+        let latency = start_time.elapsed();
+
+        // Record metrics if enabled
+        if let Some(metrics) = &self.metrics {
+            let success = result.is_ok();
+            let failure_reason = if let Err(ref e) = result {
+                Some(e.to_string())
+            } else {
+                None
+            };
+
+            let mut metrics = metrics.lock().unwrap();
+            metrics.record_request(
+                request_num,
+                latency,
+                success,
+                failure_reason,
+                Some(assigned_server_id),
+            );
+        }
 
         match result {
             Ok(()) => {
@@ -663,7 +745,7 @@ impl ClientMiddleware {
         text_to_embed: String,
     ) -> Result<()> {
         // Read the image file once and cache it (avoid repeated disk I/O)
-        let image_path = format!("user-data/uploads/{}", image_name);
+        let image_path = format!("{}/{}", self.config.client.image_dir, image_name);
         let image_data = std::fs::read(&image_path)?;
 
         loop {

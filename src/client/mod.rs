@@ -17,7 +17,9 @@
 
 pub mod client;
 pub mod middleware;
+pub mod metrics;
 
 // Re-export for convenience
 pub use middleware::ClientMiddleware;
 pub use client::ClientCore;
+pub use metrics::ClientMetrics;

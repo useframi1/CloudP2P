@@ -1,0 +1,30 @@
+# Local Stress Test Client Configuration
+#
+# This configuration is for local testing on a single machine.
+# For distributed testing, update server_addresses to remote IPs.
+#
+# The client ID will be appended to this name when using --client-id flag.
+# Example: name="Machine_1" + --client-id 5 = "Machine_1_Client_5"
+
+[client]
+# Machine/base name (client ID will be appended via --client-id argument)
+name = "Machine_1"
+
+# Server addresses to connect to
+server_addresses = [
+    "127.0.0.1:8001",
+    "127.0.0.1:8002",
+    "127.0.0.1:8003"
+]
+
+# Directory containing images to randomly select from
+image_dir = "test_images"
+
+[requests]
+# Total number of requests this client will send
+total_requests = 50
+
+# Random delay range between requests (milliseconds)
+# Each request will wait a random time between min and max before sending the next one
+min_delay_ms = 100
+max_delay_ms = 2000

@@ -21,8 +21,8 @@ use tokio::net::TcpStream;
 
 use super::messages::Message;
 
-/// Maximum allowed message size (50MB) to prevent memory exhaustion attacks.
-const MAX_MESSAGE_SIZE: usize = 50_000_000;
+/// Maximum allowed message size (100MB) to prevent memory exhaustion attacks.
+const MAX_MESSAGE_SIZE: usize = 100 * 1024 * 1024;
 
 /// TCP connection wrapper with message framing support.
 ///
@@ -81,7 +81,10 @@ impl Connection {
 
                 // Sanity check: reject messages larger than MAX_MESSAGE_SIZE
                 if length > MAX_MESSAGE_SIZE {
-                    error!("❌ Message too large: {} bytes (max: {} bytes)", length, MAX_MESSAGE_SIZE);
+                    error!(
+                        "❌ Message too large: {} bytes (max: {} bytes)",
+                        length, MAX_MESSAGE_SIZE
+                    );
                     return Ok(None);
                 }
 

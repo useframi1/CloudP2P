@@ -1,0 +1,22 @@
+{
+  "aggregated_stats": {
+    "failed_requests": 0,
+    "failure_rate": 0.0,
+    "failure_reasons": {},
+    "latency_avg_ms": 1667.38,
+    "latency_max_ms": 4128,
+    "latency_min_ms": 113,
+    "latency_p50_ms": 2115,
+    "latency_p95_ms": 2533,
+    "latency_p99_ms": 4128,
+    "server_distribution": {
+      "1": 13,
+      "2": 20,
+      "3": 17
+    },
+    "successful_requests": 50,
+    "total_requests": 50
+  },
+  "client_name": "Machine_1_Client_10",
+  "test_duration_secs": 142
+}
