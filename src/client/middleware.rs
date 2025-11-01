@@ -730,7 +730,7 @@ impl ClientMiddleware {
                             String::new()
                         }
                     );
-                    Some(encrypted_image_data);
+                    return Some(encrypted_image_data);
                 }
                 Err(e) => {
                     // Check if this is a task loss error (eligible for resubmission)

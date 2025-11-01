@@ -48,3 +48,35 @@
 [23:56:22] [INFO]    Server 2 (me, leader): 8.80
 [23:56:22] [INFO]    Server 1: 3.98
 [23:56:22] [INFO] 📌 Task #17221007618976804659 from Client1 assigned to Server 1 (load: 3.98)
+[00:00:43] [ERROR] ❌ Error sending to peer 1: Broken pipe (os error 32)
+[00:00:43] [WARN] ⚠️  Server 2 lost connection to peer 1
+[00:00:45] [INFO] 🤝 Server 2 connected to peer 1
+[00:00:48] [INFO] 🗳️  Server 2 received ELECTION from 1 (priority: 3.59)
+[00:00:48] [INFO] 💪 Server 2 has lower priority (3.22 < 3.59), responding with ALIVE
+[00:00:48] [INFO] 🗳️  Server 2 initiating election
+[00:00:48] [INFO] 📊 Server 2 priority: 3.22 (CPU: 0.6%, Tasks: 0, Memory: 85.4% available)
+[00:00:48] [INFO] 📤 Server 2 broadcasting ELECTION message
+[00:00:48] [INFO] ⏳ Server 2 waiting 2s for election responses...
+[00:00:50] [INFO] 🎉 Server 2 won election! (lowest priority score: 3.22)
+[00:00:50] [INFO] 📤 Server 2 broadcasting COORDINATOR message
+[00:00:50] [INFO] 📥 Server 2 (new leader) syncing history from peers...
+[00:00:50] [INFO] 📥 Server 2 (new leader) requesting history from all peers...
+[00:00:52] [INFO] 📭 Server 2 received no history sync responses (peers may be empty or unavailable)
+[00:00:52] [INFO] 🔍 Server 2 (new leader) checking for orphaned tasks...
+[00:01:46] [INFO] 📊 LOAD DISTRIBUTION:
+[00:01:46] [INFO]    Server 2 (me, leader): 4.94
+[00:01:46] [INFO]    Server 1: 3.48
+[00:01:46] [INFO] 📌 Task #4528312815554469129 from Client1 assigned to Server 1 (load: 3.48)
+[00:01:57] [INFO] 🔁 Task #4528312815554469129 from Client1 already assigned to Server 1 (idempotent retry)
+[00:02:08] [INFO] 📊 LOAD DISTRIBUTION:
+[00:02:08] [INFO]    Server 2 (me, leader): 5.17
+[00:02:08] [INFO]    Server 1: 3.71
+[00:02:08] [INFO] 📌 Task #4528312815554469129 from Client1 assigned to Server 1 (load: 3.71)
+[00:09:16] [INFO] 📊 LOAD DISTRIBUTION:
+[00:09:16] [INFO]    Server 2 (me, leader): 5.55
+[00:09:16] [INFO]    Server 1: 3.47
+[00:09:16] [INFO] 📌 Task #11816209177691299765 from Client1 assigned to Server 1 (load: 3.47)
+[00:09:46] [INFO] 📊 LOAD DISTRIBUTION:
+[00:09:46] [INFO]    Server 2 (me, leader): 5.08
+[00:09:46] [INFO]    Server 1: 3.71
+[00:09:46] [INFO] 📌 Task #5547960047600104848 from Client1 assigned to Server 1 (load: 3.71)
