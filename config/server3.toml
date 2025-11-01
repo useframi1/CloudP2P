@@ -1,6 +1,6 @@
 [server]
 id = 3
-address = "10.40.51.153:8001"
+address = "10.40.39.41:8002"
 cover_image = "test_images/cover_image.jpg"
 
 [peers]

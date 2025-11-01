@@ -25,8 +25,8 @@ fi
 
 MACHINE_ID=$1
 
-# Number of clients to run (default: 10)
-NUM_CLIENTS=${2:-10}
+# Number of clients to run (default: 100)
+NUM_CLIENTS=${2:-100}
 
 # Configuration (can be overridden via argument)
 STRESS_CONFIG="${3:-./config/client_stress.toml}"
