@@ -115,6 +115,7 @@ kill_server() {
     local host="$1"
     local config_path="$2"
     local server_id="$3"
+    local work_dir="$4"
 
     log_event "Attempting to kill Server $server_id on $host"
 
@@ -128,13 +129,22 @@ kill_server() {
     log_event "Found Server $server_id PID: $pid on $host"
 
     # Try multiple kill methods
-    # Method 1: Direct kill -9
+    # Method 1: Direct kill -9 (kill process and its parent)
     if ssh "$host" "kill -9 $pid" 2>/dev/null; then
+        # Also kill the parent process (nohup or wrapper)
+        ssh "$host" "ppid=\$(ps -o ppid= -p $pid 2>/dev/null | tr -d ' '); if [ -n \"\$ppid\" ] && [ \"\$ppid\" != \"1\" ]; then kill -9 \$ppid 2>/dev/null; fi" 2>/dev/null || true
+
+        # Kill any lingering nohup processes
+        ssh "$host" "pkill -9 -f 'nohup.*server.*server${server_id}'" 2>/dev/null || true
+
         sleep 1
         # Verify it's actually dead
         local new_pid=$(get_server_pid "$host" "$config_path")
         if [ -z "$new_pid" ] || [ "$new_pid" != "$pid" ]; then
             log_event "SUCCESS: Killed Server $server_id (PID $pid) on $host"
+            # Remove PID file to prevent tracking issues
+            ssh "$host" "cd $work_dir && rm -f logs/server_${server_id}.pid"
+            log_event "Removed PID file: ${work_dir}/logs/server_${server_id}.pid"
             return 0
         fi
     fi
@@ -146,6 +156,9 @@ kill_server() {
         local new_pid=$(get_server_pid "$host" "$config_path")
         if [ -z "$new_pid" ]; then
             log_event "SUCCESS: Killed Server $server_id on $host using pkill"
+            # Remove PID file to prevent tracking issues
+            ssh "$host" "cd $work_dir && rm -f logs/server_${server_id}.pid"
+            log_event "Removed PID file: ${work_dir}/logs/server_${server_id}.pid"
             return 0
         fi
     fi
@@ -156,6 +169,9 @@ kill_server() {
         local new_pid=$(get_server_pid "$host" "$config_path")
         if [ -z "$new_pid" ]; then
             log_event "SUCCESS: Killed Server $server_id on $host using pkill (all servers)"
+            # Remove PID file to prevent tracking issues
+            ssh "$host" "cd $work_dir && rm -f logs/server_${server_id}.pid"
+            log_event "Removed PID file: ${work_dir}/logs/server_${server_id}.pid"
             return 0
         fi
     fi
@@ -174,10 +190,10 @@ restart_server() {
 
     log_event "Attempting to restart Server $server_id on $host"
 
-    # Check if server is already running
+    # Check if server is already running (may have auto-restarted)
     local pid=$(get_server_pid "$host" "$config_path")
     if [ -n "$pid" ]; then
-        log_event "WARNING: Server $server_id already running on $host (PID $pid)"
+        log_event "SUCCESS: Server $server_id already running on $host (PID $pid) - auto-restarted"
         return 0
     fi
 
@@ -304,7 +320,7 @@ for ((cycle=1; cycle<=NUM_CYCLES; cycle++)); do
         log_event "Ring Algorithm: Processing Server $SERVER_ID"
 
         # Step 1: Kill server
-        if kill_server "$SERVER_HOST" "$SERVER_CONFIG" "$SERVER_ID"; then
+        if kill_server "$SERVER_HOST" "$SERVER_CONFIG" "$SERVER_ID" "$SERVER_WORK_DIR"; then
             log_event "Server $SERVER_ID is now DOWN"
         else
             log_event "WARNING: Server $SERVER_ID kill operation had issues"

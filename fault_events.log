@@ -101,3 +101,436 @@
 [2025-11-01 16:48:53] Total Faults:       6
 [2025-11-01 16:48:53] Total Time:         286s
 [2025-11-01 16:48:53] =========================================
+[2025-11-01 17:10:21] Checking SSH connectivity to all servers...
+[2025-11-01 17:10:22] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 17:10:23] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 17:10:23] All SSH connectivity checks passed
+[2025-11-01 17:10:23] Starting fault simulation with ring algorithm
+[2025-11-01 17:10:23] Ring order: Server 1 2
+[2025-11-01 17:10:23] ===== CYCLE 1/3 =====
+[2025-11-01 17:10:23] Ring Algorithm: Processing Server 1
+[2025-11-01 17:10:23] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:10:25] Found Server 1 PID: 80484 on g03-s2025@10.40.39.41
+[2025-11-01 17:10:28] SUCCESS: Killed Server 1 (PID 80484) on g03-s2025@10.40.39.41
+[2025-11-01 17:10:28] Server 1 is now DOWN
+[2025-11-01 17:10:28] Waiting 10s before restarting Server 1...
+[2025-11-01 17:10:38] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:10:40] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 80957)
+[2025-11-01 17:10:40] Server 1 is now UP
+[2025-11-01 17:10:40] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:11:10] Ring Algorithm: Processing Server 2
+[2025-11-01 17:11:10] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 17:11:12] Found Server 2 PID: 61315 on g03-s2025@10.40.38.47
+[2025-11-01 17:11:15] SUCCESS: Killed Server 2 (PID 61315) on g03-s2025@10.40.38.47
+[2025-11-01 17:11:15] Server 2 is now DOWN
+[2025-11-01 17:11:15] Waiting 10s before restarting Server 2...
+[2025-11-01 17:11:25] Attempting to restart Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 17:11:26] WARNING: Server 2 already running on g03-s2025@10.40.38.47 (PID 61815)
+[2025-11-01 17:11:26] Server 2 is now UP
+[2025-11-01 17:11:26] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:11:56] ===== CYCLE 1 COMPLETED =====
+[2025-11-01 17:11:56] ===== CYCLE 2/3 =====
+[2025-11-01 17:11:56] Ring Algorithm: Processing Server 1
+[2025-11-01 17:11:56] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:11:58] Found Server 1 PID: 81057 on g03-s2025@10.40.39.41
+[2025-11-01 17:12:04] ERROR: Failed to kill Server 1 on g03-s2025@10.40.39.41 (process may have restarted)
+[2025-11-01 17:12:04] WARNING: Server 1 kill operation had issues
+[2025-11-01 17:12:04] Waiting 10s before restarting Server 1...
+[2025-11-01 17:12:14] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:12:16] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 81353)
+[2025-11-01 17:12:16] Server 1 is now UP
+[2025-11-01 17:12:16] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:13:11] Checking SSH connectivity to all servers...
+[2025-11-01 17:13:12] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 17:13:13] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 17:13:13] All SSH connectivity checks passed
+[2025-11-01 17:13:13] Starting fault simulation with ring algorithm
+[2025-11-01 17:13:13] Ring order: Server 1 2
+[2025-11-01 17:13:13] ===== CYCLE 1/3 =====
+[2025-11-01 17:13:13] Ring Algorithm: Processing Server 1
+[2025-11-01 17:13:13] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:13:14] Found Server 1 PID: 81408 on g03-s2025@10.40.39.41
+[2025-11-01 17:13:17] SUCCESS: Killed Server 1 (PID 81408) on g03-s2025@10.40.39.41
+[2025-11-01 17:13:17] Server 1 is now DOWN
+[2025-11-01 17:13:17] Waiting 10s before restarting Server 1...
+[2025-11-01 17:13:27] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:13:30] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 81844)
+[2025-11-01 17:13:30] Server 1 is now UP
+[2025-11-01 17:13:30] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:14:00] Ring Algorithm: Processing Server 2
+[2025-11-01 17:14:00] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 17:14:01] Found Server 2 PID: 61838 on g03-s2025@10.40.38.47
+[2025-11-01 17:14:05] SUCCESS: Killed Server 2 (PID 61838) on g03-s2025@10.40.38.47
+[2025-11-01 17:14:05] Server 2 is now DOWN
+[2025-11-01 17:14:05] Waiting 10s before restarting Server 2...
+[2025-11-01 17:14:15] Attempting to restart Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 17:14:16] WARNING: Server 2 already running on g03-s2025@10.40.38.47 (PID 62295)
+[2025-11-01 17:14:16] Server 2 is now UP
+[2025-11-01 17:14:16] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:14:46] ===== CYCLE 1 COMPLETED =====
+[2025-11-01 17:14:46] ===== CYCLE 2/3 =====
+[2025-11-01 17:14:46] Ring Algorithm: Processing Server 1
+[2025-11-01 17:14:47] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:14:49] Found Server 1 PID: 81966 on g03-s2025@10.40.39.41
+[2025-11-01 17:14:51] ERROR: Failed to kill Server 1 on g03-s2025@10.40.39.41 (process may have restarted)
+[2025-11-01 17:14:51] WARNING: Server 1 kill operation had issues
+[2025-11-01 17:14:51] Waiting 10s before restarting Server 1...
+[2025-11-01 17:15:01] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:15:03] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 82190)
+[2025-11-01 17:15:03] Server 1 is now UP
+[2025-11-01 17:15:03] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:33:50] Checking SSH connectivity to all servers...
+[2025-11-01 17:33:50] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 17:33:51] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 17:33:51] All SSH connectivity checks passed
+[2025-11-01 17:33:51] Starting fault simulation with ring algorithm
+[2025-11-01 17:33:51] Ring order: Server 1 2
+[2025-11-01 17:33:51] ===== CYCLE 1/3 =====
+[2025-11-01 17:33:51] Ring Algorithm: Processing Server 1
+[2025-11-01 17:33:51] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:33:52] Found Server 1 PID: 83381 on g03-s2025@10.40.39.41
+[2025-11-01 17:33:54] SUCCESS: Killed Server 1 (PID 83381) on g03-s2025@10.40.39.41
+[2025-11-01 17:33:54] Server 1 is now DOWN
+[2025-11-01 17:33:54] Waiting 10s before restarting Server 1...
+[2025-11-01 17:34:04] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:34:05] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 83863)
+[2025-11-01 17:34:05] Server 1 is now UP
+[2025-11-01 17:34:05] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:34:35] Ring Algorithm: Processing Server 2
+[2025-11-01 17:34:35] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 17:34:36] Found Server 2 PID: 62872 on g03-s2025@10.40.38.47
+[2025-11-01 17:34:38] SUCCESS: Killed Server 2 (PID 62872) on g03-s2025@10.40.38.47
+[2025-11-01 17:34:38] Server 2 is now DOWN
+[2025-11-01 17:34:38] Waiting 10s before restarting Server 2...
+[2025-11-01 17:34:48] Attempting to restart Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 17:34:49] WARNING: Server 2 already running on g03-s2025@10.40.38.47 (PID 63387)
+[2025-11-01 17:34:49] Server 2 is now UP
+[2025-11-01 17:34:49] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:35:19] ===== CYCLE 1 COMPLETED =====
+[2025-11-01 17:35:19] ===== CYCLE 2/3 =====
+[2025-11-01 17:35:19] Ring Algorithm: Processing Server 1
+[2025-11-01 17:35:19] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:35:20] Found Server 1 PID: 83960 on g03-s2025@10.40.39.41
+[2025-11-01 17:35:21] ERROR: Failed to kill Server 1 on g03-s2025@10.40.39.41 (process may have restarted)
+[2025-11-01 17:35:21] WARNING: Server 1 kill operation had issues
+[2025-11-01 17:35:21] Waiting 10s before restarting Server 1...
+[2025-11-01 17:35:31] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:35:32] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 84172)
+[2025-11-01 17:35:32] Server 1 is now UP
+[2025-11-01 17:35:32] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:36:02] Ring Algorithm: Processing Server 2
+[2025-11-01 17:36:02] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 17:36:02] Found Server 2 PID: 63474 on g03-s2025@10.40.38.47
+[2025-11-01 17:36:03] ERROR: Failed to kill Server 2 on g03-s2025@10.40.38.47 (process may have restarted)
+[2025-11-01 17:36:04] WARNING: Server 2 kill operation had issues
+[2025-11-01 17:36:04] Waiting 10s before restarting Server 2...
+[2025-11-01 17:39:18] Checking SSH connectivity to all servers...
+[2025-11-01 17:39:19] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 17:39:20] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 17:39:20] All SSH connectivity checks passed
+[2025-11-01 17:39:20] Starting fault simulation with ring algorithm
+[2025-11-01 17:39:20] Ring order: Server 1 2
+[2025-11-01 17:39:20] ===== CYCLE 1/3 =====
+[2025-11-01 17:39:20] Ring Algorithm: Processing Server 1
+[2025-11-01 17:39:20] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:39:23] Found Server 1 PID: 84314 on g03-s2025@10.40.39.41
+[2025-11-01 17:39:27] SUCCESS: Killed Server 1 (PID 84314) on g03-s2025@10.40.39.41
+[2025-11-01 17:39:28] Server 1 is now DOWN
+[2025-11-01 17:39:28] Waiting 10s before restarting Server 1...
+[2025-11-01 17:39:38] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:39:40] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 84888)
+[2025-11-01 17:39:40] Server 1 is now UP
+[2025-11-01 17:39:40] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:40:10] Ring Algorithm: Processing Server 2
+[2025-11-01 17:40:10] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 17:40:11] Found Server 2 PID: 63721 on g03-s2025@10.40.38.47
+[2025-11-01 17:40:13] SUCCESS: Killed Server 2 (PID 63721) on g03-s2025@10.40.38.47
+[2025-11-01 17:40:14] Server 2 is now DOWN
+[2025-11-01 17:40:14] Waiting 10s before restarting Server 2...
+[2025-11-01 17:40:24] Attempting to restart Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 17:40:26] WARNING: Server 2 already running on g03-s2025@10.40.38.47 (PID 64228)
+[2025-11-01 17:40:26] Server 2 is now UP
+[2025-11-01 17:40:26] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:42:45] Checking SSH connectivity to all servers...
+[2025-11-01 17:42:45] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 17:42:46] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 17:42:46] All SSH connectivity checks passed
+[2025-11-01 17:42:46] Starting fault simulation with ring algorithm
+[2025-11-01 17:42:46] Ring order: Server 1 2
+[2025-11-01 17:42:46] ===== CYCLE 1/3 =====
+[2025-11-01 17:42:46] Ring Algorithm: Processing Server 1
+[2025-11-01 17:42:46] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:42:47] Found Server 1 PID: 85062 on g03-s2025@10.40.39.41
+[2025-11-01 17:42:51] SUCCESS: Killed Server 1 (PID 85062) on g03-s2025@10.40.39.41
+[2025-11-01 17:42:51] Server 1 is now DOWN
+[2025-11-01 17:42:51] Waiting 10s before restarting Server 1...
+[2025-11-01 17:43:01] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:43:02] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 85637)
+[2025-11-01 17:43:02] Server 1 is now UP
+[2025-11-01 17:43:02] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:48:06] Checking SSH connectivity to all servers...
+[2025-11-01 17:48:06] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 17:48:07] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 17:48:07] All SSH connectivity checks passed
+[2025-11-01 17:48:07] Starting fault simulation with ring algorithm
+[2025-11-01 17:48:07] Ring order: Server 1 2
+[2025-11-01 17:48:07] ===== CYCLE 1/3 =====
+[2025-11-01 17:48:07] Ring Algorithm: Processing Server 1
+[2025-11-01 17:48:07] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:48:08] Found Server 1 PID: 85887 on g03-s2025@10.40.39.41
+[2025-11-01 17:48:11] SUCCESS: Killed Server 1 (PID 85887) on g03-s2025@10.40.39.41
+[2025-11-01 17:48:11] Removed PID file: /home/g03-s2025/Documents/Distrubuted-Systems/cloud-p2p-image-sharing/logs/server_1.pid
+[2025-11-01 17:48:11] Server 1 is now DOWN
+[2025-11-01 17:48:11] Waiting 10s before restarting Server 1...
+[2025-11-01 17:48:21] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:48:22] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 86505)
+[2025-11-01 17:48:22] Server 1 is now UP
+[2025-11-01 17:48:22] Waiting 30s before moving to next server in ring...
+[2025-11-01 17:48:52] Ring Algorithm: Processing Server 2
+[2025-11-01 17:48:52] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 17:48:53] Found Server 2 PID: 64536 on g03-s2025@10.40.38.47
+[2025-11-01 17:48:56] SUCCESS: Killed Server 2 (PID 64536) on g03-s2025@10.40.38.47
+[2025-11-01 17:48:56] Removed PID file: /home/g03-s2025/Desktop/CloudP2P/logs/server_2.pid
+[2025-11-01 17:48:56] Server 2 is now DOWN
+[2025-11-01 17:48:56] Waiting 10s before restarting Server 2...
+[2025-11-01 17:55:36] Checking SSH connectivity to all servers...
+[2025-11-01 17:55:36] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 17:55:37] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 17:55:37] All SSH connectivity checks passed
+[2025-11-01 17:55:37] Starting fault simulation with ring algorithm
+[2025-11-01 17:55:37] Ring order: Server 1 2
+[2025-11-01 17:55:37] ===== CYCLE 1/3 =====
+[2025-11-01 17:55:37] Ring Algorithm: Processing Server 1
+[2025-11-01 17:55:37] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:55:37] Found Server 1 PID: 86621 on g03-s2025@10.40.39.41
+[2025-11-01 17:55:40] SUCCESS: Killed Server 1 (PID 86621) on g03-s2025@10.40.39.41
+[2025-11-01 17:55:41] Removed PID file: /home/g03-s2025/Documents/Distrubuted-Systems/cloud-p2p-image-sharing/logs/server_1.pid
+[2025-11-01 17:55:41] Server 1 is now DOWN
+[2025-11-01 17:55:41] Waiting 10s before restarting Server 1...
+[2025-11-01 17:55:51] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 17:55:52] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 87228)
+[2025-11-01 17:55:52] Server 1 is now UP
+[2025-11-01 17:55:52] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:00:32] Checking SSH connectivity to all servers...
+[2025-11-01 18:00:33] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 18:00:34] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 18:00:34] All SSH connectivity checks passed
+[2025-11-01 18:00:34] Starting fault simulation with ring algorithm
+[2025-11-01 18:00:34] Ring order: Server 1 2
+[2025-11-01 18:00:34] ===== CYCLE 1/3 =====
+[2025-11-01 18:00:34] Ring Algorithm: Processing Server 1
+[2025-11-01 18:00:34] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:00:34] Found Server 1 PID: 87876 on g03-s2025@10.40.39.41
+[2025-11-01 18:00:37] SUCCESS: Killed Server 1 (PID 87876) on g03-s2025@10.40.39.41
+[2025-11-01 18:00:38] Removed PID file: /home/g03-s2025/Documents/Distrubuted-Systems/cloud-p2p-image-sharing/logs/server_1.pid
+[2025-11-01 18:00:38] Server 1 is now DOWN
+[2025-11-01 18:00:38] Waiting 10s before restarting Server 1...
+[2025-11-01 18:00:48] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:00:49] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 88445)
+[2025-11-01 18:00:49] Server 1 is now UP
+[2025-11-01 18:00:49] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:01:19] Ring Algorithm: Processing Server 2
+[2025-11-01 18:01:19] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:01:20] Found Server 2 PID: 65800 on g03-s2025@10.40.38.47
+[2025-11-01 18:01:22] SUCCESS: Killed Server 2 (PID 65800) on g03-s2025@10.40.38.47
+[2025-11-01 18:01:23] Removed PID file: /home/g03-s2025/Desktop/CloudP2P/logs/server_2.pid
+[2025-11-01 18:01:23] Server 2 is now DOWN
+[2025-11-01 18:01:23] Waiting 10s before restarting Server 2...
+[2025-11-01 18:01:33] Attempting to restart Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:01:34] WARNING: Server 2 already running on g03-s2025@10.40.38.47 (PID 66416)
+[2025-11-01 18:01:34] Server 2 is now UP
+[2025-11-01 18:01:34] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:02:04] ===== CYCLE 1 COMPLETED =====
+[2025-11-01 18:02:04] ===== CYCLE 2/3 =====
+[2025-11-01 18:02:04] Ring Algorithm: Processing Server 1
+[2025-11-01 18:02:04] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:02:06] Found Server 1 PID: 88608 on g03-s2025@10.40.39.41
+[2025-11-01 18:02:08] ERROR: Failed to kill Server 1 on g03-s2025@10.40.39.41 (process may have restarted)
+[2025-11-01 18:02:08] WARNING: Server 1 kill operation had issues
+[2025-11-01 18:02:08] Waiting 10s before restarting Server 1...
+[2025-11-01 18:02:18] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:02:19] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 88818)
+[2025-11-01 18:02:19] Server 1 is now UP
+[2025-11-01 18:02:19] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:06:39] Checking SSH connectivity to all servers...
+[2025-11-01 18:06:40] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 18:06:41] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 18:06:41] All SSH connectivity checks passed
+[2025-11-01 18:06:41] Starting fault simulation with ring algorithm
+[2025-11-01 18:06:41] Ring order: Server 1 2
+[2025-11-01 18:06:41] ===== CYCLE 1/3 =====
+[2025-11-01 18:06:41] Ring Algorithm: Processing Server 1
+[2025-11-01 18:06:41] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:06:43] Found Server 1 PID: 89329 on g03-s2025@10.40.39.41
+[2025-11-01 18:06:48] SUCCESS: Killed Server 1 (PID 89329) on g03-s2025@10.40.39.41
+[2025-11-01 18:06:48] Removed PID file: /home/g03-s2025/Documents/Distrubuted-Systems/cloud-p2p-image-sharing/logs/server_1.pid
+[2025-11-01 18:06:48] Server 1 is now DOWN
+[2025-11-01 18:06:48] Waiting 10s before restarting Server 1...
+[2025-11-01 18:06:58] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:07:00] WARNING: Server 1 already running on g03-s2025@10.40.39.41 (PID 89922)
+[2025-11-01 18:07:00] Server 1 is now UP
+[2025-11-01 18:07:00] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:15:23] Checking SSH connectivity to all servers...
+[2025-11-01 18:15:23] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 18:15:24] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 18:15:24] All SSH connectivity checks passed
+[2025-11-01 18:15:24] Starting fault simulation with ring algorithm
+[2025-11-01 18:15:24] Ring order: Server 1 2
+[2025-11-01 18:15:24] ===== CYCLE 1/3 =====
+[2025-11-01 18:15:24] Ring Algorithm: Processing Server 1
+[2025-11-01 18:15:24] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:15:24] Found Server 1 PID: 90738 on g03-s2025@10.40.39.41
+[2025-11-01 18:15:27] SUCCESS: Killed Server 1 (PID 90738) on g03-s2025@10.40.39.41
+[2025-11-01 18:15:27] Removed PID file: /home/g03-s2025/Documents/Distrubuted-Systems/cloud-p2p-image-sharing/logs/server_1.pid
+[2025-11-01 18:15:27] Server 1 is now DOWN
+[2025-11-01 18:15:27] Waiting 10s before restarting Server 1...
+[2025-11-01 18:15:37] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:15:38] SUCCESS: Server 1 already running on g03-s2025@10.40.39.41 (PID 91367) - auto-restarted
+[2025-11-01 18:15:38] Server 1 is now UP
+[2025-11-01 18:15:38] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:16:08] Ring Algorithm: Processing Server 2
+[2025-11-01 18:16:08] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:16:10] Found Server 2 PID: 66944 on g03-s2025@10.40.38.47
+[2025-11-01 18:16:14] SUCCESS: Killed Server 2 (PID 66944) on g03-s2025@10.40.38.47
+[2025-11-01 18:16:14] Removed PID file: /home/g03-s2025/Desktop/CloudP2P/logs/server_2.pid
+[2025-11-01 18:16:14] Server 2 is now DOWN
+[2025-11-01 18:16:14] Waiting 10s before restarting Server 2...
+[2025-11-01 18:16:24] Attempting to restart Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:16:25] SUCCESS: Server 2 already running on g03-s2025@10.40.38.47 (PID 67533) - auto-restarted
+[2025-11-01 18:16:25] Server 2 is now UP
+[2025-11-01 18:16:25] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:16:55] ===== CYCLE 1 COMPLETED =====
+[2025-11-01 18:16:55] ===== CYCLE 2/3 =====
+[2025-11-01 18:16:55] Ring Algorithm: Processing Server 1
+[2025-11-01 18:16:55] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:16:55] Found Server 1 PID: 91490 on g03-s2025@10.40.39.41
+[2025-11-01 18:16:56] ERROR: Failed to kill Server 1 on g03-s2025@10.40.39.41 (process may have restarted)
+[2025-11-01 18:16:56] WARNING: Server 1 kill operation had issues
+[2025-11-01 18:16:56] Waiting 10s before restarting Server 1...
+[2025-11-01 18:17:06] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:17:07] SUCCESS: Server 1 already running on g03-s2025@10.40.39.41 (PID 91738) - auto-restarted
+[2025-11-01 18:17:07] Server 1 is now UP
+[2025-11-01 18:17:07] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:17:37] Ring Algorithm: Processing Server 2
+[2025-11-01 18:17:37] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:17:37] Found Server 2 PID: 67623 on g03-s2025@10.40.38.47
+[2025-11-01 18:17:38] ERROR: Failed to kill Server 2 on g03-s2025@10.40.38.47 (process may have restarted)
+[2025-11-01 18:17:38] WARNING: Server 2 kill operation had issues
+[2025-11-01 18:17:38] Waiting 10s before restarting Server 2...
+[2025-11-01 18:17:48] Attempting to restart Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:17:49] SUCCESS: Server 2 already running on g03-s2025@10.40.38.47 (PID 67850) - auto-restarted
+[2025-11-01 18:17:49] Server 2 is now UP
+[2025-11-01 18:17:49] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:18:19] ===== CYCLE 2 COMPLETED =====
+[2025-11-01 18:18:19] ===== CYCLE 3/3 =====
+[2025-11-01 18:18:19] Ring Algorithm: Processing Server 1
+[2025-11-01 18:18:19] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:18:20] Found Server 1 PID: 91862 on g03-s2025@10.40.39.41
+[2025-11-01 18:18:20] ERROR: Failed to kill Server 1 on g03-s2025@10.40.39.41 (process may have restarted)
+[2025-11-01 18:18:20] WARNING: Server 1 kill operation had issues
+[2025-11-01 18:18:20] Waiting 10s before restarting Server 1...
+[2025-11-01 18:18:30] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:18:31] SUCCESS: Server 1 already running on g03-s2025@10.40.39.41 (PID 92073) - auto-restarted
+[2025-11-01 18:18:31] Server 1 is now UP
+[2025-11-01 18:18:31] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:19:01] Ring Algorithm: Processing Server 2
+[2025-11-01 18:19:01] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:19:02] Found Server 2 PID: 67936 on g03-s2025@10.40.38.47
+[2025-11-01 18:19:03] ERROR: Failed to kill Server 2 on g03-s2025@10.40.38.47 (process may have restarted)
+[2025-11-01 18:19:03] WARNING: Server 2 kill operation had issues
+[2025-11-01 18:19:03] Waiting 10s before restarting Server 2...
+[2025-11-01 18:19:13] Attempting to restart Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:19:13] SUCCESS: Server 2 already running on g03-s2025@10.40.38.47 (PID 68144) - auto-restarted
+[2025-11-01 18:19:13] Server 2 is now UP
+[2025-11-01 18:19:13] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:19:43] ===== CYCLE 3 COMPLETED =====
+[2025-11-01 18:19:43] =========================================
+[2025-11-01 18:19:43] Fault Simulation Completed!
+[2025-11-01 18:19:43] =========================================
+[2025-11-01 18:19:43] Total Cycles:       3
+[2025-11-01 18:19:43] Servers Processed:  2
+[2025-11-01 18:19:43] Total Faults:       6
+[2025-11-01 18:19:43] Total Time:         259s
+[2025-11-01 18:19:43] =========================================
+[2025-11-01 18:29:46] Checking SSH connectivity to all servers...
+[2025-11-01 18:29:46] SSH connectivity OK for Server 1 (g03-s2025@10.40.39.41)
+[2025-11-01 18:29:47] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 18:29:47] All SSH connectivity checks passed
+[2025-11-01 18:29:47] Starting fault simulation with ring algorithm
+[2025-11-01 18:29:47] Ring order: Server 1 2
+[2025-11-01 18:29:47] ===== CYCLE 1/3 =====
+[2025-11-01 18:29:47] Ring Algorithm: Processing Server 1
+[2025-11-01 18:29:47] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:29:47] Found Server 1 PID: 92441 on g03-s2025@10.40.39.41
+[2025-11-01 18:29:50] SUCCESS: Killed Server 1 (PID 92441) on g03-s2025@10.40.39.41
+[2025-11-01 18:29:50] Removed PID file: /home/g03-s2025/Documents/Distrubuted-Systems/cloud-p2p-image-sharing/logs/server_1.pid
+[2025-11-01 18:29:50] Server 1 is now DOWN
+[2025-11-01 18:29:50] Waiting 10s before restarting Server 1...
+[2025-11-01 18:30:00] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:30:01] SUCCESS: Server 1 already running on g03-s2025@10.40.39.41 (PID 93031) - auto-restarted
+[2025-11-01 18:30:01] Server 1 is now UP
+[2025-11-01 18:30:01] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:30:31] Ring Algorithm: Processing Server 2
+[2025-11-01 18:30:31] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:30:31] Found Server 2 PID: 68307 on g03-s2025@10.40.38.47
+[2025-11-01 18:30:34] SUCCESS: Killed Server 2 (PID 68307) on g03-s2025@10.40.38.47
+[2025-11-01 18:30:34] Removed PID file: /home/g03-s2025/Desktop/CloudP2P/logs/server_2.pid
+[2025-11-01 18:30:34] Server 2 is now DOWN
+[2025-11-01 18:30:34] Waiting 10s before restarting Server 2...
+[2025-11-01 18:30:44] Attempting to restart Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:30:45] SUCCESS: Server 2 already running on g03-s2025@10.40.38.47 (PID 68875) - auto-restarted
+[2025-11-01 18:30:45] Server 2 is now UP
+[2025-11-01 18:30:45] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:31:15] ===== CYCLE 1 COMPLETED =====
+[2025-11-01 18:31:15] ===== CYCLE 2/3 =====
+[2025-11-01 18:31:15] Ring Algorithm: Processing Server 1
+[2025-11-01 18:31:15] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:31:15] Found Server 1 PID: 93544 on g03-s2025@10.40.39.41
+[2025-11-01 18:31:18] ERROR: Failed to kill Server 1 on g03-s2025@10.40.39.41 (process may have restarted)
+[2025-11-01 18:31:18] WARNING: Server 1 kill operation had issues
+[2025-11-01 18:31:18] Waiting 10s before restarting Server 1...
+[2025-11-01 18:31:28] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:31:28] SUCCESS: Server 1 already running on g03-s2025@10.40.39.41 (PID 93866) - auto-restarted
+[2025-11-01 18:31:29] Server 1 is now UP
+[2025-11-01 18:31:29] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:31:59] Ring Algorithm: Processing Server 2
+[2025-11-01 18:31:59] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:31:59] Found Server 2 PID: 68960 on g03-s2025@10.40.38.47
+[2025-11-01 18:32:00] ERROR: Failed to kill Server 2 on g03-s2025@10.40.38.47 (process may have restarted)
+[2025-11-01 18:32:00] WARNING: Server 2 kill operation had issues
+[2025-11-01 18:32:00] Waiting 10s before restarting Server 2...
+[2025-11-01 18:32:10] Attempting to restart Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:32:11] SUCCESS: Server 2 already running on g03-s2025@10.40.38.47 (PID 69168) - auto-restarted
+[2025-11-01 18:32:11] Server 2 is now UP
+[2025-11-01 18:32:11] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:32:41] ===== CYCLE 2 COMPLETED =====
+[2025-11-01 18:32:41] ===== CYCLE 3/3 =====
+[2025-11-01 18:32:41] Ring Algorithm: Processing Server 1
+[2025-11-01 18:32:41] Attempting to kill Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:32:41] Found Server 1 PID: 94414 on g03-s2025@10.40.39.41
+[2025-11-01 18:32:44] ERROR: Failed to kill Server 1 on g03-s2025@10.40.39.41 (process may have restarted)
+[2025-11-01 18:32:44] WARNING: Server 1 kill operation had issues
+[2025-11-01 18:32:44] Waiting 10s before restarting Server 1...
+[2025-11-01 18:32:54] Attempting to restart Server 1 on g03-s2025@10.40.39.41
+[2025-11-01 18:32:55] SUCCESS: Server 1 already running on g03-s2025@10.40.39.41 (PID 94757) - auto-restarted
+[2025-11-01 18:32:55] Server 1 is now UP
+[2025-11-01 18:32:55] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:33:25] Ring Algorithm: Processing Server 2
+[2025-11-01 18:33:25] Attempting to kill Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:33:25] Found Server 2 PID: 69273 on g03-s2025@10.40.38.47
+[2025-11-01 18:33:26] ERROR: Failed to kill Server 2 on g03-s2025@10.40.38.47 (process may have restarted)
+[2025-11-01 18:33:26] WARNING: Server 2 kill operation had issues
+[2025-11-01 18:33:26] Waiting 10s before restarting Server 2...
+[2025-11-01 18:33:36] Attempting to restart Server 2 on g03-s2025@10.40.38.47
+[2025-11-01 18:33:37] SUCCESS: Server 2 already running on g03-s2025@10.40.38.47 (PID 69484) - auto-restarted
+[2025-11-01 18:33:37] Server 2 is now UP
+[2025-11-01 18:33:37] Waiting 30s before moving to next server in ring...
+[2025-11-01 18:34:07] ===== CYCLE 3 COMPLETED =====
+[2025-11-01 18:34:07] =========================================
+[2025-11-01 18:34:07] Fault Simulation Completed!
+[2025-11-01 18:34:07] =========================================
+[2025-11-01 18:34:07] Total Cycles:       3
+[2025-11-01 18:34:07] Servers Processed:  2
+[2025-11-01 18:34:07] Total Faults:       6
+[2025-11-01 18:34:07] Total Time:         260s
+[2025-11-01 18:34:07] =========================================

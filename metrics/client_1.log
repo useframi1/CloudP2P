@@ -1,157 +1,120 @@
-[16:41:55S] [INFO] Client 'Machine_1_Client_1' starting
-[16:41:55S] [INFO] Client 'Machine_1_Client_1' sending 50 requests (delay: 100-2000ms, 1 images available)...
-[16:41:55S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #1
-[16:41:55S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #1 to 2 servers
-[16:42:00S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #1 → Server 2
-[16:42:00S] [INFO] ✅ Machine_1_Client_1 Task #1 assigned to Server 2 by leader 2
-[16:42:00S] [INFO] 📤 Machine_1_Client_1 Sending task #1 to server at 10.40.38.47:8001
-[16:42:50S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #1 (carrier image size: 15189737 bytes)
-[16:42:50S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #1 (size: 517862 bytes)
-[16:42:50S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #1
-[16:42:50S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #1
-[16:42:50S] [INFO] ✅ Machine_1_Client_1 Task #1 completed successfully
-[16:42:51S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #2
-[16:42:51S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #2 to 2 servers
-[16:42:56S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #2 → Server 2
-[16:42:56S] [INFO] ✅ Machine_1_Client_1 Task #2 assigned to Server 2 by leader 2
-[16:42:56S] [INFO] 📤 Machine_1_Client_1 Sending task #2 to server at 10.40.38.47:8001
-[16:44:34S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #2 (carrier image size: 15189737 bytes)
-[16:44:34S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #2 (size: 517862 bytes)
-[16:44:34S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #2
-[16:44:34S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #2
-[16:44:34S] [INFO] ✅ Machine_1_Client_1 Task #2 completed successfully
-[16:44:36S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #3
-[16:44:36S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #3 to 2 servers
-[16:44:41S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #3 → Server 1
-[16:44:41S] [INFO] ✅ Machine_1_Client_1 Task #3 assigned to Server 1 by leader 2
-[16:44:41S] [INFO] 📤 Machine_1_Client_1 Sending task #3 to server at 10.40.39.41:8001
-[16:45:44S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #3 (carrier image size: 15189737 bytes)
-[16:45:45S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #3 (size: 517862 bytes)
-[16:45:45S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #3
-[16:45:45S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #3
-[16:45:45S] [INFO] ✅ Machine_1_Client_1 Task #3 completed successfully
-[16:45:46S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #4
-[16:45:46S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #4 to 2 servers
-[16:45:51S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #4 → Server 2
-[16:45:51S] [INFO] ✅ Machine_1_Client_1 Task #4 assigned to Server 2 by leader 2
-[16:45:51S] [INFO] 📤 Machine_1_Client_1 Sending task #4 to server at 10.40.38.47:8001
-[16:47:20S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #4 (carrier image size: 15189737 bytes)
-[16:47:21S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #4 (size: 517862 bytes)
-[16:47:21S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #4
-[16:47:21S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #4
-[16:47:21S] [INFO] ✅ Machine_1_Client_1 Task #4 completed successfully
-[16:47:21S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #5
-[16:47:21S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #5 to 2 servers
-[16:47:26S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #5 → Server 1
-[16:47:26S] [INFO] ✅ Machine_1_Client_1 Task #5 assigned to Server 1 by leader 2
-[16:47:26S] [INFO] 📤 Machine_1_Client_1 Sending task #5 to server at 10.40.39.41:8001
-[16:47:33S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #5 (carrier image size: 15189737 bytes)
-[16:47:33S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #5 (size: 517862 bytes)
-[16:47:33S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #5
-[16:47:33S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #5
-[16:47:33S] [INFO] ✅ Machine_1_Client_1 Task #5 completed successfully
-[16:47:35S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #6
-[16:47:35S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #6 to 2 servers
-[16:47:40S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #6 → Server 2
-[16:47:40S] [INFO] ✅ Machine_1_Client_1 Task #6 assigned to Server 2 by leader 2
-[16:47:40S] [INFO] 📤 Machine_1_Client_1 Sending task #6 to server at 10.40.38.47:8001
-[16:48:32S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #6 (carrier image size: 15189737 bytes)
-[16:48:33S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #6 (size: 517862 bytes)
-[16:48:33S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #6
-[16:48:33S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #6
-[16:48:33S] [INFO] ✅ Machine_1_Client_1 Task #6 completed successfully
-[16:48:33S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #7
-[16:48:33S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #7 to 2 servers
-[16:48:38S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #7 → Server 2
-[16:48:38S] [INFO] ✅ Machine_1_Client_1 Task #7 assigned to Server 2 by leader 2
-[16:48:38S] [INFO] 📤 Machine_1_Client_1 Sending task #7 to server at 10.40.38.47:8001
-[16:49:30S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #7 (carrier image size: 15189737 bytes)
-[16:49:30S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #7 (size: 517862 bytes)
-[16:49:30S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #7
-[16:49:30S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #7
-[16:49:30S] [INFO] ✅ Machine_1_Client_1 Task #7 completed successfully
-[16:49:31S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #8
-[16:49:31S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #8 to 2 servers
-[16:49:36S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #8 → Server 2
-[16:49:36S] [INFO] ✅ Machine_1_Client_1 Task #8 assigned to Server 2 by leader 2
-[16:49:36S] [INFO] 📤 Machine_1_Client_1 Sending task #8 to server at 10.40.38.47:8001
-[16:50:40S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #8 (carrier image size: 15189737 bytes)
-[16:50:40S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #8 (size: 517862 bytes)
-[16:50:40S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #8
-[16:50:40S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #8
-[16:50:40S] [INFO] ✅ Machine_1_Client_1 Task #8 completed successfully
-[16:50:42S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #9
-[16:50:42S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #9 to 2 servers
-[16:50:47S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #9 → Server 2
-[16:50:47S] [INFO] ✅ Machine_1_Client_1 Task #9 assigned to Server 2 by leader 2
-[16:50:47S] [INFO] 📤 Machine_1_Client_1 Sending task #9 to server at 10.40.38.47:8001
-[16:51:36S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #9 (carrier image size: 15189737 bytes)
-[16:51:37S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #9 (size: 517862 bytes)
-[16:51:37S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #9
-[16:51:37S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #9
-[16:51:37S] [INFO] ✅ Machine_1_Client_1 Task #9 completed successfully
-[16:51:38S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #10
-[16:51:38S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #10 to 2 servers
-[16:51:43S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #10 → Server 2
-[16:51:43S] [INFO] ✅ Machine_1_Client_1 Task #10 assigned to Server 2 by leader 2
-[16:51:43S] [INFO] 📤 Machine_1_Client_1 Sending task #10 to server at 10.40.38.47:8001
-[16:52:11S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #10 (carrier image size: 15189737 bytes)
-[16:52:11S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #10 (size: 517862 bytes)
-[16:52:11S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #10
-[16:52:11S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #10
-[16:52:11S] [INFO] ✅ Machine_1_Client_1 Task #10 completed successfully
-[16:52:12S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #11
-[16:52:12S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #11 to 2 servers
-[16:52:17S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #11 → Server 1
-[16:52:17S] [INFO] ✅ Machine_1_Client_1 Task #11 assigned to Server 1 by leader 2
-[16:52:17S] [INFO] 📤 Machine_1_Client_1 Sending task #11 to server at 10.40.39.41:8001
-[16:52:24S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #11 (carrier image size: 15189737 bytes)
-[16:52:24S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #11 (size: 517862 bytes)
-[16:52:24S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #11
-[16:52:24S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #11
-[16:52:24S] [INFO] ✅ Machine_1_Client_1 Task #11 completed successfully
-[16:52:26S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #12
-[16:52:26S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #12 to 2 servers
-[16:52:31S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #12 → Server 1
-[16:52:31S] [INFO] ✅ Machine_1_Client_1 Task #12 assigned to Server 1 by leader 2
-[16:52:31S] [INFO] 📤 Machine_1_Client_1 Sending task #12 to server at 10.40.39.41:8001
-[16:52:43S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #12 (carrier image size: 15189737 bytes)
-[16:52:43S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #12 (size: 517862 bytes)
-[16:52:43S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #12
-[16:52:43S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #12
-[16:52:43S] [INFO] ✅ Machine_1_Client_1 Task #12 completed successfully
-[16:52:44S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #13
-[16:52:44S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #13 to 2 servers
-[16:52:49S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #13 → Server 2
-[16:52:49S] [INFO] ✅ Machine_1_Client_1 Task #13 assigned to Server 2 by leader 2
-[16:52:49S] [INFO] 📤 Machine_1_Client_1 Sending task #13 to server at 10.40.38.47:8001
-[16:54:28S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #13 (carrier image size: 15189737 bytes)
-[16:54:29S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #13 (size: 517862 bytes)
-[16:54:29S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #13
-[16:54:29S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #13
-[16:54:29S] [INFO] ✅ Machine_1_Client_1 Task #13 completed successfully
-[16:54:29S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #14
-[16:54:29S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #14 to 2 servers
-[16:54:34S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #14 → Server 2
-[16:54:34S] [INFO] ✅ Machine_1_Client_1 Task #14 assigned to Server 2 by leader 2
-[16:54:34S] [INFO] 📤 Machine_1_Client_1 Sending task #14 to server at 10.40.38.47:8001
-[16:55:24S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #14 (carrier image size: 15189737 bytes)
-[16:55:24S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #14 (size: 517862 bytes)
-[16:55:24S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #14
-[16:55:24S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #14
-[16:55:24S] [INFO] ✅ Machine_1_Client_1 Task #14 completed successfully
-[16:55:24S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #15
-[16:55:24S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #15 to 2 servers
-[16:55:29S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #15 → Server 2
-[16:55:29S] [INFO] ✅ Machine_1_Client_1 Task #15 assigned to Server 2 by leader 2
-[16:55:29S] [INFO] 📤 Machine_1_Client_1 Sending task #15 to server at 10.40.38.47:8001
-[16:56:19S] [INFO] 🔍 Machine_1_Client_1 Verifying encryption for task #15 (carrier image size: 15189737 bytes)
-[16:56:19S] [INFO] ✅ Machine_1_Client_1 Successfully extracted embedded image for task #15 (size: 517862 bytes)
-[16:56:19S] [INFO] ✅ Machine_1_Client_1 Encryption VERIFIED for task #15
-[16:56:19S] [INFO] 📨 Machine_1_Client_1 Sent ACK for task #15
-[16:56:19S] [INFO] ✅ Machine_1_Client_1 Task #15 completed successfully
-[16:56:20S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #16
-[16:56:20S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #16 to 2 servers
-[16:56:25S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #16 → Server 2
-[16:56:25S] [INFO] ✅ Machine_1_Client_1 Task #16 assigned to Server 2 by leader 2
-[16:56:25S] [INFO] 📤 Machine_1_Client_1 Sending task #16 to server at 10.40.38.47:8001
+[18:15:31S] [INFO] Client 'Machine_1_Client_1' starting
+[18:15:31S] [INFO] Client 'Machine_1_Client_1' sending 50 requests (delay: 100-2000ms, 1 images available)...
+[18:15:31S] [INFO] 📡 Machine_1_Client_1 Getting task assignment for task #1
+[18:15:31S] [INFO] 📡 Machine_1_Client_1 Broadcasting assignment request for task #1 to 3 servers
+[18:15:31S] [INFO] ✅ Machine_1_Client_1 Received assignment from leader (Server 2): Task #1 → Server 2
+[18:15:31S] [INFO] ✅ Machine_1_Client_1 Task #1 assigned to Server 2 by leader 2
+[18:15:31S] [INFO] 📤 Machine_1_Client_1 Sending task #1 to server at 10.40.38.47:8001
+[18:16:12S] [WARN] ⚠️  Machine_1_Client_1 Server failure detected for task #1 at 10.40.38.47:8001: early eof
+[18:16:12S] [INFO] ⏳ Machine_1_Client_1 Polling for task #1 assignment after 10.40.38.47:8001 failed (indefinitely, 2s interval)...
+[18:16:12S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 1 for task #1
+[18:16:12S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:12S] [WARN] Polling attempt 1 failed for task #1: No server responded with task status (task may not exist)
+[18:16:14S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 2 for task #1
+[18:16:14S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:14S] [WARN] Polling attempt 2 failed for task #1: No server responded with task status (task may not exist)
+[18:16:16S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 3 for task #1
+[18:16:16S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:16S] [WARN] Polling attempt 3 failed for task #1: No server responded with task status (task may not exist)
+[18:16:18S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 4 for task #1
+[18:16:18S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:18S] [WARN] Polling attempt 4 failed for task #1: No server responded with task status (task may not exist)
+[18:16:20S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 5 for task #1
+[18:16:20S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:20S] [WARN] Polling attempt 5 failed for task #1: No server responded with task status (task may not exist)
+[18:16:22S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 6 for task #1
+[18:16:22S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:22S] [WARN] Polling attempt 6 failed for task #1: No server responded with task status (task may not exist)
+[18:16:24S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 7 for task #1
+[18:16:24S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:24S] [WARN] Polling attempt 7 failed for task #1: No server responded with task status (task may not exist)
+[18:16:26S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 8 for task #1
+[18:16:26S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:26S] [WARN] Polling attempt 8 failed for task #1: No server responded with task status (task may not exist)
+[18:16:28S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 9 for task #1
+[18:16:28S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:28S] [WARN] Polling attempt 9 failed for task #1: No server responded with task status (task may not exist)
+[18:16:30S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 10 for task #1
+[18:16:30S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:30S] [WARN] Polling attempt 10 failed for task #1: No server responded with task status (task may not exist)
+[18:16:32S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 11 for task #1
+[18:16:32S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:32S] [WARN] Polling attempt 11 failed for task #1: No server responded with task status (task may not exist)
+[18:16:34S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 12 for task #1
+[18:16:34S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:35S] [WARN] Polling attempt 12 failed for task #1: No server responded with task status (task may not exist)
+[18:16:37S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 13 for task #1
+[18:16:37S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:37S] [WARN] Polling attempt 13 failed for task #1: No server responded with task status (task may not exist)
+[18:16:39S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 14 for task #1
+[18:16:39S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:39S] [WARN] Polling attempt 14 failed for task #1: No server responded with task status (task may not exist)
+[18:16:41S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 15 for task #1
+[18:16:41S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:41S] [WARN] Polling attempt 15 failed for task #1: No server responded with task status (task may not exist)
+[18:16:43S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 16 for task #1
+[18:16:43S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:43S] [WARN] Polling attempt 16 failed for task #1: No server responded with task status (task may not exist)
+[18:16:45S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 17 for task #1
+[18:16:45S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:45S] [WARN] Polling attempt 17 failed for task #1: No server responded with task status (task may not exist)
+[18:16:47S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 18 for task #1
+[18:16:47S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:47S] [WARN] Polling attempt 18 failed for task #1: No server responded with task status (task may not exist)
+[18:16:49S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 19 for task #1
+[18:16:49S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:49S] [WARN] Polling attempt 19 failed for task #1: No server responded with task status (task may not exist)
+[18:16:51S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 20 for task #1
+[18:16:51S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:51S] [WARN] Polling attempt 20 failed for task #1: No server responded with task status (task may not exist)
+[18:16:53S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 21 for task #1
+[18:16:53S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:53S] [WARN] Polling attempt 21 failed for task #1: No server responded with task status (task may not exist)
+[18:16:55S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 22 for task #1
+[18:16:55S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:55S] [WARN] Polling attempt 22 failed for task #1: No server responded with task status (task may not exist)
+[18:16:57S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 23 for task #1
+[18:16:57S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:57S] [WARN] Polling attempt 23 failed for task #1: No server responded with task status (task may not exist)
+[18:16:59S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 24 for task #1
+[18:16:59S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:16:59S] [WARN] Polling attempt 24 failed for task #1: No server responded with task status (task may not exist)
+[18:17:01S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 25 for task #1
+[18:17:01S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:01S] [WARN] Polling attempt 25 failed for task #1: No server responded with task status (task may not exist)
+[18:17:03S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 26 for task #1
+[18:17:03S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:03S] [WARN] Polling attempt 26 failed for task #1: No server responded with task status (task may not exist)
+[18:17:05S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 27 for task #1
+[18:17:05S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:05S] [WARN] Polling attempt 27 failed for task #1: No server responded with task status (task may not exist)
+[18:17:07S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 28 for task #1
+[18:17:07S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:07S] [WARN] Polling attempt 28 failed for task #1: No server responded with task status (task may not exist)
+[18:17:09S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 29 for task #1
+[18:17:09S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:09S] [WARN] Polling attempt 29 failed for task #1: No server responded with task status (task may not exist)
+[18:17:11S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 30 for task #1
+[18:17:11S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:11S] [WARN] Polling attempt 30 failed for task #1: No server responded with task status (task may not exist)
+[18:17:13S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 31 for task #1
+[18:17:13S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:13S] [WARN] Polling attempt 31 failed for task #1: No server responded with task status (task may not exist)
+[18:17:15S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 32 for task #1
+[18:17:15S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:16S] [WARN] Polling attempt 32 failed for task #1: No server responded with task status (task may not exist)
+[18:17:18S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 33 for task #1
+[18:17:18S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:18S] [WARN] Polling attempt 33 failed for task #1: No server responded with task status (task may not exist)
+[18:17:20S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 34 for task #1
+[18:17:20S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:20S] [WARN] Polling attempt 34 failed for task #1: No server responded with task status (task may not exist)
+[18:17:22S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 35 for task #1
+[18:17:22S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:22S] [WARN] Polling attempt 35 failed for task #1: No server responded with task status (task may not exist)
+[18:17:24S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 36 for task #1
+[18:17:24S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:24S] [WARN] Polling attempt 36 failed for task #1: No server responded with task status (task may not exist)
+[18:17:26S] [INFO] 🔄 Machine_1_Client_1 Polling attempt 37 for task #1
+[18:17:26S] [INFO] 🔍 Machine_1_Client_1 Broadcasting status query for task #1 to 3 servers
+[18:17:26S] [WARN] Polling attempt 37 failed for task #1: No server responded with task status (task may not exist)

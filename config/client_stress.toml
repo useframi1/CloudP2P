@@ -14,7 +14,7 @@ name = "Machine_1"
 server_addresses = [
     "10.40.39.41:8001",
     "10.40.38.47:8001",
-    # "10.40.51.153:8001"
+    "10.40.51.153:8001"
 ]
 
 # Directory containing images to randomly select from
