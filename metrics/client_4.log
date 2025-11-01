@@ -332,3 +332,23 @@
 [20:41:44S] [INFO] 🔄 Machine_2_Client_4 Polling attempt 105 for task #2
 [20:41:44S] [INFO] 🔍 Machine_2_Client_4 Broadcasting status query for task #2 to 3 servers
 [20:41:46S] [WARN] Polling attempt 105 failed for task #2: No server responded with task status (task may not exist)
+[20:41:48S] [INFO] 🔄 Machine_2_Client_4 Polling attempt 106 for task #2
+[20:41:48S] [INFO] 🔍 Machine_2_Client_4 Broadcasting status query for task #2 to 3 servers
+[20:41:50S] [WARN] Polling attempt 106 failed for task #2: No server responded with task status (task may not exist)
+[20:41:52S] [INFO] 🔄 Machine_2_Client_4 Polling attempt 107 for task #2
+[20:41:52S] [INFO] 🔍 Machine_2_Client_4 Broadcasting status query for task #2 to 3 servers
+[20:41:54S] [WARN] Polling attempt 107 failed for task #2: No server responded with task status (task may not exist)
+[20:41:56S] [INFO] 🔄 Machine_2_Client_4 Polling attempt 108 for task #2
+[20:41:56S] [INFO] 🔍 Machine_2_Client_4 Broadcasting status query for task #2 to 3 servers
+[20:41:58S] [WARN] Polling attempt 108 failed for task #2: No server responded with task status (task may not exist)
+[20:42:00S] [INFO] 🔄 Machine_2_Client_4 Polling attempt 109 for task #2
+[20:42:00S] [INFO] 🔍 Machine_2_Client_4 Broadcasting status query for task #2 to 3 servers
+[20:42:02S] [WARN] Polling attempt 109 failed for task #2: No server responded with task status (task may not exist)
+[20:42:04S] [INFO] 🔄 Machine_2_Client_4 Polling attempt 110 for task #2
+[20:42:04S] [INFO] 🔍 Machine_2_Client_4 Broadcasting status query for task #2 to 3 servers
+[20:42:06S] [WARN] Polling attempt 110 failed for task #2: No server responded with task status (task may not exist)
+[20:42:08S] [INFO] 🔄 Machine_2_Client_4 Polling attempt 111 for task #2
+[20:42:08S] [INFO] 🔍 Machine_2_Client_4 Broadcasting status query for task #2 to 3 servers
+[20:42:10S] [WARN] Polling attempt 111 failed for task #2: No server responded with task status (task may not exist)
+[20:42:12S] [INFO] 🔄 Machine_2_Client_4 Polling attempt 112 for task #2
+[20:42:12S] [INFO] 🔍 Machine_2_Client_4 Broadcasting status query for task #2 to 3 servers

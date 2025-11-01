@@ -359,3 +359,28 @@
 [20:41:39S] [INFO] ✅ Machine_2_Client_9 Received assignment from leader (Server 2): Task #31 → Server 2
 [20:41:39S] [INFO] ✅ Machine_2_Client_9 Task #31 assigned to Server 2 by leader 2
 [20:41:39S] [INFO] 📤 Machine_2_Client_9 Sending task #31 to server at 10.40.38.47:8001
+[20:41:47S] [INFO] 🔍 Machine_2_Client_9 Verifying encryption for task #31 (carrier image size: 15189737 bytes)
+[20:41:47S] [INFO] ✅ Machine_2_Client_9 Successfully extracted embedded image for task #31 (size: 517862 bytes)
+[20:41:47S] [INFO] ✅ Machine_2_Client_9 Encryption VERIFIED for task #31
+[20:41:47S] [INFO] 📨 Machine_2_Client_9 Sent ACK for task #31
+[20:41:47S] [INFO] ✅ Machine_2_Client_9 Task #31 completed successfully
+[20:41:48S] [INFO] 📡 Machine_2_Client_9 Getting task assignment for task #32
+[20:41:48S] [INFO] 📡 Machine_2_Client_9 Broadcasting assignment request for task #32 to 3 servers
+[20:41:53S] [INFO] ✅ Machine_2_Client_9 Received assignment from leader (Server 2): Task #32 → Server 1
+[20:41:53S] [INFO] ✅ Machine_2_Client_9 Task #32 assigned to Server 1 by leader 2
+[20:41:53S] [INFO] 📤 Machine_2_Client_9 Sending task #32 to server at 10.40.39.41:8001
+[20:41:59S] [INFO] 🔍 Machine_2_Client_9 Verifying encryption for task #32 (carrier image size: 15189737 bytes)
+[20:42:00S] [INFO] ✅ Machine_2_Client_9 Successfully extracted embedded image for task #32 (size: 517862 bytes)
+[20:42:00S] [INFO] ✅ Machine_2_Client_9 Encryption VERIFIED for task #32
+[20:42:00S] [INFO] 📨 Machine_2_Client_9 Sent ACK for task #32
+[20:42:00S] [INFO] ✅ Machine_2_Client_9 Task #32 completed successfully
+[20:42:01S] [INFO] 📡 Machine_2_Client_9 Getting task assignment for task #33
+[20:42:01S] [INFO] 📡 Machine_2_Client_9 Broadcasting assignment request for task #33 to 3 servers
+[20:42:06S] [INFO] ✅ Machine_2_Client_9 Received assignment from leader (Server 2): Task #33 → Server 1
+[20:42:06S] [INFO] ✅ Machine_2_Client_9 Task #33 assigned to Server 1 by leader 2
+[20:42:06S] [INFO] 📤 Machine_2_Client_9 Sending task #33 to server at 10.40.39.41:8001
+[20:42:13S] [INFO] 🔍 Machine_2_Client_9 Verifying encryption for task #33 (carrier image size: 15189737 bytes)
+[20:42:13S] [INFO] ✅ Machine_2_Client_9 Successfully extracted embedded image for task #33 (size: 517862 bytes)
+[20:42:13S] [INFO] ✅ Machine_2_Client_9 Encryption VERIFIED for task #33
+[20:42:13S] [INFO] 📨 Machine_2_Client_9 Sent ACK for task #33
+[20:42:13S] [INFO] ✅ Machine_2_Client_9 Task #33 completed successfully

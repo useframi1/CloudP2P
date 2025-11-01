@@ -332,3 +332,24 @@
 [20:41:43S] [INFO] 🔄 Machine_2_Client_3 Polling attempt 105 for task #2
 [20:41:43S] [INFO] 🔍 Machine_2_Client_3 Broadcasting status query for task #2 to 3 servers
 [20:41:45S] [WARN] Polling attempt 105 failed for task #2: No server responded with task status (task may not exist)
+[20:41:47S] [INFO] 🔄 Machine_2_Client_3 Polling attempt 106 for task #2
+[20:41:47S] [INFO] 🔍 Machine_2_Client_3 Broadcasting status query for task #2 to 3 servers
+[20:41:49S] [WARN] Polling attempt 106 failed for task #2: No server responded with task status (task may not exist)
+[20:41:51S] [INFO] 🔄 Machine_2_Client_3 Polling attempt 107 for task #2
+[20:41:51S] [INFO] 🔍 Machine_2_Client_3 Broadcasting status query for task #2 to 3 servers
+[20:41:53S] [WARN] Polling attempt 107 failed for task #2: No server responded with task status (task may not exist)
+[20:41:55S] [INFO] 🔄 Machine_2_Client_3 Polling attempt 108 for task #2
+[20:41:55S] [INFO] 🔍 Machine_2_Client_3 Broadcasting status query for task #2 to 3 servers
+[20:41:57S] [WARN] Polling attempt 108 failed for task #2: No server responded with task status (task may not exist)
+[20:41:59S] [INFO] 🔄 Machine_2_Client_3 Polling attempt 109 for task #2
+[20:41:59S] [INFO] 🔍 Machine_2_Client_3 Broadcasting status query for task #2 to 3 servers
+[20:42:01S] [WARN] Polling attempt 109 failed for task #2: No server responded with task status (task may not exist)
+[20:42:03S] [INFO] 🔄 Machine_2_Client_3 Polling attempt 110 for task #2
+[20:42:03S] [INFO] 🔍 Machine_2_Client_3 Broadcasting status query for task #2 to 3 servers
+[20:42:05S] [WARN] Polling attempt 110 failed for task #2: No server responded with task status (task may not exist)
+[20:42:07S] [INFO] 🔄 Machine_2_Client_3 Polling attempt 111 for task #2
+[20:42:07S] [INFO] 🔍 Machine_2_Client_3 Broadcasting status query for task #2 to 3 servers
+[20:42:09S] [WARN] Polling attempt 111 failed for task #2: No server responded with task status (task may not exist)
+[20:42:11S] [INFO] 🔄 Machine_2_Client_3 Polling attempt 112 for task #2
+[20:42:11S] [INFO] 🔍 Machine_2_Client_3 Broadcasting status query for task #2 to 3 servers
+[20:42:13S] [WARN] Polling attempt 112 failed for task #2: No server responded with task status (task may not exist)
