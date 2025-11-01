@@ -1,378 +1,50 @@
-[22:11:51] [INFO] 📂 Server 2 loading cover image from: test_images/cover_image.jpg
-[22:11:51] [INFO] ✅ Server 2 loaded cover image: 4096x3320 pixels (4980 KB capacity)
-[22:11:51] [INFO] 🚀 Server 2 starting on 10.40.38.47:8001
-[22:11:51] [INFO] 📡 Server 2 listening on 10.40.38.47:8001
-[22:11:52] [INFO] 🤝 Server 2 connected to peer 1
-[22:11:54] [INFO] ⏰ Initial election timer expired, starting election...
-[22:11:54] [INFO] 🗳️  Server 2 initiating election
-[22:11:54] [INFO] 📊 Server 2 priority: 5.91 (CPU: 5.5%, Tasks: 0, Memory: 84.3% available)
-[22:11:54] [INFO] 📤 Server 2 broadcasting ELECTION message
-[22:11:54] [INFO] ⏳ Server 2 waiting 2s for election responses...
-[22:11:54] [INFO] 👋 Server 2 received ALIVE from 1 (they have lower priority)
-[22:11:54] [INFO] 🗳️  Server 2 received ELECTION from 1 (priority: 5.58)
-[22:11:54] [INFO] 📊 Server 2 has higher priority (6.23 > 5.58), deferring
-[22:11:55] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:11:56] [INFO] 📊 Server 2 lost election (higher load than others)
-[22:11:56] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:11:57] [INFO] 👑 Server 2 acknowledges 1 as LEADER
-[22:12:11] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:14] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:16] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:16] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:18] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:19] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:19] [INFO] 📥 Server 2 received task #6 from client 'Machine_2_Client_1' (assigned by leader 1)
-[22:12:19] [INFO] 📊 Server 2 starting task #6 (Active tasks: 1, CPU: 5.4%)
-[22:12:19] [INFO] 📷 Server 2 processing encryption request #6 from client 'Machine_2_Client_1'
-[22:12:19] [INFO] 📷 Server 2 processing encryption request #6 from client 'Machine_2_Client_1' (secret image size: 517862 bytes)
-[22:12:20] [INFO] ✅ Server 2 completed encryption for request #6 (result size: 15189737 bytes)
-[22:12:20] [INFO] ✅ Server 2 completed encryption for request #6
-[22:12:20] [INFO] ✅ Server 2 completed task #6 (Remaining tasks: 0, CPU: 11.2%)
-[22:12:22] [INFO] 📥 Server 2 received task #7 from client 'Machine_1_Client_1' (assigned by leader 1)
-[22:12:22] [INFO] 📊 Server 2 starting task #7 (Active tasks: 1, CPU: 5.4%)
-[22:12:22] [INFO] 📷 Server 2 processing encryption request #7 from client 'Machine_1_Client_1'
-[22:12:22] [INFO] 📷 Server 2 processing encryption request #7 from client 'Machine_1_Client_1' (secret image size: 517862 bytes)
-[22:12:22] [INFO] ✅ Server 2 completed encryption for request #7 (result size: 15189737 bytes)
-[22:12:22] [INFO] ✅ Server 2 completed encryption for request #7
-[22:12:22] [INFO] ✅ Server 2 completed task #7 (Remaining tasks: 0, CPU: 12.6%)
-[22:12:22] [INFO] 📥 Server 2 received task #5 from client 'Machine_1_Client_7' (assigned by leader 1)
-[22:12:22] [INFO] 📊 Server 2 starting task #5 (Active tasks: 1, CPU: 5.8%)
-[22:12:22] [INFO] 📷 Server 2 processing encryption request #5 from client 'Machine_1_Client_7'
-[22:12:22] [INFO] 📷 Server 2 processing encryption request #5 from client 'Machine_1_Client_7' (secret image size: 517862 bytes)
-[22:12:23] [INFO] ✅ Server 2 completed encryption for request #5 (result size: 15189737 bytes)
-[22:12:23] [INFO] ✅ Server 2 completed encryption for request #5
-[22:12:23] [INFO] ✅ Server 2 completed task #5 (Remaining tasks: 0, CPU: 12.1%)
-[22:12:23] [INFO] 📥 Server 2 received task #5 from client 'Machine_2_Client_6' (assigned by leader 1)
-[22:12:23] [INFO] 📊 Server 2 starting task #5 (Active tasks: 1, CPU: 5.9%)
-[22:12:23] [INFO] 📷 Server 2 processing encryption request #5 from client 'Machine_2_Client_6'
-[22:12:23] [INFO] 📷 Server 2 processing encryption request #5 from client 'Machine_2_Client_6' (secret image size: 517862 bytes)
-[22:12:24] [INFO] ✅ Server 2 completed encryption for request #5 (result size: 15189737 bytes)
-[22:12:24] [INFO] ✅ Server 2 completed encryption for request #5
-[22:12:24] [INFO] ✅ Server 2 completed task #5 (Remaining tasks: 0, CPU: 11.8%)
-[22:12:26] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:28] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:28] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:32] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:33] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:44] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:48] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:52] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:12:54] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:04] [INFO] ✅ Server 2 received ACK from client 'Machine_1_Client_1' for task #7
-[22:13:04] [INFO] 🗑️  Server 2 removed task #7 from history after client ACK
-[22:13:06] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:13] [INFO] ✅ Server 2 received ACK from client 'Machine_2_Client_1' for task #6
-[22:13:13] [INFO] 🗑️  Server 2 removed task #6 from history after client ACK
-[22:13:15] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:15] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:15] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:17] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:19] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:20] [INFO] ✅ Server 2 received ACK from client 'Machine_2_Client_6' for task #5
-[22:13:20] [INFO] 🗑️  Server 2 removed task #5 from history after client ACK
-[22:13:22] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:31] [INFO] ✅ Server 2 received ACK from client 'Machine_1_Client_7' for task #5
-[22:13:31] [INFO] 🗑️  Server 2 removed task #5 from history after client ACK
-[22:13:32] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:34] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:41] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:45] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:49] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:51] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:52] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:54] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:13:59] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:00] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:07] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:11] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:14] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:15] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:19] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:20] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:22] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:23] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:27] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:31] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:36] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:36] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:41] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:41] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:14:42] [INFO] 📥 Server 2 received task #7 from client 'Machine_1_Client_7' (assigned by leader 1)
-[22:14:42] [INFO] 📊 Server 2 starting task #7 (Active tasks: 1, CPU: 6.5%)
-[22:14:42] [INFO] 📷 Server 2 processing encryption request #7 from client 'Machine_1_Client_7'
-[22:14:42] [INFO] 📷 Server 2 processing encryption request #7 from client 'Machine_1_Client_7' (secret image size: 517862 bytes)
-[22:14:42] [INFO] ✅ Server 2 completed encryption for request #7 (result size: 15189737 bytes)
-[22:14:42] [INFO] ✅ Server 2 completed encryption for request #7
-[22:14:42] [INFO] ✅ Server 2 completed task #7 (Remaining tasks: 0, CPU: 12.7%)
-[22:14:44] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:01] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:14] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:16] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:16] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:18] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:18] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:26] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:28] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:32] [INFO] ✅ Server 2 received ACK from client 'Machine_1_Client_7' for task #7
-[22:15:32] [INFO] 🗑️  Server 2 removed task #7 from history after client ACK
-[22:15:32] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:34] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:34] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:35] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:35] [INFO] 📥 Server 2 received task #10 from client 'Machine_2_Client_9' (assigned by leader 1)
-[22:15:35] [INFO] 📊 Server 2 starting task #10 (Active tasks: 1, CPU: 9.5%)
-[22:15:35] [INFO] 📷 Server 2 processing encryption request #10 from client 'Machine_2_Client_9'
-[22:15:35] [INFO] 📷 Server 2 processing encryption request #10 from client 'Machine_2_Client_9' (secret image size: 517862 bytes)
-[22:15:36] [INFO] ✅ Server 2 completed encryption for request #10 (result size: 15189737 bytes)
-[22:15:36] [INFO] ✅ Server 2 completed encryption for request #10
-[22:15:36] [INFO] ✅ Server 2 completed task #10 (Remaining tasks: 0, CPU: 13.6%)
-[22:15:36] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:40] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:41] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:42] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:44] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:50] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:53] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:15:56] [INFO] ✅ Server 2 received ACK from client 'Machine_2_Client_9' for task #10
-[22:15:56] [INFO] 🗑️  Server 2 removed task #10 from history after client ACK
-[22:15:59] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:16:00] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:16:04] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:16:09] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:16:13] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:16:29] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:16:47] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:16:48] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:16:53] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:16:56] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:16:57] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:16:57] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:16:57] [INFO] 📥 Server 2 received task #9 from client 'Machine_1_Client_7' (assigned by leader 1)
-[22:16:57] [INFO] 📊 Server 2 starting task #9 (Active tasks: 1, CPU: 6.1%)
-[22:16:57] [INFO] 📷 Server 2 processing encryption request #9 from client 'Machine_1_Client_7'
-[22:16:57] [INFO] 📷 Server 2 processing encryption request #9 from client 'Machine_1_Client_7' (secret image size: 517862 bytes)
-[22:16:57] [INFO] ✅ Server 2 completed encryption for request #9 (result size: 15189737 bytes)
-[22:16:57] [INFO] ✅ Server 2 completed encryption for request #9
-[22:16:57] [INFO] ✅ Server 2 completed task #9 (Remaining tasks: 0, CPU: 12.8%)
-[22:16:59] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:00] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:01] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:01] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:03] [INFO] 📥 Server 2 received task #11 from client 'Machine_1_Client_8' (assigned by leader 1)
-[22:17:03] [INFO] 📊 Server 2 starting task #11 (Active tasks: 1, CPU: 6.0%)
-[22:17:03] [INFO] 📷 Server 2 processing encryption request #11 from client 'Machine_1_Client_8'
-[22:17:03] [INFO] 📷 Server 2 processing encryption request #11 from client 'Machine_1_Client_8' (secret image size: 517862 bytes)
-[22:17:04] [INFO] ✅ Server 2 completed encryption for request #11 (result size: 15189737 bytes)
-[22:17:04] [INFO] ✅ Server 2 completed encryption for request #11
-[22:17:04] [INFO] ✅ Server 2 completed task #11 (Remaining tasks: 0, CPU: 12.9%)
-[22:17:04] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:09] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:11] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:11] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:13] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:13] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:14] [INFO] 📥 Server 2 received task #11 from client 'Machine_1_Client_2' (assigned by leader 1)
-[22:17:14] [INFO] 📊 Server 2 starting task #11 (Active tasks: 1, CPU: 6.1%)
-[22:17:14] [INFO] 📷 Server 2 processing encryption request #11 from client 'Machine_1_Client_2'
-[22:17:14] [INFO] 📷 Server 2 processing encryption request #11 from client 'Machine_1_Client_2' (secret image size: 517862 bytes)
-[22:17:14] [INFO] ✅ Server 2 completed encryption for request #11 (result size: 15189737 bytes)
-[22:17:14] [INFO] ✅ Server 2 completed encryption for request #11
-[22:17:14] [INFO] ✅ Server 2 completed task #11 (Remaining tasks: 0, CPU: 10.7%)
-[22:17:14] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:15] [INFO] 📥 Server 2 received task #9 from client 'Machine_2_Client_6' (assigned by leader 1)
-[22:17:15] [INFO] 📊 Server 2 starting task #9 (Active tasks: 1, CPU: 6.7%)
-[22:17:15] [INFO] 📷 Server 2 processing encryption request #9 from client 'Machine_2_Client_6'
-[22:17:15] [INFO] 📷 Server 2 processing encryption request #9 from client 'Machine_2_Client_6' (secret image size: 517862 bytes)
-[22:17:15] [INFO] ✅ Server 2 completed encryption for request #9 (result size: 15189737 bytes)
-[22:17:15] [INFO] ✅ Server 2 completed encryption for request #9
-[22:17:15] [INFO] ✅ Server 2 completed task #9 (Remaining tasks: 0, CPU: 12.5%)
-[22:17:16] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:22] [INFO] ✅ Server 2 received ACK from client 'Machine_1_Client_7' for task #9
-[22:17:22] [INFO] 🗑️  Server 2 removed task #9 from history after client ACK
-[22:17:24] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:27] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:32] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:36] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:42] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:51] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:17:58] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:03] [INFO] ✅ Server 2 received ACK from client 'Machine_1_Client_2' for task #11
-[22:18:03] [INFO] 🗑️  Server 2 removed task #11 from history after client ACK
-[22:18:04] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:06] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:08] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:15] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:22] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:28] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:30] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:32] [INFO] 📥 Server 2 received task #10 from client 'Machine_1_Client_3' (assigned by leader 1)
-[22:18:32] [INFO] 📊 Server 2 starting task #10 (Active tasks: 1, CPU: 6.1%)
-[22:18:32] [INFO] 📷 Server 2 processing encryption request #10 from client 'Machine_1_Client_3'
-[22:18:32] [INFO] 📷 Server 2 processing encryption request #10 from client 'Machine_1_Client_3' (secret image size: 517862 bytes)
-[22:18:32] [INFO] ✅ Server 2 completed encryption for request #10 (result size: 15189737 bytes)
-[22:18:32] [INFO] ✅ Server 2 completed encryption for request #10
-[22:18:32] [INFO] ✅ Server 2 completed task #10 (Remaining tasks: 0, CPU: 11.3%)
-[22:18:34] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:35] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:36] [INFO] ✅ Server 2 received ACK from client 'Machine_1_Client_8' for task #11
-[22:18:36] [INFO] 🗑️  Server 2 removed task #11 from history after client ACK
-[22:18:39] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:39] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:39] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:41] [INFO] ✅ Server 2 received ACK from client 'Machine_2_Client_6' for task #9
-[22:18:41] [INFO] 🗑️  Server 2 removed task #9 from history after client ACK
-[22:18:43] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:43] [INFO] 📥 Server 2 received task #11 from client 'Machine_2_Client_1' (assigned by leader 1)
-[22:18:43] [INFO] 📊 Server 2 starting task #11 (Active tasks: 1, CPU: 6.6%)
-[22:18:43] [INFO] 📷 Server 2 processing encryption request #11 from client 'Machine_2_Client_1'
-[22:18:43] [INFO] 📷 Server 2 processing encryption request #11 from client 'Machine_2_Client_1' (secret image size: 517862 bytes)
-[22:18:44] [INFO] ✅ Server 2 completed encryption for request #11 (result size: 15189737 bytes)
-[22:18:44] [INFO] ✅ Server 2 completed encryption for request #11
-[22:18:44] [INFO] ✅ Server 2 completed task #11 (Remaining tasks: 0, CPU: 14.6%)
-[22:18:44] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:44] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:46] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:48] [INFO] 📥 Server 2 received task #10 from client 'Machine_2_Client_6' (assigned by leader 1)
-[22:18:48] [INFO] 📊 Server 2 starting task #10 (Active tasks: 1, CPU: 6.7%)
-[22:18:48] [INFO] 📷 Server 2 processing encryption request #10 from client 'Machine_2_Client_6'
-[22:18:48] [INFO] 📷 Server 2 processing encryption request #10 from client 'Machine_2_Client_6' (secret image size: 517862 bytes)
-[22:18:48] [INFO] 📥 Server 2 received task #11 from client 'Machine_2_Client_7' (assigned by leader 1)
-[22:18:48] [INFO] 📊 Server 2 starting task #11 (Active tasks: 2, CPU: 6.7%)
-[22:18:48] [INFO] 📷 Server 2 processing encryption request #11 from client 'Machine_2_Client_7'
-[22:18:48] [INFO] 📷 Server 2 processing encryption request #11 from client 'Machine_2_Client_7' (secret image size: 517862 bytes)
-[22:18:48] [INFO] ✅ Server 2 completed encryption for request #10 (result size: 15189737 bytes)
-[22:18:48] [INFO] ✅ Server 2 completed encryption for request #10
-[22:18:48] [INFO] ✅ Server 2 completed task #10 (Remaining tasks: 1, CPU: 16.4%)
-[22:18:48] [INFO] ✅ Server 2 completed encryption for request #11 (result size: 15189737 bytes)
-[22:18:48] [INFO] ✅ Server 2 completed encryption for request #11
-[22:18:48] [INFO] ✅ Server 2 completed task #11 (Remaining tasks: 0, CPU: 16.4%)
-[22:18:51] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:54] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:55] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:18:59] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:04] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:08] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:14] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:34] [INFO] ✅ Server 2 received ACK from client 'Machine_1_Client_3' for task #10
-[22:19:34] [INFO] 🗑️  Server 2 removed task #10 from history after client ACK
-[22:19:35] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:40] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:40] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:42] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:43] [INFO] ✅ Server 2 received ACK from client 'Machine_2_Client_7' for task #11
-[22:19:43] [INFO] 🗑️  Server 2 removed task #11 from history after client ACK
-[22:19:43] [INFO] ✅ Server 2 received ACK from client 'Machine_2_Client_6' for task #10
-[22:19:43] [INFO] 🗑️  Server 2 removed task #10 from history after client ACK
-[22:19:45] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:45] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:45] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:47] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:48] [INFO] 📥 Server 2 received task #11 from client 'Machine_2_Client_6' (assigned by leader 1)
-[22:19:48] [INFO] 📊 Server 2 starting task #11 (Active tasks: 1, CPU: 6.5%)
-[22:19:48] [INFO] 📷 Server 2 processing encryption request #11 from client 'Machine_2_Client_6'
-[22:19:48] [INFO] 📷 Server 2 processing encryption request #11 from client 'Machine_2_Client_6' (secret image size: 517862 bytes)
-[22:19:49] [INFO] ✅ Server 2 completed encryption for request #11 (result size: 15189737 bytes)
-[22:19:49] [INFO] ✅ Server 2 completed encryption for request #11
-[22:19:49] [INFO] ✅ Server 2 completed task #11 (Remaining tasks: 0, CPU: 11.9%)
-[22:19:54] [INFO] ✅ Server 2 received ACK from client 'Machine_2_Client_1' for task #11
-[22:19:54] [INFO] 🗑️  Server 2 removed task #11 from history after client ACK
-[22:19:55] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:19:55] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:03] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:07] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:08] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:14] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:25] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:25] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:27] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:28] [INFO] 📥 Server 2 received task #12 from client 'Machine_2_Client_10' (assigned by leader 1)
-[22:20:28] [INFO] 📊 Server 2 starting task #12 (Active tasks: 1, CPU: 7.1%)
-[22:20:28] [INFO] 📷 Server 2 processing encryption request #12 from client 'Machine_2_Client_10'
-[22:20:28] [INFO] 📷 Server 2 processing encryption request #12 from client 'Machine_2_Client_10' (secret image size: 517862 bytes)
-[22:20:28] [INFO] ✅ Server 2 completed encryption for request #12 (result size: 15189737 bytes)
-[22:20:28] [INFO] ✅ Server 2 completed encryption for request #12
-[22:20:28] [INFO] ✅ Server 2 completed task #12 (Remaining tasks: 0, CPU: 13.3%)
-[22:20:31] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:32] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:34] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:35] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:36] [INFO] 📥 Server 2 received task #13 from client 'Machine_2_Client_7' (assigned by leader 1)
-[22:20:36] [INFO] 📊 Server 2 starting task #13 (Active tasks: 1, CPU: 6.0%)
-[22:20:36] [INFO] 📷 Server 2 processing encryption request #13 from client 'Machine_2_Client_7'
-[22:20:36] [INFO] 📷 Server 2 processing encryption request #13 from client 'Machine_2_Client_7' (secret image size: 517862 bytes)
-[22:20:36] [INFO] ✅ Server 2 completed encryption for request #13 (result size: 15189737 bytes)
-[22:20:36] [INFO] ✅ Server 2 completed encryption for request #13
-[22:20:36] [INFO] ✅ Server 2 completed task #13 (Remaining tasks: 0, CPU: 12.0%)
-[22:20:37] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:40] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:44] [INFO] 📥 Server 2 received task #12 from client 'Machine_1_Client_7' (assigned by leader 1)
-[22:20:44] [INFO] 📊 Server 2 starting task #12 (Active tasks: 1, CPU: 5.8%)
-[22:20:44] [INFO] 📷 Server 2 processing encryption request #12 from client 'Machine_1_Client_7'
-[22:20:44] [INFO] 📷 Server 2 processing encryption request #12 from client 'Machine_1_Client_7' (secret image size: 517862 bytes)
-[22:20:44] [INFO] ✅ Server 2 completed encryption for request #12 (result size: 15189737 bytes)
-[22:20:44] [INFO] ✅ Server 2 completed encryption for request #12
-[22:20:44] [INFO] ✅ Server 2 completed task #12 (Remaining tasks: 0, CPU: 11.9%)
-[22:20:49] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:50] [INFO] ✅ Server 2 received ACK from client 'Machine_2_Client_6' for task #11
-[22:20:50] [INFO] 🗑️  Server 2 removed task #11 from history after client ACK
-[22:20:52] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:20:59] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:00] [INFO] ✅ Server 2 received ACK from client 'Machine_2_Client_10' for task #12
-[22:21:00] [INFO] 🗑️  Server 2 removed task #12 from history after client ACK
-[22:21:02] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:03] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:04] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:06] [INFO] 📥 Server 2 received task #13 from client 'Machine_2_Client_10' (assigned by leader 1)
-[22:21:06] [INFO] 📊 Server 2 starting task #13 (Active tasks: 1, CPU: 6.5%)
-[22:21:06] [INFO] 📷 Server 2 processing encryption request #13 from client 'Machine_2_Client_10'
-[22:21:06] [INFO] 📷 Server 2 processing encryption request #13 from client 'Machine_2_Client_10' (secret image size: 517862 bytes)
-[22:21:06] [INFO] ✅ Server 2 completed encryption for request #13 (result size: 15189737 bytes)
-[22:21:06] [INFO] ✅ Server 2 completed encryption for request #13
-[22:21:06] [INFO] ✅ Server 2 completed task #13 (Remaining tasks: 0, CPU: 12.3%)
-[22:21:07] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:10] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:12] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:14] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:17] [INFO] 📥 Server 2 received task #16 from client 'Machine_1_Client_9' (assigned by leader 1)
-[22:21:17] [INFO] 📊 Server 2 starting task #16 (Active tasks: 1, CPU: 6.1%)
-[22:21:17] [INFO] 📷 Server 2 processing encryption request #16 from client 'Machine_1_Client_9'
-[22:21:17] [INFO] 📷 Server 2 processing encryption request #16 from client 'Machine_1_Client_9' (secret image size: 517862 bytes)
-[22:21:17] [INFO] ✅ Server 2 completed encryption for request #16 (result size: 15189737 bytes)
-[22:21:17] [INFO] ✅ Server 2 completed encryption for request #16
-[22:21:17] [INFO] ✅ Server 2 completed task #16 (Remaining tasks: 0, CPU: 12.4%)
-[22:21:21] [INFO] ✅ Server 2 received ACK from client 'Machine_1_Client_7' for task #12
-[22:21:21] [INFO] 🗑️  Server 2 removed task #12 from history after client ACK
-[22:21:23] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:27] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:30] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:31] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:32] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:36] [INFO] 📥 Server 2 received task #15 from client 'Machine_2_Client_9' (assigned by leader 1)
-[22:21:36] [INFO] 📊 Server 2 starting task #15 (Active tasks: 1, CPU: 6.0%)
-[22:21:36] [INFO] 📷 Server 2 processing encryption request #15 from client 'Machine_2_Client_9'
-[22:21:36] [INFO] 📷 Server 2 processing encryption request #15 from client 'Machine_2_Client_9' (secret image size: 517862 bytes)
-[22:21:36] [INFO] ✅ Server 2 completed encryption for request #15 (result size: 15189737 bytes)
-[22:21:36] [INFO] ✅ Server 2 completed encryption for request #15
-[22:21:36] [INFO] ✅ Server 2 completed task #15 (Remaining tasks: 0, CPU: 11.8%)
-[22:21:38] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:45] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:48] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:48] [INFO] 📥 Server 2 received task #14 from client 'Machine_2_Client_1' (assigned by leader 1)
-[22:21:48] [INFO] 📊 Server 2 starting task #14 (Active tasks: 1, CPU: 6.4%)
-[22:21:48] [INFO] 📷 Server 2 processing encryption request #14 from client 'Machine_2_Client_1'
-[22:21:48] [INFO] 📷 Server 2 processing encryption request #14 from client 'Machine_2_Client_1' (secret image size: 517862 bytes)
-[22:21:48] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:21:48] [INFO] ✅ Server 2 completed encryption for request #14 (result size: 15189737 bytes)
-[22:21:48] [INFO] ✅ Server 2 completed encryption for request #14
-[22:21:48] [INFO] ✅ Server 2 completed task #14 (Remaining tasks: 0, CPU: 11.8%)
-[22:21:56] [INFO] ✅ Server 2 received ACK from client 'Machine_2_Client_7' for task #13
-[22:21:56] [INFO] 🗑️  Server 2 removed task #13 from history after client ACK
-[22:21:58] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:22:06] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:22:10] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:22:10] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:22:15] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:22:18] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:22:19] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:22:25] [WARN] ⚠️  Non-leader received assignment request, ignoring
-[22:22:25] [WARN] ⚠️  Non-leader received assignment request, ignoring
+[23:54:42] [INFO] 📂 Server 2 loading cover image from: test_images/cover_image.jpg
+[23:54:42] [INFO] ✅ Server 2 loaded cover image: 4096x3320 pixels (4980 KB capacity)
+[23:54:42] [INFO] 🚀 Server 2 starting on 10.40.38.47:8001
+[23:54:42] [INFO] 📡 Server 2 listening on 10.40.38.47:8001
+[23:54:43] [INFO] 🤝 Server 2 connected to peer 1
+[23:54:45] [INFO] ⏰ Initial election timer expired, starting election...
+[23:54:45] [INFO] 🗳️  Server 2 initiating election
+[23:54:45] [INFO] 📊 Server 2 priority: 3.37 (CPU: 0.8%, Tasks: 0, Memory: 85.2% available)
+[23:54:45] [INFO] 📤 Server 2 broadcasting ELECTION message
+[23:54:45] [INFO] ⏳ Server 2 waiting 2s for election responses...
+[23:54:47] [INFO] 🎉 Server 2 won election! (lowest priority score: 3.37)
+[23:54:47] [INFO] 📤 Server 2 broadcasting COORDINATOR message
+[23:54:47] [INFO] 📥 Server 2 (new leader) syncing history from peers...
+[23:54:47] [INFO] 📥 Server 2 (new leader) requesting history from all peers...
+[23:54:49] [INFO] 📭 Server 2 received no history sync responses (peers may be empty or unavailable)
+[23:54:49] [INFO] 🔍 Server 2 (new leader) checking for orphaned tasks...
+[23:55:20] [INFO] 📊 LOAD DISTRIBUTION:
+[23:55:20] [INFO]    Server 2 (me, leader): 5.31
+[23:55:20] [INFO]    Server 1: 3.38
+[23:55:20] [INFO] 📌 Task #17221007618976804659 from Client1 assigned to Server 1 (load: 3.38)
+[23:55:31] [INFO] 🔁 Task #17221007618976804659 from Client1 already assigned to Server 1 (idempotent retry)
+[23:55:43] [INFO] 📊 LOAD DISTRIBUTION:
+[23:55:43] [INFO]    Server 2 (me, leader): 8.07
+[23:55:43] [INFO]    Server 1: 3.62
+[23:55:43] [INFO] 📌 Task #17221007618976804659 from Client1 assigned to Server 1 (load: 3.62)
+[23:55:54] [INFO] 📊 LOAD DISTRIBUTION:
+[23:55:54] [INFO]    Server 2 (me, leader): 6.50
+[23:55:54] [INFO]    Server 1: 3.67
+[23:55:54] [INFO] 📌 Task #17221007618976804659 from Client1 assigned to Server 1 (load: 3.67)
+[23:56:05] [INFO] 📊 LOAD DISTRIBUTION:
+[23:56:05] [INFO]    Server 2 (me, leader): 6.32
+[23:56:05] [INFO]    Server 1: 3.63
+[23:56:05] [INFO] 📌 Task #17221007618976804659 from Client1 assigned to Server 1 (load: 3.63)
+[23:56:16] [INFO] 📊 LOAD DISTRIBUTION:
+[23:56:16] [INFO]    Server 2 (me, leader): 5.08
+[23:56:16] [INFO]    Server 1: 6.07
+[23:56:16] [INFO] 📌 Task #17221007618976804659 from Client1 assigned to Server 2 (load: 5.08)
+[23:56:21] [INFO] 📥 Server 2 received task #17221007618976804659 from client 'Client1' (assigned by leader 2)
+[23:56:21] [INFO] 📊 Server 2 starting task #17221007618976804659 (Active tasks: 1, CPU: 2.8%)
+[23:56:21] [INFO] 📷 Server 2 processing encryption request #17221007618976804659 from client 'Client1'
+[23:56:21] [INFO] 📷 Server 2 processing encryption request #17221007618976804659 from client 'Client1' (secret image size: 517862 bytes)
+[23:56:21] [INFO] ✅ Server 2 completed encryption for request #17221007618976804659 (result size: 15189737 bytes)
+[23:56:21] [INFO] ✅ Server 2 completed encryption for request #17221007618976804659
+[23:56:21] [INFO] ✅ Server 2 completed task #17221007618976804659 (Remaining tasks: 0, CPU: 7.9%)
+[23:56:22] [INFO] ✅ Server 2 received ACK from client 'Client1' for task #17221007618976804659
+[23:56:22] [INFO] 🗑️  Server 2 removed task #17221007618976804659 from history after client ACK
+[23:56:22] [INFO] 📊 LOAD DISTRIBUTION:
+[23:56:22] [INFO]    Server 2 (me, leader): 8.80
+[23:56:22] [INFO]    Server 1: 3.98
+[23:56:22] [INFO] 📌 Task #17221007618976804659 from Client1 assigned to Server 1 (load: 3.98)

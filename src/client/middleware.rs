@@ -644,7 +644,11 @@ impl ClientMiddleware {
     /// - Get a fresh assignment from the current leader
     /// - Retry the entire task workflow
     /// - Maximum 3 complete resubmission attempts
-    async fn send_request(&mut self, request_num: u64, image_name: String) -> bool {
+    async fn send_request(
+        &mut self,
+        request_num: u64,
+        secret_image_data: Vec<u8>,
+    ) -> Option<Vec<u8>> {
         const POLL_INTERVAL_SECS: u64 = 2;
         const MAX_RESUBMISSION_ATTEMPTS: u32 = 3;
 
@@ -688,19 +692,19 @@ impl ClientMiddleware {
                 self.config.client.name, request_num, assigned_server_id, leader_id
             );
 
-        // Step 2: Execute task on assigned server (handles failover internally)
-        let result = self
-            .execute_task(
-                assigned_server_id,
-                assigned_address,
-                leader_id,
-                request_num,
-                secret_image_data,
-            )
-            .await;
+            // Step 2: Execute task on assigned server (handles failover internally)
+            let result = self
+                .execute_task(
+                    assigned_server_id,
+                    assigned_address,
+                    leader_id,
+                    request_num,
+                    secret_image_data.clone(),
+                )
+                .await;
 
             match result {
-                Ok(()) => {
+                Ok(encrypted_image_data) => {
                     // Calculate total latency
                     let latency = start_time.elapsed();
 
@@ -726,7 +730,7 @@ impl ClientMiddleware {
                             String::new()
                         }
                     );
-                    return true;
+                    Some(encrypted_image_data);
                 }
                 Err(e) => {
                     // Check if this is a task loss error (eligible for resubmission)
@@ -773,23 +777,9 @@ impl ClientMiddleware {
                             },
                             e
                         );
-                        return false;
+                        return None;
                     }
                 }
-        match result {
-            Ok(encrypted_image_data) => {
-                info!(
-                    "✅ {} Task #{} completed successfully ({} bytes)",
-                    self.config.client.name, request_num, encrypted_image_data.len()
-                );
-                Some(encrypted_image_data)
-            }
-            Err(e) => {
-                error!(
-                    "❌ {} Task #{} FAILED: {}",
-                    self.config.client.name, request_num, e
-                );
-                None
             }
         }
     }
@@ -839,7 +829,6 @@ impl ClientMiddleware {
         request_num: u64,
         secret_image_data: Vec<u8>,
     ) -> Result<Vec<u8>> {
-
         loop {
             // Attempt to send task to assigned server
             let result = self
@@ -892,36 +881,6 @@ impl ClientMiddleware {
                     }
                 }
             }
-        }
-    }
-
-    /// Submits a task for web requests by calling send_request.
-    ///
-    /// This method wraps `send_request` to provide a simpler interface for web requests.
-    ///
-    /// # Arguments
-    ///
-    /// * `request_id` - Unique identifier for this request
-    /// * `secret_image_data` - Binary data of the secret image to hide
-    ///
-    /// # Returns
-    ///
-    /// * `Ok(Vec<u8>)` - The encrypted carrier image with embedded secret
-    /// * `Err(anyhow::Error)` - If the task submission failed
-    pub async fn submit_task(
-        &mut self,
-        request_id: u64,
-        secret_image_data: Vec<u8>,
-    ) -> anyhow::Result<Vec<u8>> {
-        info!(
-            "🌐 Web request #{}: Submitting image ({} bytes)",
-            request_id,
-            secret_image_data.len()
-        );
-
-        match self.send_request(request_id, secret_image_data).await {
-            Some(encrypted_image_data) => Ok(encrypted_image_data),
-            None => Err(anyhow::anyhow!("Task submission failed")),
         }
     }
 
