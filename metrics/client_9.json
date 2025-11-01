@@ -3,12 +3,12 @@
     "failed_requests": 0,
     "failure_rate": 0.0,
     "failure_reasons": {},
-    "latency_avg_ms": 623.8,
-    "latency_max_ms": 10307,
-    "latency_min_ms": 371,
-    "latency_p50_ms": 383,
-    "latency_p95_ms": 408,
-    "latency_p99_ms": 10307,
+    "latency_avg_ms": 661.62,
+    "latency_max_ms": 12161,
+    "latency_min_ms": 372,
+    "latency_p50_ms": 384,
+    "latency_p95_ms": 423,
+    "latency_p99_ms": 12161,
     "server_distribution": {
       "1": 49,
       "2": 1
@@ -17,5 +17,5 @@
     "total_requests": 50
   },
   "client_name": "Machine_1_Client_9",
-  "test_duration_secs": 89
+  "test_duration_secs": 86
 }

@@ -772,7 +772,6 @@ impl ClientMiddleware {
                     return Ok(());
                 }
                 Err(e) => {
-                    info!("Error is {:?}", e);
                     // Check if it's a connection error (server failure)
                     // let error_str = e.to_string();
                     // let is_connection_error = error_str.contains("Connection")
