@@ -1,0 +1,45 @@
+[00:20:04S] [INFO] Client 'Machine_1_Client_6' starting
+[00:20:04S] [INFO] Client 'Machine_1_Client_6' sending 50 requests (delay: 100-2000ms, 1 images available)...
+[00:20:04S] [INFO] 📡 Machine_1_Client_6 Getting task assignment for task #1
+[00:20:04S] [INFO] 📡 Machine_1_Client_6 Broadcasting assignment request for task #1 to 3 servers
+[00:20:09S] [INFO] ✅ Machine_1_Client_6 Received assignment from leader (Server 2): Task #1 → Server 1
+[00:20:09S] [INFO] ✅ Machine_1_Client_6 Task #1 assigned to Server 1 by leader 2
+[00:20:09S] [INFO] 📤 Machine_1_Client_6 Sending task #1 to server at 10.40.39.41:8001
+[00:21:43S] [WARN] ⚠️  Machine_1_Client_6 Server failure detected for task #1 at 10.40.39.41:8001: early eof
+[00:21:43S] [INFO] ⏳ Machine_1_Client_6 Polling for task #1 assignment after 10.40.39.41:8001 failed (max 10 consecutive failures before resubmission)...
+[00:21:43S] [INFO] 🔄 Machine_1_Client_6 Polling attempt 1 for task #1
+[00:21:43S] [INFO] 🔍 Machine_1_Client_6 Broadcasting status query for task #1 to 3 servers
+[00:21:44S] [INFO] ✅ Machine_1_Client_6 Task #1 is assigned to Server 2
+[00:21:44S] [INFO] ✅ Machine_1_Client_6 Task #1 reassigned to different Server 2 at 10.40.38.47:8001
+[00:21:44S] [INFO] ✅ Machine_1_Client_6 Received assignment for task #1: Server 2 at 10.40.38.47:8001
+[00:21:44S] [INFO] 📤 Machine_1_Client_6 Sending task #1 to server at 10.40.38.47:8001
+[00:23:11S] [INFO] 🔍 Machine_1_Client_6 Verifying encryption for task #1 (carrier image size: 15189737 bytes)
+[00:23:11S] [INFO] ✅ Machine_1_Client_6 Successfully extracted embedded image for task #1 (size: 517862 bytes)
+[00:23:11S] [INFO] ✅ Machine_1_Client_6 Encryption VERIFIED for task #1
+[00:23:11S] [INFO] 📨 Machine_1_Client_6 Sent ACK for task #1
+[00:23:11S] [INFO] ✅ Machine_1_Client_6 Task #1 completed successfully
+[00:23:12S] [INFO] 📡 Machine_1_Client_6 Getting task assignment for task #2
+[00:23:12S] [INFO] 📡 Machine_1_Client_6 Broadcasting assignment request for task #2 to 3 servers
+[00:23:13S] [INFO] ✅ Machine_1_Client_6 Received assignment from leader (Server 2): Task #2 → Server 2
+[00:23:13S] [INFO] ✅ Machine_1_Client_6 Task #2 assigned to Server 2 by leader 2
+[00:23:13S] [INFO] 📤 Machine_1_Client_6 Sending task #2 to server at 10.40.38.47:8001
+[00:24:44S] [INFO] 🔍 Machine_1_Client_6 Verifying encryption for task #2 (carrier image size: 15189737 bytes)
+[00:24:44S] [INFO] ✅ Machine_1_Client_6 Successfully extracted embedded image for task #2 (size: 517862 bytes)
+[00:24:44S] [INFO] ✅ Machine_1_Client_6 Encryption VERIFIED for task #2
+[00:24:44S] [INFO] 📨 Machine_1_Client_6 Sent ACK for task #2
+[00:24:44S] [INFO] ✅ Machine_1_Client_6 Task #2 completed successfully
+[00:24:46S] [INFO] 📡 Machine_1_Client_6 Getting task assignment for task #3
+[00:24:46S] [INFO] 📡 Machine_1_Client_6 Broadcasting assignment request for task #3 to 3 servers
+[00:24:47S] [INFO] ✅ Machine_1_Client_6 Received assignment from leader (Server 2): Task #3 → Server 2
+[00:24:47S] [INFO] ✅ Machine_1_Client_6 Task #3 assigned to Server 2 by leader 2
+[00:24:47S] [INFO] 📤 Machine_1_Client_6 Sending task #3 to server at 10.40.38.47:8001
+[00:27:33S] [INFO] 🔍 Machine_1_Client_6 Verifying encryption for task #3 (carrier image size: 15189737 bytes)
+[00:27:34S] [INFO] ✅ Machine_1_Client_6 Successfully extracted embedded image for task #3 (size: 517862 bytes)
+[00:27:34S] [INFO] ✅ Machine_1_Client_6 Encryption VERIFIED for task #3
+[00:27:34S] [INFO] 📨 Machine_1_Client_6 Sent ACK for task #3
+[00:27:34S] [INFO] ✅ Machine_1_Client_6 Task #3 completed successfully
+[00:27:35S] [INFO] 📡 Machine_1_Client_6 Getting task assignment for task #4
+[00:27:35S] [INFO] 📡 Machine_1_Client_6 Broadcasting assignment request for task #4 to 3 servers
+[00:27:35S] [INFO] ✅ Machine_1_Client_6 Received assignment from leader (Server 2): Task #4 → Server 2
+[00:27:35S] [INFO] ✅ Machine_1_Client_6 Task #4 assigned to Server 2 by leader 2
+[00:27:35S] [INFO] 📤 Machine_1_Client_6 Sending task #4 to server at 10.40.38.47:8001
