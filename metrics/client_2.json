@@ -1,22 +1,23 @@
 {
   "aggregated_stats": {
-    "failed_requests": 0,
-    "failure_rate": 0.0,
-    "failure_reasons": {},
-    "latency_avg_ms": 1562.36,
-    "latency_max_ms": 10097,
-    "latency_min_ms": 81,
-    "latency_p50_ms": 974,
-    "latency_p95_ms": 4403,
-    "latency_p99_ms": 10097,
-    "server_distribution": {
-      "1": 23,
-      "2": 13,
-      "3": 14
+    "failed_requests": 1,
+    "failure_rate": 2.0,
+    "failure_reasons": {
+      "early eof": 1
     },
-    "successful_requests": 50,
+    "latency_avg_ms": 547.0204081632653,
+    "latency_max_ms": 8395,
+    "latency_min_ms": 372,
+    "latency_p50_ms": 382,
+    "latency_p95_ms": 407,
+    "latency_p99_ms": 8395,
+    "server_distribution": {
+      "1": 49,
+      "2": 1
+    },
+    "successful_requests": 49,
     "total_requests": 50
   },
   "client_name": "Machine_1_Client_2",
-  "test_duration_secs": 131
+  "test_duration_secs": 83
 }

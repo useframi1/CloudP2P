@@ -1,416 +1,406 @@
-[11:44:01S] [INFO] Client 'Machine_1_Client_10' starting
-[11:44:01S] [INFO] Client 'Machine_1_Client_10' sending 50 requests (delay: 100-2000ms, 2 images available)...
-[11:44:01S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #1
-[11:44:01S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #1 to 3 servers
-[11:44:01S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #1 → Server 2
-[11:44:01S] [INFO] ✅ Machine_1_Client_10 Task #1 assigned to Server 2 by leader 1
-[11:44:01S] [INFO] 📤 Machine_1_Client_10 Sending task #1 to server at 127.0.0.1:8002
-[11:44:05S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #1
-[11:44:05S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #1
-[11:44:05S] [INFO] ✅ Machine_1_Client_10 Task #1 completed successfully
-[11:44:07S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #2
-[11:44:07S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #2 to 3 servers
-[11:44:07S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #2 → Server 3
-[11:44:07S] [INFO] ✅ Machine_1_Client_10 Task #2 assigned to Server 3 by leader 1
-[11:44:07S] [INFO] 📤 Machine_1_Client_10 Sending task #2 to server at 127.0.0.1:8003
-[11:44:11S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #2
-[11:44:11S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #2
-[11:44:11S] [INFO] ✅ Machine_1_Client_10 Task #2 completed successfully
-[11:44:11S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #3
-[11:44:11S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #3 to 3 servers
-[11:44:11S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #3 → Server 1
-[11:44:11S] [INFO] ✅ Machine_1_Client_10 Task #3 assigned to Server 1 by leader 1
-[11:44:11S] [INFO] 📤 Machine_1_Client_10 Sending task #3 to server at 127.0.0.1:8001
-[11:44:15S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #3
-[11:44:15S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #3
-[11:44:15S] [INFO] ✅ Machine_1_Client_10 Task #3 completed successfully
-[11:44:16S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #4
-[11:44:16S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #4 to 3 servers
-[11:44:18S] [WARN] Assignment request failed for task #4: No server responded with a task assignment (no leader available) - waiting for leader...
-[11:44:20S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #4 to 3 servers
-[11:44:22S] [WARN] Assignment request failed for task #4: No server responded with a task assignment (no leader available) - waiting for leader...
-[11:44:24S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #4 to 3 servers
-[11:44:26S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 3): Task #4 → Server 1
-[11:44:26S] [INFO] ✅ Machine_1_Client_10 Task #4 assigned to Server 1 by leader 3
-[11:44:26S] [INFO] 📤 Machine_1_Client_10 Sending task #4 to server at 127.0.0.1:8001
-[11:44:26S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #4
-[11:44:26S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #4
-[11:44:26S] [INFO] ✅ Machine_1_Client_10 Task #4 completed successfully
-[11:44:28S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #5
-[11:44:28S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #5 to 3 servers
-[11:44:28S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #5 → Server 2
-[11:44:28S] [INFO] ✅ Machine_1_Client_10 Task #5 assigned to Server 2 by leader 1
-[11:44:28S] [INFO] 📤 Machine_1_Client_10 Sending task #5 to server at 127.0.0.1:8002
-[11:44:29S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #5
-[11:44:29S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #5
-[11:44:29S] [INFO] ✅ Machine_1_Client_10 Task #5 completed successfully
-[11:44:30S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #6
-[11:44:30S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #6 to 3 servers
-[11:44:30S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #6 → Server 1
-[11:44:30S] [INFO] ✅ Machine_1_Client_10 Task #6 assigned to Server 1 by leader 1
-[11:44:30S] [INFO] 📤 Machine_1_Client_10 Sending task #6 to server at 127.0.0.1:8001
-[11:44:30S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #6
-[11:44:30S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #6
-[11:44:30S] [INFO] ✅ Machine_1_Client_10 Task #6 completed successfully
-[11:44:31S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #7
-[11:44:31S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #7 to 3 servers
-[11:44:31S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #7 → Server 3
-[11:44:31S] [INFO] ✅ Machine_1_Client_10 Task #7 assigned to Server 3 by leader 1
-[11:44:31S] [INFO] 📤 Machine_1_Client_10 Sending task #7 to server at 127.0.0.1:8003
-[11:44:32S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #7
-[11:44:32S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #7
-[11:44:32S] [INFO] ✅ Machine_1_Client_10 Task #7 completed successfully
-[11:44:33S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #8
-[11:44:33S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #8 to 3 servers
-[11:44:33S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #8 → Server 2
-[11:44:33S] [INFO] ✅ Machine_1_Client_10 Task #8 assigned to Server 2 by leader 1
-[11:44:33S] [INFO] 📤 Machine_1_Client_10 Sending task #8 to server at 127.0.0.1:8002
-[11:44:34S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #8
-[11:44:34S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #8
-[11:44:34S] [INFO] ✅ Machine_1_Client_10 Task #8 completed successfully
-[11:44:35S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #9
-[11:44:35S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #9 to 3 servers
-[11:44:35S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #9 → Server 3
-[11:44:35S] [INFO] ✅ Machine_1_Client_10 Task #9 assigned to Server 3 by leader 1
-[11:44:35S] [INFO] 📤 Machine_1_Client_10 Sending task #9 to server at 127.0.0.1:8003
-[11:44:36S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #9
-[11:44:36S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #9
-[11:44:36S] [INFO] ✅ Machine_1_Client_10 Task #9 completed successfully
-[11:44:36S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #10
-[11:44:36S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #10 to 3 servers
-[11:44:36S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #10 → Server 1
-[11:44:36S] [INFO] ✅ Machine_1_Client_10 Task #10 assigned to Server 1 by leader 1
-[11:44:36S] [INFO] 📤 Machine_1_Client_10 Sending task #10 to server at 127.0.0.1:8001
-[11:44:37S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #10
-[11:44:37S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #10
-[11:44:37S] [INFO] ✅ Machine_1_Client_10 Task #10 completed successfully
-[11:44:39S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #11
-[11:44:39S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #11 to 3 servers
-[11:44:39S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #11 → Server 3
-[11:44:39S] [INFO] ✅ Machine_1_Client_10 Task #11 assigned to Server 3 by leader 1
-[11:44:39S] [INFO] 📤 Machine_1_Client_10 Sending task #11 to server at 127.0.0.1:8003
-[11:44:39S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #11
-[11:44:39S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #11
-[11:44:39S] [INFO] ✅ Machine_1_Client_10 Task #11 completed successfully
-[11:44:40S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #12
-[11:44:40S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #12 to 3 servers
-[11:44:40S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #12 → Server 1
-[11:44:40S] [INFO] ✅ Machine_1_Client_10 Task #12 assigned to Server 1 by leader 1
-[11:44:40S] [INFO] 📤 Machine_1_Client_10 Sending task #12 to server at 127.0.0.1:8001
-[11:44:40S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #12
-[11:44:40S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #12
-[11:44:40S] [INFO] ✅ Machine_1_Client_10 Task #12 completed successfully
-[11:44:41S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #13
-[11:44:41S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #13 to 3 servers
-[11:44:41S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #13 → Server 3
-[11:44:41S] [INFO] ✅ Machine_1_Client_10 Task #13 assigned to Server 3 by leader 1
-[11:44:41S] [INFO] 📤 Machine_1_Client_10 Sending task #13 to server at 127.0.0.1:8003
-[11:44:42S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #13
-[11:44:42S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #13
-[11:44:42S] [INFO] ✅ Machine_1_Client_10 Task #13 completed successfully
-[11:44:44S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #14
-[11:44:44S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #14 to 3 servers
-[11:44:44S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #14 → Server 1
-[11:44:44S] [INFO] ✅ Machine_1_Client_10 Task #14 assigned to Server 1 by leader 1
-[11:44:44S] [INFO] 📤 Machine_1_Client_10 Sending task #14 to server at 127.0.0.1:8001
-[11:44:44S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #14
-[11:44:44S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #14
-[11:44:44S] [INFO] ✅ Machine_1_Client_10 Task #14 completed successfully
-[11:44:46S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #15
-[11:44:46S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #15 to 3 servers
-[11:44:46S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #15 → Server 1
-[11:44:46S] [INFO] ✅ Machine_1_Client_10 Task #15 assigned to Server 1 by leader 1
-[11:44:46S] [INFO] 📤 Machine_1_Client_10 Sending task #15 to server at 127.0.0.1:8001
-[11:44:46S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #15
-[11:44:46S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #15
-[11:44:46S] [INFO] ✅ Machine_1_Client_10 Task #15 completed successfully
-[11:44:47S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #16
-[11:44:47S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #16 to 3 servers
-[11:44:47S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #16 → Server 1
-[11:44:47S] [INFO] ✅ Machine_1_Client_10 Task #16 assigned to Server 1 by leader 1
-[11:44:47S] [INFO] 📤 Machine_1_Client_10 Sending task #16 to server at 127.0.0.1:8001
-[11:44:47S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #16
-[11:44:47S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #16
-[11:44:47S] [INFO] ✅ Machine_1_Client_10 Task #16 completed successfully
-[11:44:48S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #17
-[11:44:48S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #17 to 3 servers
-[11:44:48S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #17 → Server 1
-[11:44:48S] [INFO] ✅ Machine_1_Client_10 Task #17 assigned to Server 1 by leader 1
-[11:44:48S] [INFO] 📤 Machine_1_Client_10 Sending task #17 to server at 127.0.0.1:8001
-[11:44:49S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #17
-[11:44:49S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #17
-[11:44:49S] [INFO] ✅ Machine_1_Client_10 Task #17 completed successfully
-[11:44:49S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #18
-[11:44:49S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #18 to 3 servers
-[11:44:49S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #18 → Server 1
-[11:44:49S] [INFO] ✅ Machine_1_Client_10 Task #18 assigned to Server 1 by leader 1
-[11:44:49S] [INFO] 📤 Machine_1_Client_10 Sending task #18 to server at 127.0.0.1:8001
-[11:44:49S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #18
-[11:44:49S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #18
-[11:44:49S] [INFO] ✅ Machine_1_Client_10 Task #18 completed successfully
-[11:44:50S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #19
-[11:44:50S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #19 to 3 servers
-[11:44:50S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #19 → Server 1
-[11:44:50S] [INFO] ✅ Machine_1_Client_10 Task #19 assigned to Server 1 by leader 1
-[11:44:50S] [INFO] 📤 Machine_1_Client_10 Sending task #19 to server at 127.0.0.1:8001
-[11:44:50S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #19
-[11:44:50S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #19
-[11:44:50S] [INFO] ✅ Machine_1_Client_10 Task #19 completed successfully
-[11:44:50S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #20
-[11:44:50S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #20 to 3 servers
-[11:44:50S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #20 → Server 1
-[11:44:50S] [INFO] ✅ Machine_1_Client_10 Task #20 assigned to Server 1 by leader 1
-[11:44:50S] [INFO] 📤 Machine_1_Client_10 Sending task #20 to server at 127.0.0.1:8001
-[11:44:51S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #20
-[11:44:51S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #20
-[11:44:51S] [INFO] ✅ Machine_1_Client_10 Task #20 completed successfully
-[11:44:52S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #21
-[11:44:52S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #21 to 3 servers
-[11:44:52S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #21 → Server 2
-[11:44:52S] [INFO] ✅ Machine_1_Client_10 Task #21 assigned to Server 2 by leader 1
-[11:44:52S] [INFO] 📤 Machine_1_Client_10 Sending task #21 to server at 127.0.0.1:8002
-[11:44:52S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #21
-[11:44:52S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #21
-[11:44:52S] [INFO] ✅ Machine_1_Client_10 Task #21 completed successfully
-[11:44:52S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #22
-[11:44:52S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #22 to 3 servers
-[11:44:52S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #22 → Server 2
-[11:44:52S] [INFO] ✅ Machine_1_Client_10 Task #22 assigned to Server 2 by leader 1
-[11:44:52S] [INFO] 📤 Machine_1_Client_10 Sending task #22 to server at 127.0.0.1:8002
-[11:44:52S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #22
-[11:44:52S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #22
-[11:44:52S] [INFO] ✅ Machine_1_Client_10 Task #22 completed successfully
-[11:44:53S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #23
-[11:44:53S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #23 to 3 servers
-[11:44:53S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #23 → Server 2
-[11:44:53S] [INFO] ✅ Machine_1_Client_10 Task #23 assigned to Server 2 by leader 1
-[11:44:53S] [INFO] 📤 Machine_1_Client_10 Sending task #23 to server at 127.0.0.1:8002
-[11:44:53S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #23
-[11:44:53S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #23
-[11:44:53S] [INFO] ✅ Machine_1_Client_10 Task #23 completed successfully
-[11:44:55S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #24
-[11:44:55S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #24 to 3 servers
-[11:44:55S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #24 → Server 1
-[11:44:55S] [INFO] ✅ Machine_1_Client_10 Task #24 assigned to Server 1 by leader 1
-[11:44:55S] [INFO] 📤 Machine_1_Client_10 Sending task #24 to server at 127.0.0.1:8001
-[11:44:55S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #24
-[11:44:55S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #24
-[11:44:55S] [INFO] ✅ Machine_1_Client_10 Task #24 completed successfully
-[11:44:56S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #25
-[11:44:56S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #25 to 3 servers
-[11:44:58S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 2): Task #25 → Server 2
-[11:44:58S] [INFO] ✅ Machine_1_Client_10 Task #25 assigned to Server 2 by leader 2
-[11:44:58S] [INFO] 📤 Machine_1_Client_10 Sending task #25 to server at 127.0.0.1:8002
-[11:44:58S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #25
-[11:44:58S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #25
-[11:44:58S] [INFO] ✅ Machine_1_Client_10 Task #25 completed successfully
-[11:44:59S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #26
-[11:44:59S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #26 to 3 servers
-[11:45:01S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 2): Task #26 → Server 2
-[11:45:01S] [INFO] ✅ Machine_1_Client_10 Task #26 assigned to Server 2 by leader 2
-[11:45:01S] [INFO] 📤 Machine_1_Client_10 Sending task #26 to server at 127.0.0.1:8002
-[11:45:01S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #26
-[11:45:01S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #26
-[11:45:01S] [INFO] ✅ Machine_1_Client_10 Task #26 completed successfully
-[11:45:02S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #27
-[11:45:02S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #27 to 3 servers
-[11:45:04S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 2): Task #27 → Server 2
-[11:45:04S] [INFO] ✅ Machine_1_Client_10 Task #27 assigned to Server 2 by leader 2
-[11:45:04S] [INFO] 📤 Machine_1_Client_10 Sending task #27 to server at 127.0.0.1:8002
-[11:45:04S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #27
-[11:45:04S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #27
-[11:45:04S] [INFO] ✅ Machine_1_Client_10 Task #27 completed successfully
-[11:45:05S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #28
-[11:45:05S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #28 to 3 servers
-[11:45:07S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 2): Task #28 → Server 1
-[11:45:07S] [INFO] ✅ Machine_1_Client_10 Task #28 assigned to Server 1 by leader 2
-[11:45:07S] [INFO] 📤 Machine_1_Client_10 Sending task #28 to server at 127.0.0.1:8001
-[11:45:07S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #28
-[11:45:07S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #28
-[11:45:07S] [INFO] ✅ Machine_1_Client_10 Task #28 completed successfully
-[11:45:08S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #29
-[11:45:08S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #29 to 3 servers
-[11:45:10S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 2): Task #29 → Server 2
-[11:45:10S] [INFO] ✅ Machine_1_Client_10 Task #29 assigned to Server 2 by leader 2
-[11:45:10S] [INFO] 📤 Machine_1_Client_10 Sending task #29 to server at 127.0.0.1:8002
-[11:45:10S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #29
-[11:45:10S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #29
-[11:45:10S] [INFO] ✅ Machine_1_Client_10 Task #29 completed successfully
-[11:45:11S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #30
-[11:45:11S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #30 to 3 servers
-[11:45:13S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 2): Task #30 → Server 1
-[11:45:13S] [INFO] ✅ Machine_1_Client_10 Task #30 assigned to Server 1 by leader 2
-[11:45:13S] [INFO] 📤 Machine_1_Client_10 Sending task #30 to server at 127.0.0.1:8001
-[11:45:13S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #30
-[11:45:13S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #30
-[11:45:13S] [INFO] ✅ Machine_1_Client_10 Task #30 completed successfully
-[11:45:14S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #31
-[11:45:14S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #31 to 3 servers
-[11:45:16S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 2): Task #31 → Server 3
-[11:45:16S] [INFO] ✅ Machine_1_Client_10 Task #31 assigned to Server 3 by leader 2
-[11:45:16S] [INFO] 📤 Machine_1_Client_10 Sending task #31 to server at 127.0.0.1:8003
-[11:45:16S] [WARN] ⚠️  Machine_1_Client_10 Server failure detected for task #31 at 127.0.0.1:8003: Connection refused (os error 111)
-[11:45:16S] [INFO] ⏳ Machine_1_Client_10 Polling for task #31 assignment after 127.0.0.1:8003 failed (indefinitely, 2s interval)...
-[11:45:16S] [INFO] 🔄 Machine_1_Client_10 Polling attempt 1 for task #31
-[11:45:16S] [INFO] 🔍 Machine_1_Client_10 Broadcasting status query for task #31 to 3 servers
-[11:45:16S] [INFO] ✅ Machine_1_Client_10 Task #31 is assigned to Server 1
-[11:45:16S] [INFO] ✅ Machine_1_Client_10 Task #31 reassigned to different Server 1 at 127.0.0.1:8001
-[11:45:16S] [INFO] ✅ Machine_1_Client_10 Received assignment for task #31: Server 1 at 127.0.0.1:8001
-[11:45:16S] [INFO] 📤 Machine_1_Client_10 Sending task #31 to server at 127.0.0.1:8001
-[11:45:16S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #31
-[11:45:16S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #31
-[11:45:16S] [INFO] ✅ Machine_1_Client_10 Task #31 completed successfully
-[11:45:18S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #32
-[11:45:18S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #32 to 3 servers
-[11:45:20S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 2): Task #32 → Server 2
-[11:45:20S] [INFO] ✅ Machine_1_Client_10 Task #32 assigned to Server 2 by leader 2
-[11:45:20S] [INFO] 📤 Machine_1_Client_10 Sending task #32 to server at 127.0.0.1:8002
-[11:45:20S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #32
-[11:45:20S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #32
-[11:45:20S] [INFO] ✅ Machine_1_Client_10 Task #32 completed successfully
-[11:45:22S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #33
-[11:45:22S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #33 to 3 servers
-[11:45:24S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 2): Task #33 → Server 1
-[11:45:24S] [INFO] ✅ Machine_1_Client_10 Task #33 assigned to Server 1 by leader 2
-[11:45:24S] [INFO] 📤 Machine_1_Client_10 Sending task #33 to server at 127.0.0.1:8001
-[11:45:24S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #33
-[11:45:24S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #33
-[11:45:24S] [INFO] ✅ Machine_1_Client_10 Task #33 completed successfully
-[11:45:25S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #34
-[11:45:25S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #34 to 3 servers
-[11:45:27S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 3): Task #34 → Server 1
-[11:45:27S] [INFO] ✅ Machine_1_Client_10 Task #34 assigned to Server 1 by leader 3
-[11:45:27S] [INFO] 📤 Machine_1_Client_10 Sending task #34 to server at 127.0.0.1:8001
-[11:45:27S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #34
-[11:45:27S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #34
-[11:45:27S] [INFO] ✅ Machine_1_Client_10 Task #34 completed successfully
-[11:45:28S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #35
-[11:45:28S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #35 to 3 servers
-[11:45:30S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 3): Task #35 → Server 3
-[11:45:30S] [INFO] ✅ Machine_1_Client_10 Task #35 assigned to Server 3 by leader 3
-[11:45:30S] [INFO] 📤 Machine_1_Client_10 Sending task #35 to server at 127.0.0.1:8003
-[11:45:30S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #35
-[11:45:30S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #35
-[11:45:30S] [INFO] ✅ Machine_1_Client_10 Task #35 completed successfully
-[11:45:31S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #36
-[11:45:31S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #36 to 3 servers
-[11:45:33S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 3): Task #36 → Server 1
-[11:45:33S] [INFO] ✅ Machine_1_Client_10 Task #36 assigned to Server 1 by leader 3
-[11:45:33S] [INFO] 📤 Machine_1_Client_10 Sending task #36 to server at 127.0.0.1:8001
-[11:45:33S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #36
-[11:45:33S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #36
-[11:45:33S] [INFO] ✅ Machine_1_Client_10 Task #36 completed successfully
-[11:45:34S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #37
-[11:45:34S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #37 to 3 servers
-[11:45:36S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 3): Task #37 → Server 1
-[11:45:36S] [INFO] ✅ Machine_1_Client_10 Task #37 assigned to Server 1 by leader 3
-[11:45:36S] [INFO] 📤 Machine_1_Client_10 Sending task #37 to server at 127.0.0.1:8001
-[11:45:36S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #37
-[11:45:36S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #37
-[11:45:36S] [INFO] ✅ Machine_1_Client_10 Task #37 completed successfully
-[11:45:38S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #38
-[11:45:38S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #38 to 3 servers
-[11:45:40S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 3): Task #38 → Server 2
-[11:45:40S] [INFO] ✅ Machine_1_Client_10 Task #38 assigned to Server 2 by leader 3
-[11:45:40S] [INFO] 📤 Machine_1_Client_10 Sending task #38 to server at 127.0.0.1:8002
-[11:45:40S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #38
-[11:45:40S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #38
-[11:45:40S] [INFO] ✅ Machine_1_Client_10 Task #38 completed successfully
-[11:45:40S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #39
-[11:45:40S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #39 to 3 servers
-[11:45:42S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 3): Task #39 → Server 3
-[11:45:42S] [INFO] ✅ Machine_1_Client_10 Task #39 assigned to Server 3 by leader 3
-[11:45:42S] [INFO] 📤 Machine_1_Client_10 Sending task #39 to server at 127.0.0.1:8003
-[11:45:42S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #39
-[11:45:42S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #39
-[11:45:42S] [INFO] ✅ Machine_1_Client_10 Task #39 completed successfully
-[11:45:44S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #40
-[11:45:44S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #40 to 3 servers
-[11:45:46S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 3): Task #40 → Server 3
-[11:45:46S] [INFO] ✅ Machine_1_Client_10 Task #40 assigned to Server 3 by leader 3
-[11:45:46S] [INFO] 📤 Machine_1_Client_10 Sending task #40 to server at 127.0.0.1:8003
-[11:45:46S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #40
-[11:45:46S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #40
-[11:45:46S] [INFO] ✅ Machine_1_Client_10 Task #40 completed successfully
-[11:45:47S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #41
-[11:45:47S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #41 to 3 servers
-[11:45:49S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 3): Task #41 → Server 3
-[11:45:49S] [INFO] ✅ Machine_1_Client_10 Task #41 assigned to Server 3 by leader 3
-[11:45:49S] [INFO] 📤 Machine_1_Client_10 Sending task #41 to server at 127.0.0.1:8003
-[11:45:49S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #41
-[11:45:49S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #41
-[11:45:49S] [INFO] ✅ Machine_1_Client_10 Task #41 completed successfully
-[11:45:51S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #42
-[11:45:51S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #42 to 3 servers
-[11:45:53S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 3): Task #42 → Server 3
-[11:45:53S] [INFO] ✅ Machine_1_Client_10 Task #42 assigned to Server 3 by leader 3
-[11:45:53S] [INFO] 📤 Machine_1_Client_10 Sending task #42 to server at 127.0.0.1:8003
-[11:45:53S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #42
-[11:45:53S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #42
-[11:45:53S] [INFO] ✅ Machine_1_Client_10 Task #42 completed successfully
-[11:45:54S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #43
-[11:45:54S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #43 to 3 servers
-[11:45:54S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #43 → Server 2
-[11:45:54S] [INFO] ✅ Machine_1_Client_10 Task #43 assigned to Server 2 by leader 1
-[11:45:54S] [INFO] 📤 Machine_1_Client_10 Sending task #43 to server at 127.0.0.1:8002
-[11:45:55S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #43
-[11:45:55S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #43
-[11:45:55S] [INFO] ✅ Machine_1_Client_10 Task #43 completed successfully
-[11:45:56S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #44
-[11:45:56S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #44 to 3 servers
-[11:45:56S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #44 → Server 2
-[11:45:56S] [INFO] ✅ Machine_1_Client_10 Task #44 assigned to Server 2 by leader 1
-[11:45:56S] [INFO] 📤 Machine_1_Client_10 Sending task #44 to server at 127.0.0.1:8002
-[11:45:56S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #44
-[11:45:56S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #44
-[11:45:56S] [INFO] ✅ Machine_1_Client_10 Task #44 completed successfully
-[11:45:58S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #45
-[11:45:58S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #45 to 3 servers
-[11:45:58S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #45 → Server 3
-[11:45:58S] [INFO] ✅ Machine_1_Client_10 Task #45 assigned to Server 3 by leader 1
-[11:45:58S] [INFO] 📤 Machine_1_Client_10 Sending task #45 to server at 127.0.0.1:8003
-[11:45:59S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #45
-[11:45:59S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #45
-[11:45:59S] [INFO] ✅ Machine_1_Client_10 Task #45 completed successfully
-[11:45:59S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #46
-[11:45:59S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #46 to 3 servers
-[11:45:59S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #46 → Server 2
-[11:45:59S] [INFO] ✅ Machine_1_Client_10 Task #46 assigned to Server 2 by leader 1
-[11:45:59S] [INFO] 📤 Machine_1_Client_10 Sending task #46 to server at 127.0.0.1:8002
-[11:45:59S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #46
-[11:45:59S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #46
-[11:45:59S] [INFO] ✅ Machine_1_Client_10 Task #46 completed successfully
-[11:46:01S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #47
-[11:46:01S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #47 to 3 servers
-[11:46:01S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #47 → Server 1
-[11:46:01S] [INFO] ✅ Machine_1_Client_10 Task #47 assigned to Server 1 by leader 1
-[11:46:01S] [INFO] 📤 Machine_1_Client_10 Sending task #47 to server at 127.0.0.1:8001
-[11:46:02S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #47
-[11:46:02S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #47
-[11:46:02S] [INFO] ✅ Machine_1_Client_10 Task #47 completed successfully
-[11:46:02S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #48
-[11:46:02S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #48 to 3 servers
-[11:46:02S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #48 → Server 1
-[11:46:02S] [INFO] ✅ Machine_1_Client_10 Task #48 assigned to Server 1 by leader 1
-[11:46:02S] [INFO] 📤 Machine_1_Client_10 Sending task #48 to server at 127.0.0.1:8001
-[11:46:02S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #48
-[11:46:02S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #48
-[11:46:02S] [INFO] ✅ Machine_1_Client_10 Task #48 completed successfully
-[11:46:04S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #49
-[11:46:04S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #49 to 3 servers
-[11:46:04S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #49 → Server 1
-[11:46:04S] [INFO] ✅ Machine_1_Client_10 Task #49 assigned to Server 1 by leader 1
-[11:46:04S] [INFO] 📤 Machine_1_Client_10 Sending task #49 to server at 127.0.0.1:8001
-[11:46:04S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #49
-[11:46:04S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #49
-[11:46:04S] [INFO] ✅ Machine_1_Client_10 Task #49 completed successfully
-[11:46:06S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #50
-[11:46:06S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #50 to 3 servers
-[11:46:06S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #50 → Server 1
-[11:46:06S] [INFO] ✅ Machine_1_Client_10 Task #50 assigned to Server 1 by leader 1
-[11:46:06S] [INFO] 📤 Machine_1_Client_10 Sending task #50 to server at 127.0.0.1:8001
-[11:46:07S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #50
-[11:46:07S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #50
-[11:46:07S] [INFO] ✅ Machine_1_Client_10 Task #50 completed successfully
-[11:46:07S] [INFO] ✅ Client finished sending 50 requests
+[13:57:19S] [INFO] Client 'Machine_1_Client_10' starting
+[13:57:19S] [INFO] Client 'Machine_1_Client_10' sending 50 requests (delay: 100-2000ms, 1 images available)...
+[13:57:19S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #1
+[13:57:19S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #1 to 3 servers
+[13:57:21S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 2): Task #1 → Server 2
+[13:57:21S] [INFO] ✅ Machine_1_Client_10 Task #1 assigned to Server 2 by leader 2
+[13:57:21S] [INFO] 📤 Machine_1_Client_10 Sending task #1 to server at 10.40.38.47:8001
+[13:57:26S] [ERROR] ❌ Machine_1_Client_10 Task #1 FAILED: early eof
+[13:57:26S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #2
+[13:57:26S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #2 to 3 servers
+[13:57:28S] [WARN] Assignment request failed for task #2: No server responded with a task assignment (no leader available) - waiting for leader...
+[13:57:30S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #2 to 3 servers
+[13:57:32S] [WARN] Assignment request failed for task #2: No server responded with a task assignment (no leader available) - waiting for leader...
+[13:57:34S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #2 to 3 servers
+[13:57:34S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #2 → Server 1
+[13:57:34S] [INFO] ✅ Machine_1_Client_10 Task #2 assigned to Server 1 by leader 1
+[13:57:34S] [INFO] 📤 Machine_1_Client_10 Sending task #2 to server at 10.40.39.41:8001
+[13:57:34S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #2
+[13:57:34S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #2
+[13:57:34S] [INFO] ✅ Machine_1_Client_10 Task #2 completed successfully
+[13:57:36S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #3
+[13:57:36S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #3 to 3 servers
+[13:57:36S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #3 → Server 1
+[13:57:36S] [INFO] ✅ Machine_1_Client_10 Task #3 assigned to Server 1 by leader 1
+[13:57:36S] [INFO] 📤 Machine_1_Client_10 Sending task #3 to server at 10.40.39.41:8001
+[13:57:36S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #3
+[13:57:36S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #3
+[13:57:36S] [INFO] ✅ Machine_1_Client_10 Task #3 completed successfully
+[13:57:38S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #4
+[13:57:38S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #4 to 3 servers
+[13:57:38S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #4 → Server 1
+[13:57:38S] [INFO] ✅ Machine_1_Client_10 Task #4 assigned to Server 1 by leader 1
+[13:57:38S] [INFO] 📤 Machine_1_Client_10 Sending task #4 to server at 10.40.39.41:8001
+[13:57:38S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #4
+[13:57:38S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #4
+[13:57:38S] [INFO] ✅ Machine_1_Client_10 Task #4 completed successfully
+[13:57:39S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #5
+[13:57:39S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #5 to 3 servers
+[13:57:39S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #5 → Server 1
+[13:57:39S] [INFO] ✅ Machine_1_Client_10 Task #5 assigned to Server 1 by leader 1
+[13:57:39S] [INFO] 📤 Machine_1_Client_10 Sending task #5 to server at 10.40.39.41:8001
+[13:57:40S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #5
+[13:57:40S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #5
+[13:57:40S] [INFO] ✅ Machine_1_Client_10 Task #5 completed successfully
+[13:57:42S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #6
+[13:57:42S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #6 to 3 servers
+[13:57:42S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #6 → Server 1
+[13:57:42S] [INFO] ✅ Machine_1_Client_10 Task #6 assigned to Server 1 by leader 1
+[13:57:42S] [INFO] 📤 Machine_1_Client_10 Sending task #6 to server at 10.40.39.41:8001
+[13:57:42S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #6
+[13:57:42S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #6
+[13:57:42S] [INFO] ✅ Machine_1_Client_10 Task #6 completed successfully
+[13:57:43S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #7
+[13:57:43S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #7 to 3 servers
+[13:57:43S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #7 → Server 1
+[13:57:43S] [INFO] ✅ Machine_1_Client_10 Task #7 assigned to Server 1 by leader 1
+[13:57:43S] [INFO] 📤 Machine_1_Client_10 Sending task #7 to server at 10.40.39.41:8001
+[13:57:43S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #7
+[13:57:43S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #7
+[13:57:43S] [INFO] ✅ Machine_1_Client_10 Task #7 completed successfully
+[13:57:44S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #8
+[13:57:44S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #8 to 3 servers
+[13:57:44S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #8 → Server 1
+[13:57:44S] [INFO] ✅ Machine_1_Client_10 Task #8 assigned to Server 1 by leader 1
+[13:57:44S] [INFO] 📤 Machine_1_Client_10 Sending task #8 to server at 10.40.39.41:8001
+[13:57:44S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #8
+[13:57:44S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #8
+[13:57:44S] [INFO] ✅ Machine_1_Client_10 Task #8 completed successfully
+[13:57:45S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #9
+[13:57:45S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #9 to 3 servers
+[13:57:45S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #9 → Server 1
+[13:57:45S] [INFO] ✅ Machine_1_Client_10 Task #9 assigned to Server 1 by leader 1
+[13:57:45S] [INFO] 📤 Machine_1_Client_10 Sending task #9 to server at 10.40.39.41:8001
+[13:57:45S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #9
+[13:57:45S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #9
+[13:57:45S] [INFO] ✅ Machine_1_Client_10 Task #9 completed successfully
+[13:57:45S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #10
+[13:57:45S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #10 to 3 servers
+[13:57:45S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #10 → Server 1
+[13:57:45S] [INFO] ✅ Machine_1_Client_10 Task #10 assigned to Server 1 by leader 1
+[13:57:45S] [INFO] 📤 Machine_1_Client_10 Sending task #10 to server at 10.40.39.41:8001
+[13:57:46S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #10
+[13:57:46S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #10
+[13:57:46S] [INFO] ✅ Machine_1_Client_10 Task #10 completed successfully
+[13:57:47S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #11
+[13:57:47S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #11 to 3 servers
+[13:57:47S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #11 → Server 1
+[13:57:47S] [INFO] ✅ Machine_1_Client_10 Task #11 assigned to Server 1 by leader 1
+[13:57:47S] [INFO] 📤 Machine_1_Client_10 Sending task #11 to server at 10.40.39.41:8001
+[13:57:47S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #11
+[13:57:47S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #11
+[13:57:47S] [INFO] ✅ Machine_1_Client_10 Task #11 completed successfully
+[13:57:47S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #12
+[13:57:47S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #12 to 3 servers
+[13:57:47S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #12 → Server 1
+[13:57:47S] [INFO] ✅ Machine_1_Client_10 Task #12 assigned to Server 1 by leader 1
+[13:57:47S] [INFO] 📤 Machine_1_Client_10 Sending task #12 to server at 10.40.39.41:8001
+[13:57:48S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #12
+[13:57:48S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #12
+[13:57:48S] [INFO] ✅ Machine_1_Client_10 Task #12 completed successfully
+[13:57:48S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #13
+[13:57:48S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #13 to 3 servers
+[13:57:48S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #13 → Server 1
+[13:57:48S] [INFO] ✅ Machine_1_Client_10 Task #13 assigned to Server 1 by leader 1
+[13:57:48S] [INFO] 📤 Machine_1_Client_10 Sending task #13 to server at 10.40.39.41:8001
+[13:57:48S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #13
+[13:57:48S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #13
+[13:57:48S] [INFO] ✅ Machine_1_Client_10 Task #13 completed successfully
+[13:57:50S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #14
+[13:57:50S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #14 to 3 servers
+[13:57:50S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #14 → Server 1
+[13:57:50S] [INFO] ✅ Machine_1_Client_10 Task #14 assigned to Server 1 by leader 1
+[13:57:50S] [INFO] 📤 Machine_1_Client_10 Sending task #14 to server at 10.40.39.41:8001
+[13:57:51S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #14
+[13:57:51S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #14
+[13:57:51S] [INFO] ✅ Machine_1_Client_10 Task #14 completed successfully
+[13:57:51S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #15
+[13:57:51S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #15 to 3 servers
+[13:57:51S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #15 → Server 1
+[13:57:51S] [INFO] ✅ Machine_1_Client_10 Task #15 assigned to Server 1 by leader 1
+[13:57:51S] [INFO] 📤 Machine_1_Client_10 Sending task #15 to server at 10.40.39.41:8001
+[13:57:52S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #15
+[13:57:52S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #15
+[13:57:52S] [INFO] ✅ Machine_1_Client_10 Task #15 completed successfully
+[13:57:53S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #16
+[13:57:53S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #16 to 3 servers
+[13:57:53S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #16 → Server 1
+[13:57:53S] [INFO] ✅ Machine_1_Client_10 Task #16 assigned to Server 1 by leader 1
+[13:57:53S] [INFO] 📤 Machine_1_Client_10 Sending task #16 to server at 10.40.39.41:8001
+[13:57:54S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #16
+[13:57:54S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #16
+[13:57:54S] [INFO] ✅ Machine_1_Client_10 Task #16 completed successfully
+[13:57:54S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #17
+[13:57:54S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #17 to 3 servers
+[13:57:54S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #17 → Server 1
+[13:57:54S] [INFO] ✅ Machine_1_Client_10 Task #17 assigned to Server 1 by leader 1
+[13:57:54S] [INFO] 📤 Machine_1_Client_10 Sending task #17 to server at 10.40.39.41:8001
+[13:57:54S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #17
+[13:57:54S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #17
+[13:57:54S] [INFO] ✅ Machine_1_Client_10 Task #17 completed successfully
+[13:57:55S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #18
+[13:57:55S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #18 to 3 servers
+[13:57:55S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #18 → Server 1
+[13:57:55S] [INFO] ✅ Machine_1_Client_10 Task #18 assigned to Server 1 by leader 1
+[13:57:55S] [INFO] 📤 Machine_1_Client_10 Sending task #18 to server at 10.40.39.41:8001
+[13:57:55S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #18
+[13:57:55S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #18
+[13:57:55S] [INFO] ✅ Machine_1_Client_10 Task #18 completed successfully
+[13:57:56S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #19
+[13:57:56S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #19 to 3 servers
+[13:57:56S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #19 → Server 1
+[13:57:56S] [INFO] ✅ Machine_1_Client_10 Task #19 assigned to Server 1 by leader 1
+[13:57:56S] [INFO] 📤 Machine_1_Client_10 Sending task #19 to server at 10.40.39.41:8001
+[13:57:57S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #19
+[13:57:57S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #19
+[13:57:57S] [INFO] ✅ Machine_1_Client_10 Task #19 completed successfully
+[13:57:58S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #20
+[13:57:58S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #20 to 3 servers
+[13:57:58S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #20 → Server 1
+[13:57:58S] [INFO] ✅ Machine_1_Client_10 Task #20 assigned to Server 1 by leader 1
+[13:57:58S] [INFO] 📤 Machine_1_Client_10 Sending task #20 to server at 10.40.39.41:8001
+[13:57:59S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #20
+[13:57:59S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #20
+[13:57:59S] [INFO] ✅ Machine_1_Client_10 Task #20 completed successfully
+[13:58:01S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #21
+[13:58:01S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #21 to 3 servers
+[13:58:01S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #21 → Server 1
+[13:58:01S] [INFO] ✅ Machine_1_Client_10 Task #21 assigned to Server 1 by leader 1
+[13:58:01S] [INFO] 📤 Machine_1_Client_10 Sending task #21 to server at 10.40.39.41:8001
+[13:58:01S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #21
+[13:58:01S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #21
+[13:58:01S] [INFO] ✅ Machine_1_Client_10 Task #21 completed successfully
+[13:58:02S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #22
+[13:58:02S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #22 to 3 servers
+[13:58:02S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #22 → Server 1
+[13:58:02S] [INFO] ✅ Machine_1_Client_10 Task #22 assigned to Server 1 by leader 1
+[13:58:02S] [INFO] 📤 Machine_1_Client_10 Sending task #22 to server at 10.40.39.41:8001
+[13:58:03S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #22
+[13:58:03S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #22
+[13:58:03S] [INFO] ✅ Machine_1_Client_10 Task #22 completed successfully
+[13:58:04S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #23
+[13:58:04S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #23 to 3 servers
+[13:58:04S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #23 → Server 1
+[13:58:04S] [INFO] ✅ Machine_1_Client_10 Task #23 assigned to Server 1 by leader 1
+[13:58:04S] [INFO] 📤 Machine_1_Client_10 Sending task #23 to server at 10.40.39.41:8001
+[13:58:05S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #23
+[13:58:05S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #23
+[13:58:05S] [INFO] ✅ Machine_1_Client_10 Task #23 completed successfully
+[13:58:06S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #24
+[13:58:06S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #24 to 3 servers
+[13:58:06S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #24 → Server 1
+[13:58:06S] [INFO] ✅ Machine_1_Client_10 Task #24 assigned to Server 1 by leader 1
+[13:58:06S] [INFO] 📤 Machine_1_Client_10 Sending task #24 to server at 10.40.39.41:8001
+[13:58:06S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #24
+[13:58:06S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #24
+[13:58:06S] [INFO] ✅ Machine_1_Client_10 Task #24 completed successfully
+[13:58:06S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #25
+[13:58:06S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #25 to 3 servers
+[13:58:06S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #25 → Server 1
+[13:58:06S] [INFO] ✅ Machine_1_Client_10 Task #25 assigned to Server 1 by leader 1
+[13:58:06S] [INFO] 📤 Machine_1_Client_10 Sending task #25 to server at 10.40.39.41:8001
+[13:58:07S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #25
+[13:58:07S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #25
+[13:58:07S] [INFO] ✅ Machine_1_Client_10 Task #25 completed successfully
+[13:58:08S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #26
+[13:58:08S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #26 to 3 servers
+[13:58:08S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #26 → Server 1
+[13:58:08S] [INFO] ✅ Machine_1_Client_10 Task #26 assigned to Server 1 by leader 1
+[13:58:08S] [INFO] 📤 Machine_1_Client_10 Sending task #26 to server at 10.40.39.41:8001
+[13:58:09S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #26
+[13:58:09S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #26
+[13:58:09S] [INFO] ✅ Machine_1_Client_10 Task #26 completed successfully
+[13:58:10S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #27
+[13:58:10S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #27 to 3 servers
+[13:58:10S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #27 → Server 1
+[13:58:10S] [INFO] ✅ Machine_1_Client_10 Task #27 assigned to Server 1 by leader 1
+[13:58:10S] [INFO] 📤 Machine_1_Client_10 Sending task #27 to server at 10.40.39.41:8001
+[13:58:10S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #27
+[13:58:10S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #27
+[13:58:10S] [INFO] ✅ Machine_1_Client_10 Task #27 completed successfully
+[13:58:11S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #28
+[13:58:11S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #28 to 3 servers
+[13:58:11S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #28 → Server 1
+[13:58:11S] [INFO] ✅ Machine_1_Client_10 Task #28 assigned to Server 1 by leader 1
+[13:58:11S] [INFO] 📤 Machine_1_Client_10 Sending task #28 to server at 10.40.39.41:8001
+[13:58:12S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #28
+[13:58:12S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #28
+[13:58:12S] [INFO] ✅ Machine_1_Client_10 Task #28 completed successfully
+[13:58:12S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #29
+[13:58:12S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #29 to 3 servers
+[13:58:12S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #29 → Server 1
+[13:58:12S] [INFO] ✅ Machine_1_Client_10 Task #29 assigned to Server 1 by leader 1
+[13:58:12S] [INFO] 📤 Machine_1_Client_10 Sending task #29 to server at 10.40.39.41:8001
+[13:58:12S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #29
+[13:58:12S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #29
+[13:58:12S] [INFO] ✅ Machine_1_Client_10 Task #29 completed successfully
+[13:58:14S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #30
+[13:58:14S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #30 to 3 servers
+[13:58:14S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #30 → Server 1
+[13:58:14S] [INFO] ✅ Machine_1_Client_10 Task #30 assigned to Server 1 by leader 1
+[13:58:14S] [INFO] 📤 Machine_1_Client_10 Sending task #30 to server at 10.40.39.41:8001
+[13:58:15S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #30
+[13:58:15S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #30
+[13:58:15S] [INFO] ✅ Machine_1_Client_10 Task #30 completed successfully
+[13:58:16S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #31
+[13:58:16S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #31 to 3 servers
+[13:58:16S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #31 → Server 1
+[13:58:16S] [INFO] ✅ Machine_1_Client_10 Task #31 assigned to Server 1 by leader 1
+[13:58:16S] [INFO] 📤 Machine_1_Client_10 Sending task #31 to server at 10.40.39.41:8001
+[13:58:16S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #31
+[13:58:16S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #31
+[13:58:16S] [INFO] ✅ Machine_1_Client_10 Task #31 completed successfully
+[13:58:17S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #32
+[13:58:17S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #32 to 3 servers
+[13:58:17S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #32 → Server 1
+[13:58:17S] [INFO] ✅ Machine_1_Client_10 Task #32 assigned to Server 1 by leader 1
+[13:58:17S] [INFO] 📤 Machine_1_Client_10 Sending task #32 to server at 10.40.39.41:8001
+[13:58:17S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #32
+[13:58:17S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #32
+[13:58:17S] [INFO] ✅ Machine_1_Client_10 Task #32 completed successfully
+[13:58:19S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #33
+[13:58:19S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #33 to 3 servers
+[13:58:19S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #33 → Server 1
+[13:58:19S] [INFO] ✅ Machine_1_Client_10 Task #33 assigned to Server 1 by leader 1
+[13:58:19S] [INFO] 📤 Machine_1_Client_10 Sending task #33 to server at 10.40.39.41:8001
+[13:58:19S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #33
+[13:58:19S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #33
+[13:58:19S] [INFO] ✅ Machine_1_Client_10 Task #33 completed successfully
+[13:58:20S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #34
+[13:58:20S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #34 to 3 servers
+[13:58:20S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #34 → Server 1
+[13:58:20S] [INFO] ✅ Machine_1_Client_10 Task #34 assigned to Server 1 by leader 1
+[13:58:20S] [INFO] 📤 Machine_1_Client_10 Sending task #34 to server at 10.40.39.41:8001
+[13:58:21S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #34
+[13:58:21S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #34
+[13:58:21S] [INFO] ✅ Machine_1_Client_10 Task #34 completed successfully
+[13:58:21S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #35
+[13:58:21S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #35 to 3 servers
+[13:58:21S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #35 → Server 1
+[13:58:21S] [INFO] ✅ Machine_1_Client_10 Task #35 assigned to Server 1 by leader 1
+[13:58:21S] [INFO] 📤 Machine_1_Client_10 Sending task #35 to server at 10.40.39.41:8001
+[13:58:22S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #35
+[13:58:22S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #35
+[13:58:22S] [INFO] ✅ Machine_1_Client_10 Task #35 completed successfully
+[13:58:24S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #36
+[13:58:24S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #36 to 3 servers
+[13:58:24S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #36 → Server 1
+[13:58:24S] [INFO] ✅ Machine_1_Client_10 Task #36 assigned to Server 1 by leader 1
+[13:58:24S] [INFO] 📤 Machine_1_Client_10 Sending task #36 to server at 10.40.39.41:8001
+[13:58:24S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #36
+[13:58:24S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #36
+[13:58:24S] [INFO] ✅ Machine_1_Client_10 Task #36 completed successfully
+[13:58:25S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #37
+[13:58:25S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #37 to 3 servers
+[13:58:25S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #37 → Server 1
+[13:58:25S] [INFO] ✅ Machine_1_Client_10 Task #37 assigned to Server 1 by leader 1
+[13:58:25S] [INFO] 📤 Machine_1_Client_10 Sending task #37 to server at 10.40.39.41:8001
+[13:58:26S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #37
+[13:58:26S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #37
+[13:58:26S] [INFO] ✅ Machine_1_Client_10 Task #37 completed successfully
+[13:58:26S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #38
+[13:58:26S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #38 to 3 servers
+[13:58:26S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #38 → Server 1
+[13:58:26S] [INFO] ✅ Machine_1_Client_10 Task #38 assigned to Server 1 by leader 1
+[13:58:26S] [INFO] 📤 Machine_1_Client_10 Sending task #38 to server at 10.40.39.41:8001
+[13:58:27S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #38
+[13:58:27S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #38
+[13:58:27S] [INFO] ✅ Machine_1_Client_10 Task #38 completed successfully
+[13:58:28S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #39
+[13:58:28S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #39 to 3 servers
+[13:58:28S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #39 → Server 1
+[13:58:28S] [INFO] ✅ Machine_1_Client_10 Task #39 assigned to Server 1 by leader 1
+[13:58:28S] [INFO] 📤 Machine_1_Client_10 Sending task #39 to server at 10.40.39.41:8001
+[13:58:29S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #39
+[13:58:29S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #39
+[13:58:29S] [INFO] ✅ Machine_1_Client_10 Task #39 completed successfully
+[13:58:29S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #40
+[13:58:29S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #40 to 3 servers
+[13:58:29S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #40 → Server 1
+[13:58:29S] [INFO] ✅ Machine_1_Client_10 Task #40 assigned to Server 1 by leader 1
+[13:58:29S] [INFO] 📤 Machine_1_Client_10 Sending task #40 to server at 10.40.39.41:8001
+[13:58:30S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #40
+[13:58:30S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #40
+[13:58:30S] [INFO] ✅ Machine_1_Client_10 Task #40 completed successfully
+[13:58:31S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #41
+[13:58:31S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #41 to 3 servers
+[13:58:31S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #41 → Server 1
+[13:58:31S] [INFO] ✅ Machine_1_Client_10 Task #41 assigned to Server 1 by leader 1
+[13:58:31S] [INFO] 📤 Machine_1_Client_10 Sending task #41 to server at 10.40.39.41:8001
+[13:58:32S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #41
+[13:58:32S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #41
+[13:58:32S] [INFO] ✅ Machine_1_Client_10 Task #41 completed successfully
+[13:58:33S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #42
+[13:58:33S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #42 to 3 servers
+[13:58:33S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #42 → Server 1
+[13:58:33S] [INFO] ✅ Machine_1_Client_10 Task #42 assigned to Server 1 by leader 1
+[13:58:33S] [INFO] 📤 Machine_1_Client_10 Sending task #42 to server at 10.40.39.41:8001
+[13:58:33S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #42
+[13:58:33S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #42
+[13:58:33S] [INFO] ✅ Machine_1_Client_10 Task #42 completed successfully
+[13:58:34S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #43
+[13:58:34S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #43 to 3 servers
+[13:58:34S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #43 → Server 1
+[13:58:34S] [INFO] ✅ Machine_1_Client_10 Task #43 assigned to Server 1 by leader 1
+[13:58:34S] [INFO] 📤 Machine_1_Client_10 Sending task #43 to server at 10.40.39.41:8001
+[13:58:34S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #43
+[13:58:34S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #43
+[13:58:34S] [INFO] ✅ Machine_1_Client_10 Task #43 completed successfully
+[13:58:36S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #44
+[13:58:36S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #44 to 3 servers
+[13:58:36S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #44 → Server 1
+[13:58:36S] [INFO] ✅ Machine_1_Client_10 Task #44 assigned to Server 1 by leader 1
+[13:58:36S] [INFO] 📤 Machine_1_Client_10 Sending task #44 to server at 10.40.39.41:8001
+[13:58:36S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #44
+[13:58:36S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #44
+[13:58:36S] [INFO] ✅ Machine_1_Client_10 Task #44 completed successfully
+[13:58:37S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #45
+[13:58:37S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #45 to 3 servers
+[13:58:37S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #45 → Server 1
+[13:58:37S] [INFO] ✅ Machine_1_Client_10 Task #45 assigned to Server 1 by leader 1
+[13:58:37S] [INFO] 📤 Machine_1_Client_10 Sending task #45 to server at 10.40.39.41:8001
+[13:58:37S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #45
+[13:58:37S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #45
+[13:58:37S] [INFO] ✅ Machine_1_Client_10 Task #45 completed successfully
+[13:58:39S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #46
+[13:58:39S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #46 to 3 servers
+[13:58:39S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #46 → Server 1
+[13:58:39S] [INFO] ✅ Machine_1_Client_10 Task #46 assigned to Server 1 by leader 1
+[13:58:39S] [INFO] 📤 Machine_1_Client_10 Sending task #46 to server at 10.40.39.41:8001
+[13:58:39S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #46
+[13:58:39S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #46
+[13:58:39S] [INFO] ✅ Machine_1_Client_10 Task #46 completed successfully
+[13:58:40S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #47
+[13:58:40S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #47 to 3 servers
+[13:58:40S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #47 → Server 1
+[13:58:40S] [INFO] ✅ Machine_1_Client_10 Task #47 assigned to Server 1 by leader 1
+[13:58:40S] [INFO] 📤 Machine_1_Client_10 Sending task #47 to server at 10.40.39.41:8001
+[13:58:40S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #47
+[13:58:40S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #47
+[13:58:40S] [INFO] ✅ Machine_1_Client_10 Task #47 completed successfully
+[13:58:41S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #48
+[13:58:41S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #48 to 3 servers
+[13:58:41S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #48 → Server 1
+[13:58:41S] [INFO] ✅ Machine_1_Client_10 Task #48 assigned to Server 1 by leader 1
+[13:58:41S] [INFO] 📤 Machine_1_Client_10 Sending task #48 to server at 10.40.39.41:8001
+[13:58:41S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #48
+[13:58:41S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #48
+[13:58:41S] [INFO] ✅ Machine_1_Client_10 Task #48 completed successfully
+[13:58:42S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #49
+[13:58:42S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #49 to 3 servers
+[13:58:42S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #49 → Server 1
+[13:58:42S] [INFO] ✅ Machine_1_Client_10 Task #49 assigned to Server 1 by leader 1
+[13:58:42S] [INFO] 📤 Machine_1_Client_10 Sending task #49 to server at 10.40.39.41:8001
+[13:58:43S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #49
+[13:58:43S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #49
+[13:58:43S] [INFO] ✅ Machine_1_Client_10 Task #49 completed successfully
+[13:58:44S] [INFO] 📡 Machine_1_Client_10 Getting task assignment for task #50
+[13:58:44S] [INFO] 📡 Machine_1_Client_10 Broadcasting assignment request for task #50 to 3 servers
+[13:58:44S] [INFO] ✅ Machine_1_Client_10 Received assignment from leader (Server 1): Task #50 → Server 1
+[13:58:44S] [INFO] ✅ Machine_1_Client_10 Task #50 assigned to Server 1 by leader 1
+[13:58:44S] [INFO] 📤 Machine_1_Client_10 Sending task #50 to server at 10.40.39.41:8001
+[13:58:44S] [INFO] ✅ Machine_1_Client_10 Encryption VERIFIED for task #50
+[13:58:44S] [INFO] 📨 Machine_1_Client_10 Sent ACK for task #50
+[13:58:44S] [INFO] ✅ Machine_1_Client_10 Task #50 completed successfully
+[13:58:44S] [INFO] ✅ Client finished sending 50 requests
 Metrics exported to: ./metrics/client_10.json

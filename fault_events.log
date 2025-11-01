@@ -1,0 +1,24 @@
+[2025-11-01 13:11:08] Checking SSH connectivity to all servers...
+[2025-11-01 13:11:08] ERROR: Cannot connect to Server 1 (g03-s2025@10.40.39.41) via SSH
+[2025-11-01 13:11:13] ERROR: Cannot connect to Server 2 (g03-s2025@110.40.38.47) via SSH
+[2025-11-01 13:11:13] SSH connectivity OK for Server 3 (youssef@10.40.51.153)
+[2025-11-01 13:11:13] ERROR: SSH connectivity check failed for one or more servers
+[2025-11-01 13:13:47] Checking SSH connectivity to all servers...
+[2025-11-01 13:13:47] ERROR: Cannot connect to Server 1 (g03-s2025@10.40.39.41) via SSH
+[2025-11-01 13:13:57] ERROR: Cannot connect to Server 2 (g03-s2025@110.40.38.47) via SSH
+[2025-11-01 13:13:57] SSH connectivity OK for Server 3 (youssef@10.40.51.153)
+[2025-11-01 13:13:57] ERROR: SSH connectivity check failed for one or more servers
+[2025-11-01 13:16:13] Checking SSH connectivity to all servers...
+[2025-11-01 13:16:13] ERROR: Cannot connect to Server 1 (g03-s2025@10.40.39.41) via SSH
+[2025-11-01 13:17:34] Checking SSH connectivity to all servers...
+[2025-11-01 13:17:34] ERROR: Cannot connect to Server 1 (g03-s2025@10.40.39.41) via SSH
+[2025-11-01 13:18:30] Checking SSH connectivity to all servers...
+[2025-11-01 13:18:30] ERROR: Cannot connect to Server 1 (g03-s2025@10.40.39.41) via SSH
+[2025-11-01 13:18:32] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 13:18:54] SSH connectivity OK for Server 3 (youssef@10.40.51.153)
+[2025-11-01 13:18:54] ERROR: SSH connectivity check failed for one or more servers
+[2025-11-01 13:21:45] Checking SSH connectivity to all servers...
+[2025-11-01 13:21:45] ERROR: Cannot connect to Server 1 (g03-s2025@10.40.39.41) via SSH
+[2025-11-01 13:21:47] SSH connectivity OK for Server 2 (g03-s2025@10.40.38.47)
+[2025-11-01 13:21:47] SSH connectivity OK for Server 3 (youssef@10.40.51.153)
+[2025-11-01 13:21:47] ERROR: SSH connectivity check failed for one or more servers

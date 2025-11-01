@@ -160,7 +160,7 @@ check_ssh_connectivity() {
     local host="$1"
     local server_id="$2"
 
-    if ssh -o ConnectTimeout=5 "$host" "echo 'SSH OK'" > /dev/null 2>&1; then
+    if ssh "$host" "echo 'SSH OK'" > /dev/null 2>&1; then
         log_event "SSH connectivity OK for Server $server_id ($host)"
         return 0
     else
@@ -196,6 +196,7 @@ echo ""
 log_event "Checking SSH connectivity to all servers..."
 ALL_SSH_OK=true
 for i in "${!SERVER_HOSTS[@]}"; do
+    echo "Checking Server ${SERVER_IDS[$i]} (${SERVER_HOSTS[$i]})..."
     if ! check_ssh_connectivity "${SERVER_HOSTS[$i]}" "${SERVER_IDS[$i]}"; then
         ALL_SSH_OK=false
     fi

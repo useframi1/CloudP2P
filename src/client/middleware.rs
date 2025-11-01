@@ -241,19 +241,29 @@ impl ClientMiddleware {
                 })
                 .collect(),
             Err(e) => {
-                error!("Failed to read image directory '{}': {}", self.config.client.image_dir, e);
+                error!(
+                    "Failed to read image directory '{}': {}",
+                    self.config.client.image_dir, e
+                );
                 return;
             }
         };
 
         if image_files.is_empty() {
-            error!("No images found in directory: {}", self.config.client.image_dir);
+            error!(
+                "No images found in directory: {}",
+                self.config.client.image_dir
+            );
             return;
         }
 
         info!(
             "Client '{}' sending {} requests (delay: {}-{}ms, {} images available)...",
-            self.config.client.name, total_requests, min_delay, max_delay, image_files.len()
+            self.config.client.name,
+            total_requests,
+            min_delay,
+            max_delay,
+            image_files.len()
         );
 
         // Send all requests with random delays and random image selection
@@ -263,11 +273,7 @@ impl ClientMiddleware {
             let image_name = &image_files[image_index % image_files.len()];
 
             let success = self
-                .send_request(
-                    i,
-                    image_name.clone(),
-                    "username:alice,views:5".to_string(),
-                )
+                .send_request(i, image_name.clone(), "username:alice,views:5".to_string())
                 .await;
 
             // Random delay between requests (only if task succeeded)
@@ -766,40 +772,43 @@ impl ClientMiddleware {
                     return Ok(());
                 }
                 Err(e) => {
+                    info!("Error is {:?}", e);
                     // Check if it's a connection error (server failure)
-                    let error_str = e.to_string();
-                    let is_connection_error = error_str.contains("Connection")
-                        || error_str.contains("connection")
-                        || error_str.contains("refused")
-                        || error_str.contains("timeout")
-                        || error_str.contains("broken pipe");
+                    // let error_str = e.to_string();
+                    // let is_connection_error = error_str.contains("Connection")
+                    //     || error_str.contains("connection")
+                    //     || error_str.contains("refused")
+                    //     || error_str.contains("timeout")
+                    //     || error_str.contains("broken pipe")
+                    //     || error_str.contains("early eof");
 
-                    if is_connection_error {
-                        warn!(
-                            "⚠️  {} Server failure detected for task #{} at {}: {}",
-                            self.config.client.name, request_num, assigned_address, e
-                        );
+                    // if is_connection_error {
+                    warn!(
+                        "⚠️  {} Server failure detected for task #{} at {}: {}",
+                        self.config.client.name, request_num, assigned_address, e
+                    );
 
-                        // Store the failed address
-                        let failed_address = assigned_address.clone();
+                    // Store the failed address
+                    let failed_address = assigned_address.clone();
 
-                        // Poll indefinitely until we get a valid assignment
-                        // (prefer different server, but retry same server after 10 polls in case it recovered)
-                        let (new_server_id, new_address) = self
-                            .wait_for_reassignment(request_num, &failed_address)
-                            .await?;
+                    // Poll indefinitely until we get a valid assignment
+                    // (prefer different server, but retry same server after 10 polls in case it recovered)
+                    let (new_server_id, new_address) = self
+                        .wait_for_reassignment(request_num, &failed_address)
+                        .await?;
 
-                        info!(
-                            "✅ {} Received assignment for task #{}: Server {} at {}",
-                            self.config.client.name, request_num, new_server_id, new_address
-                        );
-                        assigned_address = new_address;
-                        leader_id = new_server_id;
-                        // Continue loop to retry with assigned server
-                    } else {
-                        // Non-connection error (e.g., validation error, disk error, etc.)
-                        return Err(e);
-                    }
+                    info!(
+                        "✅ {} Received assignment for task #{}: Server {} at {}",
+                        self.config.client.name, request_num, new_server_id, new_address
+                    );
+                    assigned_address = new_address;
+                    leader_id = new_server_id;
+                    // Continue loop to retry with assigned server
+                    // }
+                    // else {
+                    //     // Non-connection error (e.g., validation error, disk error, etc.)
+                    //     return Err(e);
+                    // }
                 }
             }
         }
