@@ -1,15 +1,16 @@
 [server]
 id = 2
 address =  "10.40.38.47:8001"
+cover_image = "test_images/cover_image.jpg"
 
 [peers]
 peers = [
     { id = 1, address = "10.40.39.41:8001" },
-    # { id = 3, address = "10.40.51.153:8001"}
+    { id = 3, address = "10.40.51.153:8001"}
 ]
 
 [election]
 heartbeat_interval_secs = 1
 monitor_interval_secs = 1
-failure_timeout_secs = 3
+failure_timeout_secs = 5
 election_timeout_secs = 2
