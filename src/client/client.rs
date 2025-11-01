@@ -162,23 +162,25 @@ impl ClientCore {
             }) => {
                 if success {
                     // Save the encrypted carrier image to disk
-                    let output_path = format!("test_images/encrypted_image.jpg");
-                    if let Err(e) = std::fs::write(&output_path, &encrypted_image_data) {
-                        error!(
-                            "⚠️  {} Failed to save carrier image to '{}': {}",
-                            self.client_name, output_path, e
-                        );
-                    } else {
-                        info!(
-                            "💾 {} Saved carrier image to: {}",
-                            self.client_name, output_path
-                        );
-                    }
+                    // let output_path = format!("test_images/encrypted_image.jpg");
+                    // if let Err(e) = std::fs::write(&output_path, &encrypted_image_data) {
+                    //     error!(
+                    //         "⚠️  {} Failed to save carrier image to '{}': {}",
+                    //         self.client_name, output_path, e
+                    //     );
+                    // } else {
+                    //     info!(
+                    //         "💾 {} Saved carrier image to: {}",
+                    //         self.client_name, output_path
+                    //     );
+                    // }
 
                     // Verify the encryption by extracting the embedded secret image
                     info!(
                         "🔍 {} Verifying encryption for task #{} (carrier image size: {} bytes)",
-                        self.client_name, response_id, encrypted_image_data.len()
+                        self.client_name,
+                        response_id,
+                        encrypted_image_data.len()
                     );
 
                     match steganography::extract_image_bytes(&encrypted_image_data) {

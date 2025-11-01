@@ -89,7 +89,25 @@ get_server_pid() {
     local host="$1"
     local config_path="$2"
 
-    ssh -o ConnectTimeout=5 "$host" "pgrep -f 'server --config $config_path' | head -1" 2>/dev/null || echo ""
+    # Extract server ID from config path (e.g., server1.toml -> 1)
+    local server_id=$(basename "$config_path" | grep -o '[0-9]\+')
+
+    # First, try to read from PID file (more reliable)
+    local pid=$(ssh -o ConnectTimeout=5 "$host" "cat logs/server_${server_id}.pid 2>/dev/null" || echo "")
+
+    # Verify the PID is actually running
+    if [ -n "$pid" ]; then
+        local is_running=$(ssh -o ConnectTimeout=5 "$host" "ps -p $pid > /dev/null 2>&1 && echo 'yes' || echo 'no'")
+        if [ "$is_running" = "yes" ]; then
+            echo "$pid"
+            return
+        fi
+    fi
+
+    # Fallback: Try to find process by pattern
+    pid=$(ssh -o ConnectTimeout=5 "$host" "pgrep -f 'server.*config.*server${server_id}' | head -1" 2>/dev/null || echo "")
+
+    echo "$pid"
 }
 
 # Function to kill server via SSH
@@ -109,14 +127,41 @@ kill_server() {
 
     log_event "Found Server $server_id PID: $pid on $host"
 
-    # Kill the server process
+    # Try multiple kill methods
+    # Method 1: Direct kill -9
     if ssh "$host" "kill -9 $pid" 2>/dev/null; then
-        log_event "SUCCESS: Killed Server $server_id (PID $pid) on $host"
-        return 0
-    else
-        log_event "ERROR: Failed to kill Server $server_id on $host"
-        return 1
+        sleep 1
+        # Verify it's actually dead
+        local new_pid=$(get_server_pid "$host" "$config_path")
+        if [ -z "$new_pid" ] || [ "$new_pid" != "$pid" ]; then
+            log_event "SUCCESS: Killed Server $server_id (PID $pid) on $host"
+            return 0
+        fi
     fi
+
+    # Method 2: Try pkill with pattern
+    local config_basename=$(basename "$config_path")
+    if ssh "$host" "pkill -9 -f 'server.*$config_basename'" 2>/dev/null; then
+        sleep 1
+        local new_pid=$(get_server_pid "$host" "$config_path")
+        if [ -z "$new_pid" ]; then
+            log_event "SUCCESS: Killed Server $server_id on $host using pkill"
+            return 0
+        fi
+    fi
+
+    # Method 3: Try killing all server processes (last resort)
+    if ssh "$host" "pkill -9 -f 'target/release/server'" 2>/dev/null; then
+        sleep 1
+        local new_pid=$(get_server_pid "$host" "$config_path")
+        if [ -z "$new_pid" ]; then
+            log_event "SUCCESS: Killed Server $server_id on $host using pkill (all servers)"
+            return 0
+        fi
+    fi
+
+    log_event "ERROR: Failed to kill Server $server_id on $host (process may have restarted)"
+    return 1
 }
 
 # Function to restart server via SSH
@@ -136,22 +181,46 @@ restart_server() {
         return 0
     fi
 
-    # Start server in background using nohup
-    if ssh "$host" "cd $work_dir && nohup $binary --config $config_path > /dev/null 2>&1 &"; then
-        sleep 2  # Give server time to start
+    # Use the start_server.sh script if it exists, otherwise fallback to manual start
+    local start_script_exists=$(ssh "$host" "test -f $work_dir/scripts/start_server.sh && echo 'yes' || echo 'no'")
 
-        # Verify server started
-        pid=$(get_server_pid "$host" "$config_path")
-        if [ -n "$pid" ]; then
-            log_event "SUCCESS: Restarted Server $server_id on $host (PID $pid)"
-            return 0
+    if [ "$start_script_exists" = "yes" ]; then
+        # Use our management script
+        if ssh "$host" "cd $work_dir && ./scripts/start_server.sh $server_id > /dev/null 2>&1"; then
+            sleep 2  # Give server time to start
+
+            # Verify server started
+            pid=$(get_server_pid "$host" "$config_path")
+            if [ -n "$pid" ]; then
+                log_event "SUCCESS: Restarted Server $server_id on $host (PID $pid) using start script"
+                return 0
+            else
+                log_event "ERROR: Server $server_id failed to start on $host"
+                return 1
+            fi
         else
-            log_event "ERROR: Server $server_id failed to start on $host"
+            log_event "ERROR: Failed to execute start script for Server $server_id on $host"
             return 1
         fi
     else
-        log_event "ERROR: Failed to execute restart command for Server $server_id on $host"
-        return 1
+        # Fallback to manual start with nohup
+        log_event "WARNING: start_server.sh not found, using manual start"
+        if ssh "$host" "cd $work_dir && mkdir -p logs && nohup $binary --config $config_path > logs/server_${server_id}.log 2>&1 & echo \$! > logs/server_${server_id}.pid"; then
+            sleep 2  # Give server time to start
+
+            # Verify server started
+            pid=$(get_server_pid "$host" "$config_path")
+            if [ -n "$pid" ]; then
+                log_event "SUCCESS: Restarted Server $server_id on $host (PID $pid)"
+                return 0
+            else
+                log_event "ERROR: Server $server_id failed to start on $host"
+                return 1
+            fi
+        else
+            log_event "ERROR: Failed to execute restart command for Server $server_id on $host"
+            return 1
+        fi
     fi
 }
 

@@ -18,7 +18,7 @@ server_addresses = [
 ]
 
 # Directory containing images to randomly select from
-image_dir = "test_images"
+image_dir = "test_images/secrets"
 
 [requests]
 # Total number of requests this client will send

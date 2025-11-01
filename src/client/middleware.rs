@@ -272,9 +272,7 @@ impl ClientMiddleware {
             let image_index = (rand::random::<f64>() * image_files.len() as f64) as usize;
             let image_name = &image_files[image_index % image_files.len()];
 
-            let success = self
-                .send_request(i, image_name.clone())
-                .await;
+            let success = self.send_request(i, image_name.clone()).await;
 
             // Random delay between requests (only if task succeeded)
             if success && i < total_requests {
@@ -311,7 +309,7 @@ impl ClientMiddleware {
     ///
     /// Each server connection attempt has a 2-second timeout. Returns the first valid response.
     async fn broadcast_assignment_request(&self, request_num: u64) -> Result<(u32, String, u32)> {
-        const CONNECTION_TIMEOUT_SECS: u64 = 2;
+        const CONNECTION_TIMEOUT_SECS: u64 = 5;
 
         info!(
             "📡 {} Broadcasting assignment request for task #{} to {} servers",
@@ -615,11 +613,7 @@ impl ClientMiddleware {
     /// - **Max poll attempts**: Unlimited - polls indefinitely per server failure
     /// - **Poll interval**: 2 seconds
     /// - **No timeout**: Request continues retrying indefinitely until success
-    async fn send_request(
-        &mut self,
-        request_num: u64,
-        image_name: String,
-    ) -> bool {
+    async fn send_request(&mut self, request_num: u64, image_name: String) -> bool {
         const POLL_INTERVAL_SECS: u64 = 2;
 
         // Start tracking latency
