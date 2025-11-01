@@ -72,10 +72,11 @@ fi
 echo "Using config with name: Machine_${MACHINE_ID}"
 echo ""
 
-# Clean up old metrics
-echo "Cleaning up old metrics..."
-rm -rf "$METRICS_DIR"
-mkdir -p "$METRICS_DIR"
+# Create machine-specific metrics directory
+MACHINE_METRICS_DIR="$METRICS_DIR/machine_$MACHINE_ID"
+echo "Cleaning up old metrics for machine $MACHINE_ID..."
+rm -rf "$MACHINE_METRICS_DIR"
+mkdir -p "$MACHINE_METRICS_DIR"
 
 # Array to store PIDs
 declare -a CLIENT_PIDS
@@ -110,8 +111,8 @@ echo ""
 
 # Start clients using the same config with different client IDs
 for ((i=1; i<=NUM_CLIENTS; i++)); do
-    METRICS_FILE="$METRICS_DIR/client_$i.json"
-    LOG_FILE="$METRICS_DIR/client_$i.log"
+    METRICS_FILE="$MACHINE_METRICS_DIR/client_$i.json"
+    LOG_FILE="$MACHINE_METRICS_DIR/client_$i.log"
 
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Starting client $i/$NUM_CLIENTS"
 
@@ -166,30 +167,30 @@ echo "Stress Test Completed!"
 echo "========================================"
 echo "Total Time:    ${TOTAL_TIME}s"
 echo "Clients Run:   $NUM_CLIENTS"
-echo "Metrics Dir:   $METRICS_DIR"
+echo "Metrics Dir:   $MACHINE_METRICS_DIR"
 echo "========================================"
 echo ""
 
 # Show generated files
 echo "Metrics files:"
-ls -lh "$METRICS_DIR"/*.json 2>/dev/null || echo "  (No metrics files found)"
+ls -lh "$MACHINE_METRICS_DIR"/*.json 2>/dev/null || echo "  (No metrics files found)"
 echo ""
 
 echo "Logs:"
-ls -lh "$METRICS_DIR"/*.log 2>/dev/null || echo "  (No log files found)"
+ls -lh "$MACHINE_METRICS_DIR"/*.log 2>/dev/null || echo "  (No log files found)"
 echo ""
 
 echo "Quick stats:"
 echo "  Total requests sent:"
 if command -v jq &> /dev/null; then
-    jq -s 'map(.aggregated_stats.total_requests) | add' "$METRICS_DIR"/*.json 2>/dev/null || echo "  (Unable to calculate)"
+    jq -s 'map(.aggregated_stats.total_requests) | add' "$MACHINE_METRICS_DIR"/*.json 2>/dev/null || echo "  (Unable to calculate)"
 else
     echo "  (Install 'jq' to see stats)"
 fi
 
 echo ""
 echo "To view a specific client log:"
-echo "  tail -f $METRICS_DIR/client_1.log"
+echo "  tail -f $MACHINE_METRICS_DIR/client_1.log"
 echo ""
 echo "To view metrics:"
-echo "  cat $METRICS_DIR/client_1.json | jq"
+echo "  cat $MACHINE_METRICS_DIR/client_1.json | jq"

@@ -198,6 +198,9 @@ pub struct ServerMiddleware {
 
     /// Task history for fault tolerance: (client_name, request_id) -> entry
     task_history: Arc<RwLock<HashMap<(String, u64), TaskHistoryEntry>>>,
+
+    /// Channel for receiving history sync responses during leader election
+    history_sync_responses: Arc<RwLock<Vec<Vec<(String, u64, u32, u64)>>>>,
 }
 
 #[allow(dead_code)]
@@ -229,6 +232,7 @@ impl ServerMiddleware {
             active_tasks: Arc::new(RwLock::new(HashMap::new())),
             peer_loads: Arc::new(RwLock::new(HashMap::new())),
             task_history: Arc::new(RwLock::new(HashMap::new())),
+            history_sync_responses: Arc::new(RwLock::new(Vec::new())),
         }
     }
 
@@ -560,13 +564,8 @@ impl ServerMiddleware {
                 let (tx, mut rx) = mpsc::channel::<Message>(1);
 
                 // Process the task (delegates to core for encryption)
-                self.process_task(
-                    request_id,
-                    client_name.clone(),
-                    secret_image_data,
-                    Some(tx),
-                )
-                .await;
+                self.process_task(request_id, client_name.clone(), secret_image_data, Some(tx))
+                    .await;
 
                 // Send response back to client
                 if let Some(response) = rx.recv().await {
@@ -843,6 +842,64 @@ impl ServerMiddleware {
                 }
             }
 
+            // Leader requests history from all peers
+            Message::HistorySyncRequest { from_server_id } => {
+                info!(
+                    "📥 Server {} received history sync request from new leader {}",
+                    self.config.server.id, from_server_id
+                );
+
+                // Convert our task history to the wire format
+                let history = self.task_history.read().await;
+                let history_entries: Vec<(String, u64, u32, u64)> = history
+                    .iter()
+                    .map(|((client_name, request_id), entry)| {
+                        (
+                            client_name.clone(),
+                            *request_id,
+                            entry.assigned_server_id,
+                            entry._timestamp,
+                        )
+                    })
+                    .collect();
+
+                info!(
+                    "📤 Server {} sending {} history entries to leader {}",
+                    self.config.server.id,
+                    history_entries.len(),
+                    from_server_id
+                );
+
+                // Send response to the requesting leader
+                let response = Message::HistorySyncResponse {
+                    from_server_id: self.config.server.id,
+                    history_entries,
+                };
+
+                if let Err(e) = conn.write_message(&response).await {
+                    error!("❌ Failed to send history sync response: {}", e);
+                }
+            }
+
+            // Newly elected leader sends us their merged history
+            Message::HistorySyncResponse {
+                from_server_id,
+                history_entries,
+            } => {
+                debug!(
+                    "📬 Server {} received history sync response from server {} ({} entries)",
+                    self.config.server.id,
+                    from_server_id,
+                    history_entries.len()
+                );
+
+                // Store the response for the leader to process
+                self.history_sync_responses
+                    .write()
+                    .await
+                    .push(history_entries);
+            }
+
             _ => {
                 // Ignore other messages
             }
@@ -1060,7 +1117,14 @@ impl ServerMiddleware {
             );
             self.broadcast(coordinator_msg).await;
 
-            // As the new leader, check for and reassign any orphaned tasks
+            // As the new leader, sync history from peers FIRST
+            info!(
+                "📥 Server {} (new leader) syncing history from peers...",
+                self.config.server.id
+            );
+            self.sync_history_as_new_leader().await;
+
+            // THEN check for and reassign any orphaned tasks (with complete history)
             info!(
                 "🔍 Server {} (new leader) checking for orphaned tasks...",
                 self.config.server.id
@@ -1077,6 +1141,117 @@ impl ServerMiddleware {
     // ========================================================================
     // HELPER FUNCTIONS
     // ========================================================================
+
+    /// Syncs task history from all peers as a newly elected leader.
+    ///
+    /// This method:
+    /// 1. Clears any previous sync responses
+    /// 2. Broadcasts HistorySyncRequest to all peers
+    /// 3. Waits for responses (with timeout)
+    /// 4. Merges all received histories into local task_history
+    /// 5. Broadcasts the merged history to all peers for consistency
+    ///
+    /// Should only be called by the newly elected leader.
+    async fn sync_history_as_new_leader(&self) {
+        info!(
+            "📥 Server {} (new leader) requesting history from all peers...",
+            self.config.server.id
+        );
+
+        // Clear previous sync responses
+        self.history_sync_responses.write().await.clear();
+
+        // Broadcast sync request to all peers
+        let sync_request = Message::HistorySyncRequest {
+            from_server_id: self.config.server.id,
+        };
+        self.broadcast(sync_request).await;
+
+        // Wait for responses (2 seconds should be enough for healthy peers)
+        tokio::time::sleep(Duration::from_secs(2)).await;
+
+        // Collect all responses
+        let responses = self.history_sync_responses.read().await.clone();
+
+        if responses.is_empty() {
+            info!(
+                "📭 Server {} received no history sync responses (peers may be empty or unavailable)",
+                self.config.server.id
+            );
+            return;
+        }
+
+        info!(
+            "📬 Server {} received {} history sync response(s)",
+            self.config.server.id,
+            responses.len()
+        );
+
+        // Merge all histories - use the most recent assignment for each task
+        let mut merged_history: HashMap<(String, u64), TaskHistoryEntry> = HashMap::new();
+
+        for peer_entries in responses {
+            for (client_name, request_id, assigned_server_id, timestamp) in peer_entries {
+                let key = (client_name.clone(), request_id);
+
+                // Only keep the entry if it's newer than what we have
+                let should_add = merged_history
+                    .get(&key)
+                    .map(|existing| timestamp > existing._timestamp)
+                    .unwrap_or(true);
+
+                if should_add {
+                    merged_history.insert(
+                        key,
+                        TaskHistoryEntry {
+                            _client_name: client_name,
+                            _request_id: request_id,
+                            assigned_server_id,
+                            _timestamp: timestamp,
+                        },
+                    );
+                }
+            }
+        }
+
+        // Merge with our own history (in case we had some tasks)
+        let our_history = self.task_history.read().await.clone();
+        for (key, entry) in our_history {
+            let should_add = merged_history
+                .get(&key)
+                .map(|existing| entry._timestamp > existing._timestamp)
+                .unwrap_or(true);
+
+            if should_add {
+                merged_history.insert(key, entry);
+            }
+        }
+
+        info!(
+            "✅ Server {} merged history contains {} task(s)",
+            self.config.server.id,
+            merged_history.len()
+        );
+
+        // Replace our history with the merged version
+        *self.task_history.write().await = merged_history.clone();
+
+        // Broadcast all merged history entries to peers for consistency
+        for ((client_name, request_id), entry) in &merged_history {
+            let history_msg = Message::HistoryAdd {
+                client_name: client_name.clone(),
+                request_id: *request_id,
+                assigned_server_id: entry.assigned_server_id,
+                timestamp: entry._timestamp,
+            };
+            self.broadcast(history_msg).await;
+        }
+
+        info!(
+            "📤 Server {} broadcasted merged history to all peers",
+            self.config.server.id
+        );
+    }
 
     /// Reassigns all orphaned tasks currently in the task history.
     ///
@@ -1233,6 +1408,7 @@ impl ServerMiddleware {
             active_tasks: self.active_tasks.clone(),
             peer_loads: self.peer_loads.clone(),
             task_history: self.task_history.clone(),
+            history_sync_responses: self.history_sync_responses.clone(),
         })
     }
 

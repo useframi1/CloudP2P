@@ -413,7 +413,7 @@ impl ClientMiddleware {
     /// * `Ok((assigned_server_id, assigned_address))` - Current server assignment
     /// * `Err` - If no server responded with valid status
     async fn broadcast_status_query(&self, request_num: u64) -> Result<(u32, String)> {
-        const CONNECTION_TIMEOUT_SECS: u64 = 10;
+        const CONNECTION_TIMEOUT_SECS: u64 = 5;
 
         info!(
             "🔍 {} Broadcasting status query for task #{} to {} servers",
@@ -439,10 +439,7 @@ impl ClientMiddleware {
 
                 match result {
                     Ok(Ok(status)) => Some(status),
-                    Ok(Err(_)) | Err(_) => {
-                        error!("Invalid or no response from server");
-                        None
-                    }
+                    Ok(Err(_)) | Err(_) => None,
                 }
             });
 
@@ -511,8 +508,8 @@ impl ClientMiddleware {
     /// 1. Prefer reassignment to a **different** server (immediate return)
     /// 2. If same server keeps being returned, retry after MAX_SAME_SERVER_POLLS attempts
     ///    (in case the server came back online)
-    ///
-    /// This method polls **indefinitely** until it gets an assignment.
+    /// 3. If no server responds for MAX_CONSECUTIVE_FAILURES attempts, assume task is lost
+    ///    and return error to trigger resubmission
     ///
     /// # Arguments
     ///
@@ -521,30 +518,33 @@ impl ClientMiddleware {
     ///
     /// # Returns
     ///
-    /// * `Ok((assigned_server_id, assigned_address))` - Server assignment (always succeeds eventually)
+    /// * `Ok((assigned_server_id, assigned_address))` - Server assignment
+    /// * `Err` - Task appears to be lost (all servers failed or lost history)
     ///
     /// # Polling Behavior
     ///
-    /// - Polls indefinitely with 2-second intervals
+    /// - Polls with 10-second intervals
     /// - Immediately accepts reassignment to a different server
     /// - Retries same server after MAX_SAME_SERVER_POLLS attempts (server might have recovered)
+    /// - Gives up after MAX_CONSECUTIVE_FAILURES consecutive failures (triggers task resubmission)
     /// - Logs every polling attempt
-    /// - Never gives up
     async fn wait_for_reassignment(
         &self,
         request_num: u64,
         failed_address: &str,
     ) -> Result<(u32, String)> {
-        const POLL_INTERVAL_SECS: u64 = 5;
-        const MAX_SAME_SERVER_POLLS: u32 = 10; // After 10 polls (20s), retry same server in case it recovered
+        const POLL_INTERVAL_SECS: u64 = 2;
+        const MAX_SAME_SERVER_POLLS: u32 = 10; // After 10 polls (100s), retry same server in case it recovered
+        const MAX_CONSECUTIVE_FAILURES: u32 = 10; // After 6 consecutive failures (60s), assume task is lost
 
         info!(
-            "⏳ {} Polling for task #{} assignment after {} failed (indefinitely, 2s interval)...",
-            self.config.client.name, request_num, failed_address
+            "⏳ {} Polling for task #{} assignment after {} failed (max {} consecutive failures before resubmission)...",
+            self.config.client.name, request_num, failed_address, MAX_CONSECUTIVE_FAILURES
         );
 
         let mut attempt = 1;
         let mut same_server_count = 0;
+        let mut consecutive_failures = 0;
 
         loop {
             info!(
@@ -554,6 +554,9 @@ impl ClientMiddleware {
 
             match self.broadcast_status_query(request_num).await {
                 Ok((server_id, address)) => {
+                    // Reset consecutive failure counter - we got a response
+                    consecutive_failures = 0;
+
                     if address != failed_address {
                         // Different server - immediately accept
                         info!(
@@ -581,10 +584,23 @@ impl ClientMiddleware {
                     }
                 }
                 Err(e) => {
+                    consecutive_failures += 1;
                     warn!(
-                        "Polling attempt {} failed for task #{}: {}",
-                        attempt, request_num, e
+                        "Polling attempt {} failed for task #{}: {} ({}/{} consecutive failures)",
+                        attempt, request_num, e, consecutive_failures, MAX_CONSECUTIVE_FAILURES
                     );
+
+                    // If we've had too many consecutive failures, assume task is lost
+                    if consecutive_failures >= MAX_CONSECUTIVE_FAILURES {
+                        error!(
+                            "❌ {} Task #{} appears to be LOST - no server has record after {} consecutive failures. Task will be resubmitted.",
+                            self.config.client.name, request_num, consecutive_failures
+                        );
+                        return Err(anyhow::anyhow!(
+                            "Task #{} lost - all servers failed or lost task history after {} consecutive polling failures",
+                            request_num, consecutive_failures
+                        ));
+                    }
                 }
             }
 
@@ -593,13 +609,14 @@ impl ClientMiddleware {
         }
     }
 
-    /// Sends a request with server-side failover handling.
+    /// Sends a request with server-side failover handling and automatic resubmission.
     ///
     /// This method implements the complete workflow:
     /// 1. Polls indefinitely to get initial server assignment from leader (waits for leader if none available)
     /// 2. Executes task on assigned server
-    /// 3. If server fails, polls indefinitely for reassignment
-    /// 4. Retries on new/recovered server indefinitely until success
+    /// 3. If server fails, polls for reassignment (up to 6 consecutive failures = 60s)
+    /// 4. If task is lost (all servers failed/lost history), gets fresh assignment and resubmits
+    /// 5. Retries complete workflow with MAX_RESUBMISSION_ATTEMPTS attempts
     ///
     /// # Arguments
     ///
@@ -608,91 +625,147 @@ impl ClientMiddleware {
     ///
     /// # Returns
     ///
-    /// * `true` - If the request succeeded
-    /// * `false` - If the request failed
+    /// * `true` - If the request succeeded (possibly after resubmission)
+    /// * `false` - If the request failed after all resubmission attempts
     ///
-    /// # Polling Parameters
+    /// # Resubmission Strategy
     ///
-    /// - **Max poll attempts**: Unlimited - polls indefinitely per server failure
-    /// - **Poll interval**: 2 seconds
-    /// - **No timeout**: Request continues retrying indefinitely until success
+    /// When task is lost (execute_task returns error after consecutive polling failures):
+    /// - Get a fresh assignment from the current leader
+    /// - Retry the entire task workflow
+    /// - Maximum 3 complete resubmission attempts
     async fn send_request(&mut self, request_num: u64, image_name: String) -> bool {
         const POLL_INTERVAL_SECS: u64 = 2;
+        const MAX_RESUBMISSION_ATTEMPTS: u32 = 3;
 
         // Start tracking latency
         let start_time = Instant::now();
 
-        // Step 1: Get initial task assignment (poll indefinitely if no leader available)
-        info!(
-            "📡 {} Getting task assignment for task #{}",
-            self.config.client.name, request_num
-        );
+        let mut resubmission_attempt = 0;
 
-        let (assigned_server_id, assigned_address, leader_id) = loop {
-            match self.broadcast_assignment_request(request_num).await {
-                Ok(assignment) => break assignment,
-                Err(e) => {
-                    warn!(
-                        "Assignment request failed for task #{}: {} - waiting for leader...",
-                        request_num, e
-                    );
-                    tokio::time::sleep(Duration::from_secs(POLL_INTERVAL_SECS)).await;
-                }
+        loop {
+            if resubmission_attempt > 0 {
+                warn!(
+                    "🔄 {} Task #{} resubmission attempt {}/{}",
+                    self.config.client.name,
+                    request_num,
+                    resubmission_attempt,
+                    MAX_RESUBMISSION_ATTEMPTS
+                );
             }
-        };
 
-        info!(
-            "✅ {} Task #{} assigned to Server {} by leader {}",
-            self.config.client.name, request_num, assigned_server_id, leader_id
-        );
+            // Step 1: Get task assignment (poll indefinitely if no leader available)
+            info!(
+                "📡 {} Getting task assignment for task #{}",
+                self.config.client.name, request_num
+            );
 
-        // Step 2: Execute task on assigned server (handles failover internally)
-        let result = self
-            .execute_task(
-                assigned_server_id,
-                assigned_address,
-                leader_id,
-                request_num,
-                image_name,
-            )
-            .await;
-
-        // Calculate total latency
-        let latency = start_time.elapsed();
-
-        // Record metrics if enabled
-        if let Some(metrics) = &self.metrics {
-            let success = result.is_ok();
-            let failure_reason = if let Err(ref e) = result {
-                Some(e.to_string())
-            } else {
-                None
+            let (assigned_server_id, assigned_address, leader_id) = loop {
+                match self.broadcast_assignment_request(request_num).await {
+                    Ok(assignment) => break assignment,
+                    Err(e) => {
+                        warn!(
+                            "Assignment request failed for task #{}: {} - waiting for leader...",
+                            request_num, e
+                        );
+                        tokio::time::sleep(Duration::from_secs(POLL_INTERVAL_SECS)).await;
+                    }
+                }
             };
 
-            let mut metrics = metrics.lock().unwrap();
-            metrics.record_request(
-                request_num,
-                latency,
-                success,
-                failure_reason,
-                Some(assigned_server_id),
+            info!(
+                "✅ {} Task #{} assigned to Server {} by leader {}",
+                self.config.client.name, request_num, assigned_server_id, leader_id
             );
-        }
 
-        match result {
-            Ok(()) => {
-                info!(
-                    "✅ {} Task #{} completed successfully",
-                    self.config.client.name, request_num
-                );
-                true
-            }
-            Err(e) => {
-                error!(
-                    "❌ {} Task #{} FAILED: {}",
-                    self.config.client.name, request_num, e
-                );
-                false
+            // Step 2: Execute task on assigned server (handles failover internally)
+            let result = self
+                .execute_task(
+                    assigned_server_id,
+                    assigned_address,
+                    leader_id,
+                    request_num,
+                    image_name.clone(),
+                )
+                .await;
+
+            match result {
+                Ok(()) => {
+                    // Calculate total latency
+                    let latency = start_time.elapsed();
+
+                    // Record metrics if enabled
+                    if let Some(metrics) = &self.metrics {
+                        let mut metrics = metrics.lock().unwrap();
+                        metrics.record_request(
+                            request_num,
+                            latency,
+                            true,
+                            None,
+                            Some(assigned_server_id),
+                        );
+                    }
+
+                    info!(
+                        "✅ {} Task #{} completed successfully{}",
+                        self.config.client.name,
+                        request_num,
+                        if resubmission_attempt > 0 {
+                            format!(" (after {} resubmission(s))", resubmission_attempt)
+                        } else {
+                            String::new()
+                        }
+                    );
+                    return true;
+                }
+                Err(e) => {
+                    // Check if this is a task loss error (eligible for resubmission)
+                    let error_msg = e.to_string();
+                    let is_task_lost = error_msg.contains("lost")
+                        || error_msg.contains("consecutive polling failures");
+
+                    if is_task_lost && resubmission_attempt < MAX_RESUBMISSION_ATTEMPTS {
+                        // Task was lost - try complete resubmission
+                        resubmission_attempt += 1;
+                        warn!(
+                            "🔄 {} Task #{} lost - attempting resubmission ({}/{})",
+                            self.config.client.name,
+                            request_num,
+                            resubmission_attempt,
+                            MAX_RESUBMISSION_ATTEMPTS
+                        );
+                        // Continue to next iteration to get fresh assignment
+                        continue;
+                    } else {
+                        // Either not a task loss error, or we've exhausted resubmission attempts
+                        let latency = start_time.elapsed();
+
+                        // Record metrics if enabled
+                        if let Some(metrics) = &self.metrics {
+                            let mut metrics = metrics.lock().unwrap();
+                            metrics.record_request(
+                                request_num,
+                                latency,
+                                false,
+                                Some(error_msg.clone()),
+                                Some(assigned_server_id),
+                            );
+                        }
+
+                        error!(
+                            "❌ {} Task #{} FAILED{}: {}",
+                            self.config.client.name,
+                            request_num,
+                            if resubmission_attempt > 0 {
+                                format!(" (after {} resubmission attempts)", resubmission_attempt)
+                            } else {
+                                String::new()
+                            },
+                            e
+                        );
+                        return false;
+                    }
+                }
             }
         }
     }
@@ -702,10 +775,10 @@ impl ClientMiddleware {
     /// This method:
     /// 1. Reads the image file from the uploads directory and caches it
     /// 2. Attempts to send task to assigned server
-    /// 3. If server fails (TCP disconnect), polls for reassignment **indefinitely**
-    /// 4. Polling: indefinite attempts, 2 seconds interval via broadcast to all servers
-    /// 5. Retries with new server - if that server also fails, polls again indefinitely
-    /// 6. Continues this cycle until the task succeeds
+    /// 3. If server fails (TCP disconnect), polls for reassignment
+    /// 4. Polling: up to MAX_CONSECUTIVE_FAILURES attempts, 10 seconds interval via broadcast to all servers
+    /// 5. Retries with new server - if that server also fails, polls again
+    /// 6. If all servers fail or lose task history, returns error to trigger complete resubmission
     ///
     /// # Arguments
     ///
@@ -718,21 +791,19 @@ impl ClientMiddleware {
     /// # Returns
     ///
     /// * `Ok(())` - If the task completed successfully (possibly after multiple reassignments)
-    /// * `Err(anyhow::Error)` - Only for non-connection errors (e.g., file not found, validation errors)
+    /// * `Err(anyhow::Error)` - If task is lost (all servers failed/lost history) or other fatal errors
     ///
     /// # Server Failover
     ///
     /// When the assigned server fails:
     /// 1. Client detects TCP connection break
-    /// 2. Client polls all servers (broadcast TaskStatusQuery every 2s, indefinitely)
-    /// 3. Leader has detected failure and reassigned the task
-    /// 4. Client receives new assignment and retries
-    /// 5. If the new server also fails, repeat from step 1
-    /// 6. Continues indefinitely until success
+    /// 2. Client polls all servers (broadcast TaskStatusQuery every 10s)
+    /// 3. If servers respond: Leader has detected failure and reassigned the task - retry with new server
+    /// 4. If no servers respond after 6 consecutive failures: Task history is lost - return error for resubmission
     ///
     /// # File Locations
     ///
-    /// - **Input**: `user-data/uploads/{image_name}` (secret image to hide)
+    /// - **Input**: `{image_dir}/{image_name}` (secret image to hide)
     /// - **Output**: Carrier image with embedded secret (returned by server)
     async fn execute_task(
         &self,
@@ -763,16 +834,6 @@ impl ClientMiddleware {
                     return Ok(());
                 }
                 Err(e) => {
-                    // Check if it's a connection error (server failure)
-                    // let error_str = e.to_string();
-                    // let is_connection_error = error_str.contains("Connection")
-                    //     || error_str.contains("connection")
-                    //     || error_str.contains("refused")
-                    //     || error_str.contains("timeout")
-                    //     || error_str.contains("broken pipe")
-                    //     || error_str.contains("early eof");
-
-                    // if is_connection_error {
                     warn!(
                         "⚠️  {} Server failure detected for task #{} at {}: {}",
                         self.config.client.name, request_num, assigned_address, e
@@ -781,24 +842,31 @@ impl ClientMiddleware {
                     // Store the failed address
                     let failed_address = assigned_address.clone();
 
-                    // Poll indefinitely until we get a valid assignment
-                    // (prefer different server, but retry same server after 10 polls in case it recovered)
-                    let (new_server_id, new_address) = self
+                    // Poll for reassignment until we get a valid assignment or determine task is lost
+                    match self
                         .wait_for_reassignment(request_num, &failed_address)
-                        .await?;
-
-                    info!(
-                        "✅ {} Received assignment for task #{}: Server {} at {}",
-                        self.config.client.name, request_num, new_server_id, new_address
-                    );
-                    assigned_address = new_address;
-                    leader_id = new_server_id;
-                    // Continue loop to retry with assigned server
-                    // }
-                    // else {
-                    //     // Non-connection error (e.g., validation error, disk error, etc.)
-                    //     return Err(e);
-                    // }
+                        .await
+                    {
+                        Ok((new_server_id, new_address)) => {
+                            // Got a new assignment - retry with this server
+                            info!(
+                                "✅ {} Received assignment for task #{}: Server {} at {}",
+                                self.config.client.name, request_num, new_server_id, new_address
+                            );
+                            assigned_address = new_address;
+                            leader_id = new_server_id;
+                            // Continue loop to retry with new server
+                        }
+                        Err(reassignment_error) => {
+                            // Task appears to be lost - all servers failed or lost task history
+                            // Return error to trigger complete resubmission from send_request
+                            warn!(
+                                "🔄 {} Task #{} lost during reassignment: {}",
+                                self.config.client.name, request_num, reassignment_error
+                            );
+                            return Err(reassignment_error);
+                        }
+                    }
                 }
             }
         }

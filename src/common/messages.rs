@@ -214,6 +214,28 @@ pub enum Message {
         client_name: String,
         request_id: u64,
     },
+
+    /// **History Sync Request**
+    ///
+    /// Sent by a newly elected leader to all peers to request their task history.
+    /// Used to build a complete view of all active tasks across the cluster.
+    ///
+    /// # Fields
+    /// - `from_server_id`: ID of the server requesting history (the new leader)
+    HistorySyncRequest { from_server_id: u32 },
+
+    /// **History Sync Response**
+    ///
+    /// Response to HistorySyncRequest containing all task history entries from a peer.
+    /// The new leader merges these responses to build complete cluster state.
+    ///
+    /// # Fields
+    /// - `from_server_id`: ID of the server responding
+    /// - `history_entries`: List of (client_name, request_id, assigned_server_id, timestamp) tuples
+    HistorySyncResponse {
+        from_server_id: u32,
+        history_entries: Vec<(String, u64, u32, u64)>,
+    },
 }
 
 impl Message {

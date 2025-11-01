@@ -1,7 +1,7 @@
 {
     "total_clients": 10,
-    "avg_latency": 1546.796,
-    "p95_latency": 1656.12,
+    "avg_latency": 72948.454,
+    "p95_latency": 73623.12,
     "failure_rate": 0.0,
     "success_rate": 1.0
 }
