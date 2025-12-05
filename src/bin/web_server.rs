@@ -201,6 +201,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/respond-request", post(respond_request_handler))
         .route("/api/requested-images", get(requested_images_handler))
         .route("/api/health", get(health_check))
+        .nest_service("/test_images", ServeDir::new("test_images"))
         .nest_service("/", ServeDir::new("frontend/build"))
         .layer(CorsLayer::permissive())
         .with_state(state);

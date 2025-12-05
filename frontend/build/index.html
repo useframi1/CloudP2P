@@ -506,7 +506,11 @@
             <!-- Encrypt Image Tab -->
             <div class="tab-content active" id="encrypt-tab">
                 <h2>Encrypt My Images</h2>
-                <p style="margin-bottom: 20px;">Select an image from your library to encrypt:</p>
+                <p style="margin-bottom: 20px; color: #666;">
+                    ⚠️ <strong>Note:</strong> These images are already encrypted carrier images from your library.
+                    When you click "Encrypt", the system will embed THIS image as a secret inside a NEW carrier image.
+                    To decrypt and see the original hidden content, click "Decrypt" after encryption.
+                </p>
                 <div id="my-images-for-encrypt" class="image-grid"></div>
                 <div id="encrypt-select-message"></div>
 
@@ -581,7 +585,8 @@
             <!-- Requested Images Tab -->
             <div class="tab-content" id="requested-tab">
                 <h2>My Requested Images</h2>
-                <button class="btn-primary" onclick="loadRequestedImages()" style="margin-bottom: 20px;">🔄 Refresh</button>
+                <button class="btn-primary" onclick="loadRequestedImages()" style="margin-bottom: 20px;">🔄
+                    Refresh</button>
                 <div id="requested-loading" style="display: none;" class="loading">
                     <div class="spinner"></div>
                     <p>Loading requested images...</p>
@@ -611,7 +616,8 @@
                 </div>
                 <div class="form-group">
                     <label>Client IDs with Access and View Limits</label>
-                    <p style="font-size: 0.9em; color: #666;">Format: client_id:view_limit, separated by commas. Example: client2:5, client3:10</p>
+                    <p style="font-size: 0.9em; color: #666;">Format: client_id:view_limit, separated by commas.
+                        Example: client2:5, client3:10</p>
                     <input type="text" id="access-client-ids" placeholder="client2:5, client3:10">
                 </div>
                 <button class="btn-primary" onclick="updateAccessRights()">Update Access Rights</button>
@@ -760,7 +766,7 @@
         // Auto-refresh every 5 seconds
         function startAutoRefresh() {
             if (refreshInterval) return;
-            refreshInterval = setInterval(function() {
+            refreshInterval = setInterval(function () {
                 loadMyImages();
                 loadMyImagesForEncrypt();
                 loadPendingRequests();
@@ -832,14 +838,28 @@
         }
 
         function selectImageForEncrypt(imagePath, imageName) {
+            console.log('📝 Selecting new image for encryption:', imageName);
+
+            // Clear previous encryption state
             selectedImagePath = imagePath;
             selectedImageName = imageName;
+            carrierImageBase64 = null;
+            decryptedImageUrl = null;
+
+            console.log('🗑️ Cleared previous carrier image data');
+
+            // Hide all result sections
+            document.getElementById('encrypted-result').style.display = 'none';
+            document.getElementById('decrypted-result').style.display = 'none';
+            document.getElementById('encrypt-loading').style.display = 'none';
 
             // Load image and show preview
             document.getElementById('preview-img').src = imagePath;
             document.getElementById('preview-filename').textContent = imageName;
             document.getElementById('my-images-for-encrypt').style.display = 'none';
             document.getElementById('image-preview').style.display = 'block';
+
+            console.log('✅ Ready to encrypt. Click the 🔒 Encrypt button.');
         }
 
         function resetEncryptSelection() {
@@ -853,35 +873,61 @@
         }
 
         function encryptSelectedImage() {
-            if (!selectedImagePath) return;
+            if (!selectedImagePath) {
+                console.error('❌ No image selected');
+                return;
+            }
+
+            console.log('🔒 Starting encryption process...');
+            console.log('📁 Image path:', selectedImagePath);
+            console.log('📝 Image name:', selectedImageName);
 
             document.getElementById('image-preview').style.display = 'none';
             document.getElementById('encrypt-loading').style.display = 'block';
 
             // Read the image file from path and send to server
             fetch(selectedImagePath)
-                .then(function(response) { return response.blob(); })
-                .then(function(blob) {
+                .then(function (response) {
+                    console.log('📥 Fetched image, status:', response.status);
+                    if (!response.ok) {
+                        throw new Error('Failed to load image: ' + response.status);
+                    }
+                    return response.blob();
+                })
+                .then(function (blob) {
+                    console.log('📦 Got blob, size:', blob.size, 'bytes');
                     var formData = new FormData();
                     formData.append('image', blob, selectedImageName);
+
+                    console.log('📤 Sending to server for encryption...');
 
                     return fetch(API_BASE + '/encrypt', {
                         method: 'POST',
                         body: formData
                     });
                 })
-                .then(function (response) { return response.json(); })
+                .then(function (response) {
+                    console.log('📨 Server response status:', response.status);
+                    return response.json();
+                })
                 .then(function (data) {
+                    console.log('📋 Server response:', data);
                     if (data.success && data.carrier_image_base64) {
                         carrierImageBase64 = data.carrier_image_base64;
+                        console.log('✅ Encryption successful!');
+                        console.log('📊 Carrier image base64 length:', carrierImageBase64.length);
+                        console.log('🎯 Now you can click "🔓 Decrypt" to extract the original image');
+
                         document.getElementById('encrypted-img').src = 'data:image/png;base64,' + carrierImageBase64;
                         document.getElementById('encrypt-loading').style.display = 'none';
                         document.getElementById('encrypted-result').style.display = 'block';
                     } else {
+                        console.error('❌ Encryption failed:', data.error);
                         throw new Error(data.error || 'Encryption failed');
                     }
                 })
                 .catch(function (error) {
+                    console.error('❌ Encryption error:', error);
                     document.getElementById('encrypt-loading').style.display = 'none';
                     showMessage('encrypt-select-message', error.message, 'error');
                     document.getElementById('my-images-for-encrypt').style.display = 'grid';
@@ -889,40 +935,63 @@
         }
 
         function decryptImage() {
-            if (!carrierImageBase64) return;
+            if (!carrierImageBase64) {
+                showMessage('encrypt-select-message', '⚠️ Please encrypt an image first before trying to decrypt!', 'error');
+                return;
+            }
+
+            console.log('🔓 Starting decryption process...');
+            console.log('📊 Carrier base64 length:', carrierImageBase64.length);
 
             document.getElementById('encrypted-result').style.display = 'none';
             document.getElementById('encrypt-loading').style.display = 'block';
             document.getElementById('encrypt-loading').querySelector('p').textContent = 'Extracting secret...';
 
             var byteChars = atob(carrierImageBase64);
+            console.log('📦 Decoded bytes length:', byteChars.length);
+
             var byteNums = new Array(byteChars.length);
             for (var i = 0; i < byteChars.length; i++) {
                 byteNums[i] = byteChars.charCodeAt(i);
             }
             var carrierBlob = new Blob([new Uint8Array(byteNums)], { type: 'image/png' });
             var carrierUrl = URL.createObjectURL(carrierBlob);
+            console.log('🖼️  Created blob URL for carrier image');
 
             loadImage(carrierUrl)
                 .then(function (img) {
+                    console.log('✅ Image loaded successfully');
+                    console.log('📐 Image dimensions:', img.width, 'x', img.height);
+
                     var canvas = document.createElement('canvas');
                     canvas.width = img.width;
                     canvas.height = img.height;
                     var ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0);
+                    console.log('🎨 Drew image on canvas');
 
                     var pixels = ctx.getImageData(0, 0, img.width, img.height);
+                    console.log('🔢 Total pixels:', pixels.data.length / 4);
+                    console.log('📊 Pixel data length:', pixels.data.length);
+                    console.log('🔍 First 20 pixel values:', Array.from(pixels.data.slice(0, 20)));
+
                     var extractedData = extractLSB(pixels.data);
 
                     URL.revokeObjectURL(carrierUrl);
 
                     if (extractedData) {
+                        console.log('✅ Data extracted successfully!');
+                        console.log('📦 Extracted data length:', extractedData.length);
+                        console.log('🔍 First 20 bytes:', Array.from(extractedData.slice(0, 20)));
+
                         var blob = new Blob([extractedData], { type: 'image/jpeg' });
                         decryptedImageUrl = URL.createObjectURL(blob);
                         document.getElementById('decrypted-img').src = decryptedImageUrl;
                         document.getElementById('encrypt-loading').style.display = 'none';
                         document.getElementById('decrypted-result').style.display = 'block';
+                        showMessage('encrypt-select-message', '✅ Successfully extracted your original image!', 'success');
                     } else {
+                        console.error('❌ extractLSB returned null');
                         throw new Error('No hidden data found');
                     }
                 })
@@ -935,24 +1004,52 @@
 
         function extractLSB(pixelData) {
             try {
+                console.log('🔍 Starting LSB extraction...');
+                console.log('📊 Pixel data length:', pixelData.length);
+
+                // Extract length bits (first 32 bits from LSB)
                 var lengthBits = [];
                 for (var i = 0; i < pixelData.length && lengthBits.length < 32; i += 4) {
                     for (var c = 0; c < 3 && lengthBits.length < 32; c++) {
                         lengthBits.push(pixelData[i + c] & 1);
                     }
                 }
+                console.log('📏 Extracted length bits:', lengthBits.join(''));
 
+                // Decode length from bits
                 var length = 0;
                 for (var i = 0; i < 32; i++) {
                     length = (length << 1) | lengthBits[i];
                 }
+                console.log('📦 Decoded hidden data length:', length, 'bytes');
 
-                if (length <= 0 || length > 10000000) throw new Error('Invalid data');
+                // Validate length
+                if (length <= 0) {
+                    console.error('❌ Invalid length: length is zero or negative');
+                    throw new Error('Invalid data: length is ' + length);
+                }
+                if (length > 10000000) {
+                    console.error('❌ Invalid length: too large (' + length + ' bytes)');
+                    throw new Error('Invalid data: length too large (' + length + ' bytes)');
+                }
 
+                // Calculate required pixels
+                var bitsNeeded = 32 + (length * 8);
+                var pixelsNeeded = Math.ceil(bitsNeeded / 3);
+                console.log('🎯 Bits needed:', bitsNeeded, '| Pixels needed:', pixelsNeeded);
+                console.log('🎯 Pixels available:', pixelData.length / 4);
+
+                if (pixelsNeeded > pixelData.length / 4) {
+                    console.error('❌ Not enough pixels! Need', pixelsNeeded, 'but have', pixelData.length / 4);
+                    throw new Error('Not enough pixel data');
+                }
+
+                // Skip the length bits and start extracting data
                 var dataBits = [];
                 var pixelIndex = 0;
                 var channelIndex = 0;
 
+                // Skip the first 32 bits (length header)
                 for (var i = 0; i < 32; i++) {
                     channelIndex++;
                     if (channelIndex >= 3) {
@@ -960,16 +1057,22 @@
                         pixelIndex += 4;
                     }
                 }
+                console.log('⏭️  Skipped length header, starting data extraction at pixel', pixelIndex / 4);
 
+                // Extract data bits
+                var extractedBits = 0;
                 while (dataBits.length < length * 8 && pixelIndex < pixelData.length) {
                     dataBits.push(pixelData[pixelIndex + channelIndex] & 1);
+                    extractedBits++;
                     channelIndex++;
                     if (channelIndex >= 3) {
                         channelIndex = 0;
                         pixelIndex += 4;
                     }
                 }
+                console.log('📊 Extracted', extractedBits, 'data bits');
 
+                // Convert bits to bytes
                 var dataBytes = new Uint8Array(length);
                 for (var i = 0; i < length; i++) {
                     var byte = 0;
@@ -978,10 +1081,14 @@
                     }
                     dataBytes[i] = byte;
                 }
+                console.log('✅ Converted to', dataBytes.length, 'bytes');
+                console.log('🔍 First 10 bytes:', Array.from(dataBytes.slice(0, 10)));
+                console.log('🔍 Last 10 bytes:', Array.from(dataBytes.slice(-10)));
 
                 return dataBytes;
             } catch (error) {
-                console.error('Extraction error:', error);
+                console.error('❌ Extraction error:', error.message);
+                console.error('📋 Full error:', error);
                 return null;
             }
         }
