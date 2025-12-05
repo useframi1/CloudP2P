@@ -33,11 +33,11 @@ impl DosClient {
 
     // ========== CLIENT MANAGEMENT ==========
 
-    pub async fn sign_up(&mut self, ip_address: String) -> Result<String> {
+    pub async fn sign_up(&mut self, client_id: String, ip_address: String) -> Result<String> {
         let mut conn = self.connect().await?;
 
         let message = Message::ClientSignUp {
-            client_name: self.client_name.clone(),
+            client_name: client_id.clone(),
             ip_address,
         };
 

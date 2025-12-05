@@ -98,6 +98,57 @@ struct AppState {
     client: Arc<Mutex<ClientMiddleware>>,
     dos_client: Arc<Mutex<DosClient>>,
     current_user: Arc<Mutex<Option<String>>>,
+    image_dir: String,
+}
+
+async fn register_local_images(dos_client: &DosClient, _client_id: &str, image_dir: &str) -> anyhow::Result<()> {
+    let path = std::path::Path::new(image_dir);
+    if !path.exists() {
+        info!("Image directory {} does not exist, skipping auto-registration", image_dir);
+        return Ok(());
+    }
+
+    let entries = match std::fs::read_dir(path) {
+        Ok(e) => e,
+        Err(_) => return Ok(()),
+    };
+
+    for entry in entries {
+        let entry = match entry {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
+        let path = entry.path();
+
+        if path.is_file() {
+            if let Some(extension) = path.extension() {
+                let ext = extension.to_string_lossy().to_lowercase();
+                if ext == "jpg" || ext == "jpeg" || ext == "png" {
+                    let filename = path
+                        .file_name()
+                        .unwrap()
+                        .to_string_lossy()
+                        .to_string();
+
+                    let image_id = filename.replace(".", "_");
+
+                    let image_info = ImageInfo {
+                        image_id: image_id.clone(),
+                        name: filename.clone(),
+                        access_rights: vec![],
+                        encrypted_path: path.to_string_lossy().to_string(),
+                    };
+
+                    match dos_client.register_image(image_info).await {
+                        Ok(_) => info!("Auto-registered image: {}", filename),
+                        Err(e) => error!("Failed to register {}: {}", filename, e),
+                    }
+                }
+            }
+        }
+    }
+
+    Ok(())
 }
 
 #[tokio::main]
@@ -127,6 +178,7 @@ async fn main() -> anyhow::Result<()> {
         client: Arc::new(Mutex::new(client)),
         dos_client: Arc::new(Mutex::new(dos_client)),
         current_user: Arc::new(Mutex::new(args.client_id)),
+        image_dir: config.client.image_dir.clone(),
     });
 
     // Build router
@@ -185,15 +237,46 @@ async fn signup_handler(
 
     let mut dos_client = state.dos_client.lock().await;
 
-    // Check if client already exists
-    match dos_client.sign_in(payload.client_id.clone(), ip_address.clone()).await {
-        Ok(_) => {
-            // Client exists, return error
-            return Err((
+    // Use the client_id provided by the user
+    match dos_client.sign_up(payload.client_id.clone(), ip_address).await {
+        Ok(client_id) => {
+            *state.current_user.lock().await = Some(client_id.clone());
+            info!("Sign up successful: {}", client_id);
+
+            // Auto-register images from local folder
+            let image_dir = state.image_dir.clone();
+            if let Err(e) = register_local_images(&*dos_client, &client_id, &image_dir).await {
+                error!("Failed to auto-register images: {}", e);
+            }
+
+            Ok((
+                StatusCode::OK,
+                Json(ApiResponse {
+                    success: true,
+                    message: Some("Sign up successful".to_string()),
+                    client_id: Some(client_id),
+                    error: None,
+                    carrier_image_base64: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+        Err(e) => {
+            error!("Sign up failed: {}", e);
+            let error_msg = if e.to_string().contains("already exists") {
+                "Client ID already exists. Please sign in instead.".to_string()
+            } else {
+                format!("Sign up failed: {}", e)
+            };
+            Err((
                 StatusCode::BAD_REQUEST,
                 Json(ApiResponse {
                     success: false,
-                    error: Some("Client ID already exists. Please sign in instead.".to_string()),
+                    error: Some(error_msg),
                     message: None,
                     carrier_image_base64: None,
                     client_id: None,
@@ -203,49 +286,7 @@ async fn signup_handler(
                     images: None,
                     requests: None,
                 }),
-            ));
-        }
-        Err(_) => {
-            // Client doesn't exist, proceed with sign up
-            match dos_client.sign_up(ip_address).await {
-                Ok(client_id) => {
-                    *state.current_user.lock().await = Some(client_id.clone());
-                    info!("Sign up successful: {}", client_id);
-                    Ok((
-                        StatusCode::OK,
-                        Json(ApiResponse {
-                            success: true,
-                            message: Some("Sign up successful".to_string()),
-                            client_id: Some(client_id),
-                            error: None,
-                            carrier_image_base64: None,
-                            notifications: None,
-                            request_id: None,
-                            peers: None,
-                            images: None,
-                            requests: None,
-                        }),
-                    ))
-                }
-                Err(e) => {
-                    error!("Sign up failed: {}", e);
-                    Err((
-                        StatusCode::INTERNAL_SERVER_ERROR,
-                        Json(ApiResponse {
-                            success: false,
-                            error: Some(format!("Sign up failed: {}", e)),
-                            message: None,
-                            carrier_image_base64: None,
-                            client_id: None,
-                            notifications: None,
-                            request_id: None,
-                            peers: None,
-                            images: None,
-                            requests: None,
-                        }),
-                    ))
-                }
-            }
+            ))
         }
     }
 }
@@ -271,6 +312,14 @@ async fn signin_handler(
                 payload.client_id,
                 notifications.len()
             );
+
+            // Auto-register images from local folder
+            let image_dir = state.image_dir.clone();
+            let client_id = payload.client_id.clone();
+            if let Err(e) = register_local_images(&*dos_client, &client_id, &image_dir).await {
+                error!("Failed to auto-register images: {}", e);
+            }
+
             Ok((
                 StatusCode::OK,
                 Json(ApiResponse {
@@ -289,11 +338,16 @@ async fn signin_handler(
         }
         Err(e) => {
             error!("Sign in failed: {}", e);
+            let error_msg = if e.to_string().contains("Client not found") {
+                "Client ID not found. Please sign up first.".to_string()
+            } else {
+                format!("Sign in failed: {}", e)
+            };
             Err((
                 StatusCode::UNAUTHORIZED,
                 Json(ApiResponse {
                     success: false,
-                    error: Some(format!("Sign in failed: {}", e)),
+                    error: Some(error_msg),
                     message: None,
                     carrier_image_base64: None,
                     client_id: None,

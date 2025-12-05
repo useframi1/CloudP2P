@@ -35,13 +35,15 @@ impl DoSService {
 
     // ========== CLIENT MANAGEMENT ==========
 
-    pub async fn sign_up_client(&self, client_name: String, ip_address: String) -> Result<String> {
-        let next_id = self.firebase.get_next_client_id().await?;
-        let client_id = format!("client_{}", next_id);
+    pub async fn sign_up_client(&self, client_id: String, ip_address: String) -> Result<String> {
+        // Check if client_id already exists
+        if self.firebase.get_client(&client_id).await?.is_some() {
+            anyhow::bail!("Client ID already exists");
+        }
 
         let client_info = DosClientInfo {
             client_id: client_id.clone(),
-            client_name,
+            client_name: client_id.clone(),
             status: ClientStatus::Online,
             ip_address,
             last_seen: Self::current_timestamp(),
