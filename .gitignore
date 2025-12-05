@@ -3,3 +3,5 @@
 /logs
 *.log
 *.pid
+/.env
+/firebase-credentials.json

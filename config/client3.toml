@@ -5,7 +5,10 @@ server_addresses = [
     "127.0.0.1:8002",
     "127.0.0.1:8003"
 ]
+image_dir = "test_images/client3"
+dos_address = "127.0.0.1:9000"
 
 [requests]
-rate_per_second = 0.1
-duration_seconds = 30.0
+total_requests = 10
+min_delay_ms = 100
+max_delay_ms = 500

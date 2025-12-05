@@ -16,10 +16,12 @@
 //! - Connection management
 
 pub mod client;
+pub mod dos_client;
 pub mod middleware;
 pub mod metrics;
 
 // Re-export for convenience
 pub use middleware::ClientMiddleware;
 pub use client::ClientCore;
+pub use dos_client::DosClient;
 pub use metrics::ClientMetrics;

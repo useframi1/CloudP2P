@@ -9,6 +9,38 @@
 //! Messages are serialized to JSON and sent over TCP with a 4-byte length prefix.
 
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+// ============================================================================
+// DoS DATA STRUCTURES
+// ============================================================================
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum ClientStatus {
+    Online,
+    Offline,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ClientInfo {
+    pub client_id: String,
+    #[serde(default)]
+    pub client_name: String,
+    pub status: ClientStatus,
+    pub ip_address: String,
+    pub last_seen: u64,
+    #[serde(default)]
+    pub images: HashMap<String, ImageInfo>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImageInfo {
+    pub image_id: String,
+    pub name: String,
+    #[serde(default)]
+    pub access_rights: Vec<String>,
+    pub encrypted_path: String,
+}
 
 // ============================================================================
 // MESSAGE TYPES - Protocol for Modified Bully Election and Task Distribution
@@ -236,6 +268,58 @@ pub enum Message {
         from_server_id: u32,
         history_entries: Vec<(String, u64, u32, u64)>,
     },
+
+    // ========== DoS MESSAGES ==========
+    ClientSignUp {
+        client_name: String,
+        ip_address: String,
+    },
+    ClientSignUpResponse {
+        client_id: String,
+    },
+    ClientSignIn {
+        client_id: String,
+        ip_address: String,
+    },
+    ClientSignInResponse {
+        notifications: Vec<serde_json::Value>,
+    },
+    ClientSignOut {
+        client_id: String,
+    },
+    ListOnlineClients,
+    OnlineClientsList {
+        clients: Vec<ClientInfo>,
+    },
+    RegisterImage {
+        client_id: String,
+        image: ImageInfo,
+    },
+    ImageAccessRequest {
+        request_id: String,
+        requester_id: String,
+        owner_id: String,
+        image_id: String,
+    },
+    ImageAccessResponse {
+        request_id: String,
+        approved: bool,
+    },
+    UpdateAccessRights {
+        client_id: String,
+        image_id: String,
+        access_list: Vec<String>,
+    },
+    ReportPeerFailure {
+        failed_client_id: String,
+    },
+    GetPendingRequests {
+        owner_id: String,
+    },
+    PendingRequestsList {
+        requests: Vec<serde_json::Value>,
+    },
+    Ack,
 }
 
 impl Message {

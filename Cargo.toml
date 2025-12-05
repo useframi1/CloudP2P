@@ -15,6 +15,10 @@ path = "src/bin/client.rs"
 name = "web_server"
 path = "src/bin/web_server.rs"
 
+[[bin]]
+name = "dos_server"
+path = "src/bin/dos_server.rs"
+
 [dependencies]
 tokio = { version = "1.35", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -33,6 +37,7 @@ sysinfo = "0.32"
 axum = { version = "0.7", features = ["multipart"] }
 tower-http = { version = "0.5", features = ["cors", "fs"] }
 base64 = "0.22"
+reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false }
 
 [dev-dependencies]
 tempfile = "3.8"

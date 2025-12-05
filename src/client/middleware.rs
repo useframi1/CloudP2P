@@ -95,10 +95,17 @@ pub struct ClientInfo {
     /// Directory containing images to randomly select from (default: "test_images")
     #[serde(default = "default_image_dir")]
     pub image_dir: String,
+    /// Directory of Services (DoS) address
+    #[serde(default = "default_dos_address")]
+    pub dos_address: String,
 }
 
 fn default_image_dir() -> String {
     "test_images".to_string()
+}
+
+fn default_dos_address() -> String {
+    "127.0.0.1:9000".to_string()
 }
 
 /// Request configuration for stress testing.

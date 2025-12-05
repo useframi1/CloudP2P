@@ -1,0 +1,9 @@
+# Directory of Services (DoS) Configuration
+
+[dos]
+# DoS server bind address
+address = "10.40.39.41:9000"
+
+# Firebase Realtime Database URL
+# Can also be set via FIREBASE_DATABASE_URL environment variable
+firebase_url = "https://distributed-p2p-default-rtdb.europe-west1.firebasedatabase.app/"

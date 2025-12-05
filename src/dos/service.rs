@@ -1,0 +1,150 @@
+//! DoS Service - Business logic for Directory of Services
+
+use super::firebase::FirebaseClient;
+use crate::common::messages::{ClientInfo as DosClientInfo, ClientStatus, ImageInfo};
+use anyhow::{Context, Result};
+use log::info;
+use std::collections::HashMap;
+use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
+use tokio::sync::RwLock;
+
+pub struct DoSService {
+    firebase: Arc<FirebaseClient>,
+}
+
+impl DoSService {
+    pub async fn new(firebase_url: String) -> Result<Self> {
+        let firebase = Arc::new(FirebaseClient::new(firebase_url));
+
+        // Load existing clients to verify connection
+        let clients = firebase.get_all_clients().await
+            .context("Failed to load clients from Firebase")?;
+
+        info!("Loaded {} online clients from Firebase", clients.len());
+
+        Ok(Self { firebase })
+    }
+
+    fn current_timestamp() -> u64 {
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+    }
+
+    // ========== CLIENT MANAGEMENT ==========
+
+    pub async fn sign_up_client(&self, client_name: String, ip_address: String) -> Result<String> {
+        let next_id = self.firebase.get_next_client_id().await?;
+        let client_id = format!("client_{}", next_id);
+
+        let client_info = DosClientInfo {
+            client_id: client_id.clone(),
+            client_name,
+            status: ClientStatus::Online,
+            ip_address,
+            last_seen: Self::current_timestamp(),
+            images: HashMap::new(),
+        };
+
+        self.firebase.store_client(&client_id, &client_info).await?;
+
+        info!("Client signed up: {}", client_id);
+        Ok(client_id)
+    }
+
+    pub async fn sign_in_client(&self, client_id: String, ip_address: String) -> Result<Vec<serde_json::Value>> {
+        // Verify client exists
+        let client = self.firebase.get_client(&client_id).await?
+            .ok_or_else(|| anyhow::anyhow!("Client not found"))?;
+
+        // Update status to online
+        self.firebase.update_client_status(&client_id, ClientStatus::Online).await?;
+
+        // Get offline notifications
+        let notifications = self.firebase.get_and_clear_notifications(&client_id).await?;
+
+        info!("Client signed in: {} ({} notifications)", client_id, notifications.len());
+        Ok(notifications)
+    }
+
+    pub async fn sign_out_client(&self, client_id: String) -> Result<()> {
+        self.firebase.update_client_status(&client_id, ClientStatus::Offline).await?;
+        info!("Client signed out: {}", client_id);
+        Ok(())
+    }
+
+    pub async fn list_online_clients(&self) -> Result<Vec<DosClientInfo>> {
+        let all_clients = self.firebase.get_all_clients().await?;
+        let online: Vec<DosClientInfo> = all_clients
+            .into_values()
+            .filter(|c| matches!(c.status, ClientStatus::Online))
+            .collect();
+        Ok(online)
+    }
+
+    // ========== IMAGE MANAGEMENT ==========
+
+    pub async fn register_image(&self, client_id: String, image: ImageInfo) -> Result<()> {
+        self.firebase.store_image(&client_id, &image).await?;
+        info!("Image registered: {} for client {}", image.image_id, client_id);
+        Ok(())
+    }
+
+    pub async fn request_image_access(&self, requester_id: String, owner_id: String, image_id: String) -> Result<String> {
+        let req_num = self.firebase.get_next_request_id().await?;
+        let request_id = format!("req_{}_{}", req_num, requester_id);
+
+        let request_data = serde_json::json!({
+            "request_id": request_id,
+            "requester_id": requester_id,
+            "owner_id": owner_id,
+            "image_id": image_id,
+            "timestamp": Self::current_timestamp()
+        });
+
+        // Check if owner is online
+        if let Ok(Some(owner)) = self.firebase.get_client(&owner_id).await {
+            if matches!(owner.status, ClientStatus::Offline) {
+                // Store as pending request
+                self.firebase.store_pending_request(&request_id, &request_data).await?;
+            }
+        }
+
+        info!("Access request created: {}", request_id);
+        Ok(request_id)
+    }
+
+    pub async fn get_pending_requests(&self, owner_id: String) -> Result<Vec<serde_json::Value>> {
+        self.firebase.get_pending_requests(&owner_id).await
+    }
+
+    pub async fn respond_to_access_request(&self, request_id: String, approved: bool) -> Result<()> {
+        if approved {
+            info!("Access request {} approved", request_id);
+        } else {
+            info!("Access request {} denied", request_id);
+        }
+
+        self.firebase.delete_pending_request(&request_id).await?;
+        Ok(())
+    }
+
+    pub async fn update_access_rights(&self, client_id: String, image_id: String, access_list: Vec<String>) -> Result<()> {
+        // Get client and update image access rights
+        if let Some(mut client) = self.firebase.get_client(&client_id).await? {
+            if let Some(image) = client.images.get_mut(&image_id) {
+                image.access_rights = access_list;
+                self.firebase.store_image(&client_id, image).await?;
+            }
+        }
+        Ok(())
+    }
+
+    pub async fn report_peer_failure(&self, failed_client_id: String) -> Result<()> {
+        self.firebase.update_client_status(&failed_client_id, ClientStatus::Offline).await?;
+        info!("Client marked as failed: {}", failed_client_id);
+        Ok(())
+    }
+}

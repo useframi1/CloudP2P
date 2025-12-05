@@ -8,7 +8,7 @@
 //!
 //! ## Architecture
 //!
-//! The system consists of three main components:
+//! The system consists of four main components:
 //!
 //! 1. **Server Core**: Handles image encryption/decryption using steganography
 //! 2. **Server Middleware**: Manages leader election, heartbeats, peer coordination,
@@ -16,6 +16,8 @@
 //! 3. **Client Core**: Sends images and receives encrypted results
 //! 4. **Client Middleware**: Handles leader discovery, request broadcasting, retry logic,
 //!    and failover
+//! 5. **Directory of Services (DoS)**: Manages client registration, status tracking,
+//!    image access control, and P2P coordination
 //!
 //! ## Modules
 //!
@@ -23,14 +25,17 @@
 //! - [`server`]: Server implementation (core + middleware)
 //! - [`client`]: Client implementation (core + middleware)
 //! - [`processing`]: Image processing and steganography algorithms
+//! - [`dos`]: Directory of Services for client management
 
 // Public modules
 pub mod client;
 pub mod common;
+pub mod dos;
 pub mod processing;
 pub mod server;
 
 // Re-export commonly used types for convenience
 pub use client::middleware::ClientMiddleware;
+pub use client::ClientCore;
 pub use common::messages::Message;
 pub use server::middleware::ServerMiddleware;
