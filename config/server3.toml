@@ -1,12 +1,12 @@
 [server]
 id = 3
-address = "10.40.39.41:8002"
+address = "127.0.0.1:8003"
 cover_image = "test_images/cover_image.jpg"
 
 [peers]
 peers = [
-    { id = 1, address = "10.40.39.41:8001" },
-    { id = 2, address = "10.40.38.47:8001" }
+    { id = 1, address = "127.0.0.1:8001" },
+    { id = 2, address = "127.0.0.1:8002" }
 ]
 
 [election]
