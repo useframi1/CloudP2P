@@ -34,11 +34,17 @@ pub struct ClientInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AccessRight {
+    pub view_limit: u32,
+    pub view_count: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ImageInfo {
     pub image_id: String,
     pub name: String,
     #[serde(default)]
-    pub access_rights: Vec<String>,
+    pub access_rights: HashMap<String, AccessRight>,
     pub encrypted_path: String,
 }
 
@@ -308,7 +314,7 @@ pub enum Message {
     UpdateAccessRights {
         client_id: String,
         image_id: String,
-        access_list: Vec<String>,
+        access_rights: HashMap<String, AccessRight>,
     },
     ReportPeerFailure {
         failed_client_id: String,

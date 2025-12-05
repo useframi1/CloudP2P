@@ -20,7 +20,7 @@ use tower_http::services::ServeDir;
 use cloud_p2p::client::client::ClientCore;
 use cloud_p2p::client::dos_client::DosClient;
 use cloud_p2p::client::middleware::{ClientConfig, ClientMiddleware};
-use cloud_p2p::common::messages::ImageInfo;
+use cloud_p2p::common::messages::{AccessRight, ImageInfo};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -83,9 +83,15 @@ struct RequestAccessRequest {
 }
 
 #[derive(Deserialize)]
+struct AccessRightEntry {
+    client_id: String,
+    view_limit: u32,
+}
+
+#[derive(Deserialize)]
 struct UpdateAccessRequest {
     image_id: String,
-    access_list: Vec<String>,
+    access_list: Vec<AccessRightEntry>,
 }
 
 #[derive(Deserialize)]
@@ -135,7 +141,7 @@ async fn register_local_images(dos_client: &DosClient, _client_id: &str, image_d
                     let image_info = ImageInfo {
                         image_id: image_id.clone(),
                         name: filename.clone(),
-                        access_rights: vec![],
+                        access_rights: std::collections::HashMap::new(),
                         encrypted_path: path.to_string_lossy().to_string(),
                     };
 
@@ -193,6 +199,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/update-access", post(update_access_handler))
         .route("/api/pending-requests", get(pending_requests_handler))
         .route("/api/respond-request", post(respond_request_handler))
+        .route("/api/requested-images", get(requested_images_handler))
         .route("/api/health", get(health_check))
         .nest_service("/", ServeDir::new("frontend/build"))
         .layer(CorsLayer::permissive())
@@ -472,7 +479,63 @@ async fn request_access_handler(
         payload.image_id, payload.owner_id
     );
 
-    let dos_client = state.dos_client.lock().await;
+    // Check if user is logged in
+    let current_user = state.current_user.lock().await;
+    if current_user.is_none() {
+        return Err((
+            StatusCode::UNAUTHORIZED,
+            Json(ApiResponse {
+                success: false,
+                error: Some("Not signed in".to_string()),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        ));
+    }
+    let requester_id = current_user.as_ref().unwrap().clone();
+    drop(current_user); // Release the lock
+
+    let mut dos_client = state.dos_client.lock().await;
+
+    // Ensure dos_client is signed in with the correct client_id
+    if dos_client.client_id() != Some(&requester_id) {
+        info!(
+            "DOS client client_id mismatch (expected: {}, got: {:?}). Re-signing in...",
+            requester_id,
+            dos_client.client_id()
+        );
+        // Re-sign in with the correct client_id
+        match dos_client
+            .sign_in(requester_id.clone(), "127.0.0.1".to_string())
+            .await
+        {
+            Ok(_) => info!("Re-signed in successfully as {}", requester_id),
+            Err(e) => {
+                error!("Failed to re-sign in: {}", e);
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some(format!("Failed to authenticate: {}", e)),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        }
+    }
 
     match dos_client
         .request_image_access(&payload.owner_id, &payload.image_id)
@@ -612,10 +675,80 @@ async fn update_access_handler(
 ) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
     info!("Updating access rights for image {}", payload.image_id);
 
-    let dos_client = state.dos_client.lock().await;
+    // Check if user is logged in
+    let current_user = state.current_user.lock().await;
+    if current_user.is_none() {
+        return Err((
+            StatusCode::UNAUTHORIZED,
+            Json(ApiResponse {
+                success: false,
+                error: Some("Not signed in".to_string()),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        ));
+    }
+    let client_id = current_user.as_ref().unwrap().clone();
+    drop(current_user);
+
+    let mut dos_client = state.dos_client.lock().await;
+
+    // Ensure dos_client is signed in with the correct client_id
+    if dos_client.client_id() != Some(&client_id) {
+        info!(
+            "DOS client client_id mismatch (expected: {}, got: {:?}). Re-signing in...",
+            client_id,
+            dos_client.client_id()
+        );
+        match dos_client
+            .sign_in(client_id.clone(), "127.0.0.1".to_string())
+            .await
+        {
+            Ok(_) => info!("Re-signed in successfully as {}", client_id),
+            Err(e) => {
+                error!("Failed to re-sign in: {}", e);
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some(format!("Failed to authenticate: {}", e)),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        }
+    }
+
+    // Convert access_list to HashMap<String, AccessRight>
+    let access_rights: std::collections::HashMap<String, AccessRight> = payload
+        .access_list
+        .into_iter()
+        .map(|entry| {
+            (
+                entry.client_id,
+                AccessRight {
+                    view_limit: entry.view_limit,
+                    view_count: 0,
+                },
+            )
+        })
+        .collect();
 
     match dos_client
-        .update_access_rights(&payload.image_id, payload.access_list)
+        .update_access_rights(&payload.image_id, access_rights)
         .await
     {
         Ok(_) => {
@@ -900,4 +1033,49 @@ async fn encrypt_image_handler(
             ))
         }
     }
+}
+
+async fn requested_images_handler(
+    State(state): State<Arc<AppState>>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
+    info!("Fetching requested images");
+
+    let current_user = state.current_user.lock().await;
+    if current_user.is_none() {
+        return Err((
+            StatusCode::UNAUTHORIZED,
+            Json(ApiResponse {
+                success: false,
+                error: Some("Not signed in".to_string()),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        ));
+    }
+
+    let client_id = current_user.as_ref().unwrap();
+    let dos_client = state.dos_client.lock().await;
+
+    // Return empty list for now - will implement proper tracking later
+    Ok((
+        StatusCode::OK,
+        Json(ApiResponse {
+            success: true,
+            requests: Some(vec![]),
+            message: None,
+            error: None,
+            carrier_image_base64: None,
+            client_id: None,
+            notifications: None,
+            request_id: None,
+            peers: None,
+            images: None,
+        }),
+    ))
 }

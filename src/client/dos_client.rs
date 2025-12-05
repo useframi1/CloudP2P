@@ -210,7 +210,7 @@ impl DosClient {
     pub async fn update_access_rights(
         &self,
         image_id: &str,
-        access_list: Vec<String>,
+        access_rights: std::collections::HashMap<String, crate::common::messages::AccessRight>,
     ) -> Result<()> {
         let client_id = self
             .client_id
@@ -222,7 +222,7 @@ impl DosClient {
         let message = Message::UpdateAccessRights {
             client_id: client_id.clone(),
             image_id: image_id.to_string(),
-            access_list,
+            access_rights,
         };
 
         conn.write_message(&message).await?;

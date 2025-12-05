@@ -139,10 +139,10 @@ async fn handle_client(dos: Arc<DoSService>, socket: tokio::net::TcpStream) -> R
         Message::UpdateAccessRights {
             client_id,
             image_id,
-            access_list,
+            access_rights,
         } => {
             info!("Processing UpdateAccessRights for image {} of client {}", image_id, client_id);
-            dos.update_access_rights(client_id, image_id, access_list)
+            dos.update_access_rights(client_id, image_id, access_rights)
                 .await?;
             conn.write_message(&Message::Ack).await?;
         }

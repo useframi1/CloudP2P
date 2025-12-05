@@ -91,7 +91,7 @@ async fn register_client_images(
                     let image_info = ImageInfo {
                         image_id: image_id.clone(),
                         name: filename.clone(),
-                        access_rights: vec![],
+                        access_rights: std::collections::HashMap::new(),
                         encrypted_path: path.to_string_lossy().to_string(),
                     };
 

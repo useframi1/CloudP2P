@@ -133,11 +133,11 @@ impl DoSService {
         Ok(())
     }
 
-    pub async fn update_access_rights(&self, client_id: String, image_id: String, access_list: Vec<String>) -> Result<()> {
+    pub async fn update_access_rights(&self, client_id: String, image_id: String, access_rights: std::collections::HashMap<String, crate::common::messages::AccessRight>) -> Result<()> {
         // Get client and update image access rights
         if let Some(mut client) = self.firebase.get_client(&client_id).await? {
             if let Some(image) = client.images.get_mut(&image_id) {
-                image.access_rights = access_list;
+                image.access_rights = access_rights;
                 self.firebase.store_image(&client_id, image).await?;
             }
         }
