@@ -15,7 +15,7 @@
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
             min-height: 100vh;
-            padding: 12px;
+            padding: 20px;
         }
 
         .container {
@@ -29,7 +29,7 @@
             padding: 16px 24px;
             border-radius: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            margin-bottom: 12px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -81,10 +81,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        .btn:active {
-            transform: translateY(0);
-        }
-
         .btn-primary {
             background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
             color: white;
@@ -108,7 +104,7 @@
         .grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
+            gap: 20px;
         }
 
         .card {
@@ -118,10 +114,9 @@
             border-radius: 12px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
             border: 1px solid rgba(255,255,255,0.3);
-        }
-
-        .card-full {
-            grid-column: span 3;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
         }
 
         .card-header {
@@ -143,20 +138,21 @@
         }
 
         .refresh-btn {
-            background: #f1f5f9;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
             border: none;
             padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 11px;
             font-weight: 600;
-            color: #475569;
+            color: white;
             transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
         }
 
         .refresh-btn:hover {
-            background: #e2e8f0;
-            color: #1e293b;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
         }
 
         .form-group {
@@ -193,8 +189,11 @@
 
         .image-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
             gap: 10px;
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 300px;
         }
 
         .image-item {
@@ -203,16 +202,19 @@
             overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             transition: all 0.2s ease;
+            border: 3px solid #e2e8f0;
+            aspect-ratio: 1 / 1;
         }
 
         .image-item:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-color: #8b5cf6;
         }
 
         .image-item img {
             width: 100%;
-            height: 120px;
+            height: 100%;
             object-fit: cover;
             display: block;
         }
@@ -222,16 +224,26 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
             color: white;
-            padding: 8px;
-            font-size: 10px;
+            padding: 6px 8px;
+            font-size: 9px;
             font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .peer-list {
             display: grid;
             gap: 8px;
+            overflow-y: auto;
+            max-height: 320px;
+        }
+
+        /* Shared images grid - 2 columns */
+        .card:nth-child(4) .peer-list {
+            grid-template-columns: repeat(2, 1fr);
         }
 
         .peer-card {
@@ -278,7 +290,7 @@
 
         .shared-image-card {
             background: #f8fafc;
-            padding: 10px;
+            padding: 8px;
             border-radius: 8px;
             border: 1px solid #e2e8f0;
             transition: all 0.2s ease;
@@ -289,31 +301,43 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
 
+        .shared-image-card img {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
         .shared-image-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            gap: 4px;
         }
 
         .shared-image-header strong {
             color: #1e293b;
-            font-size: 11px;
+            font-size: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .shared-image-header small {
             color: #64748b;
-            font-size: 10px;
+            font-size: 9px;
         }
 
         .access-badge {
             padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 9px;
+            border-radius: 10px;
+            font-size: 8px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .access-granted {
@@ -398,14 +422,6 @@
             background: #fee2e2;
             color: #991b1b;
             border: 1px solid #fecaca;
-        }
-
-        .error {
-            text-align: center;
-            padding: 20px;
-            color: #dc2626;
-            font-size: 12px;
-            font-weight: 600;
         }
 
         .no-data {
@@ -502,30 +518,18 @@
         }
 
         #main-content.show {
-            display: block;
+            display: grid;
         }
 
         @media (max-width: 1024px) {
             .grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            .card-full {
-                grid-column: span 2;
-            }
         }
 
         @media (max-width: 600px) {
             .grid {
                 grid-template-columns: 1fr;
-            }
-            .card-full {
-                grid-column: span 1;
-            }
-            .header-left h1 {
-                font-size: 16px;
-            }
-            .image-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             }
         }
     </style>
@@ -578,29 +582,31 @@
             </div>
         </div>
 
-        <!-- Main Grid - 2 Rows x 3 Columns -->
+        <!-- Main Grid - 6 Cards in 2 Rows x 3 Columns -->
         <div class="grid" id="main-content">
-            <!-- Row 1: My Images, Online Peers, Encrypt Image -->
+            <!-- Card 1: My Images -->
             <div class="card">
                 <div class="card-header">
                     <h2>📁 My Images</h2>
-                    <button class="refresh-btn" onclick="loadMyImages()">🔄 Refresh</button>
+                    <button class="refresh-btn" onclick="loadMyImages()">Refresh</button>
                 </div>
-                <div id="my-images-content">
+                <div class="image-grid" id="my-images-grid">
                     <div class="loading"><div class="spinner"></div>Loading...</div>
                 </div>
             </div>
 
+            <!-- Card 2: Online Peers -->
             <div class="card">
                 <div class="card-header">
                     <h2>👥 Online Peers</h2>
-                    <button class="refresh-btn" onclick="refreshOnlinePeers()">🔄 Refresh</button>
+                    <button class="refresh-btn" onclick="refreshOnlinePeers()">Refresh</button>
                 </div>
-                <div id="online-peers-content">
+                <div class="peer-list" id="online-peers-list">
                     <div class="loading"><div class="spinner"></div>Loading...</div>
                 </div>
             </div>
 
+            <!-- Card 3: Encrypt/Decrypt Image -->
             <div class="card">
                 <div class="card-header">
                     <h2>🔐 Encrypt/Decrypt Image</h2>
@@ -609,54 +615,59 @@
                     <label>Select Image</label>
                     <select id="encrypt-image-select">
                         <option value="">-- Select Image --</option>
+                        <option value="image1">image1.jpg</option>
+                        <option value="image2">image2.jpg</option>
+                        <option value="image3">image3.jpg</option>
                     </select>
                 </div>
                 <div id="image-preview-container" style="margin: 12px 0; text-align: center; display: none;">
-                    <img id="preview-image" src="" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 2px solid #e2e8f0;">
+                    <img id="preview-image" src="" style="max-width: 100%; max-height: 150px; border-radius: 8px; border: 2px solid #e2e8f0;">
                     <p id="preview-label" style="margin-top: 8px; font-size: 11px; font-weight: 600; color: #64748b;"></p>
                 </div>
                 <div id="encrypt-buttons">
-                    <button class="btn btn-success" style="width: 100%" onclick="encryptImage()">🔒 Encrypt</button>
+                    <button class="btn btn-success" style="width: 100%">🔒 Encrypt</button>
                 </div>
                 <div id="decrypt-buttons" style="display: none;">
-                    <button class="btn btn-primary" style="width: 100%" onclick="decryptImage()">🔓 Decrypt</button>
+                    <button class="btn btn-primary" style="width: 100%">🔓 Decrypt</button>
                 </div>
                 <div id="encrypt-message"></div>
             </div>
 
-            <!-- Row 2: Shared Images, Request Access, Pending Requests -->
+            <!-- Card 4: Shared Images -->
             <div class="card">
                 <div class="card-header">
                     <h2>🖼️ Shared Images</h2>
-                    <button class="refresh-btn" onclick="loadSharedImages()">🔄 Refresh</button>
+                    <button class="refresh-btn" onclick="loadSharedImages()">Refresh</button>
                 </div>
-                <div id="shared-images-content">
+                <div class="peer-list" id="shared-images-list">
                     <div class="loading"><div class="spinner"></div>Loading...</div>
                 </div>
             </div>
 
+            <!-- Card 5: Request Access -->
             <div class="card">
                 <div class="card-header">
                     <h2>📤 Request Access</h2>
                 </div>
                 <div class="form-group">
                     <label>Owner Client ID</label>
-                    <input type="text" id="request-owner-id" placeholder="client_1">
+                    <input type="text" id="request-owner-id" placeholder="client_2">
                 </div>
                 <div class="form-group">
                     <label>Image ID</label>
                     <input type="text" id="request-image-id" placeholder="image1.jpg">
                 </div>
-                <button class="btn btn-primary" style="width: 100%" onclick="requestImageAccess()">Send Request</button>
+                <button class="btn btn-primary" style="width: 100%">Send Request</button>
                 <div id="request-message"></div>
             </div>
 
+            <!-- Card 6: Pending Requests -->
             <div class="card">
                 <div class="card-header">
                     <h2>📥 Pending Requests</h2>
-                    <button class="refresh-btn" onclick="loadPendingRequests()">🔄 Refresh</button>
+                    <button class="refresh-btn" onclick="loadPendingRequests()">Refresh</button>
                 </div>
-                <div id="pending-requests-content">
+                <div class="peer-list" id="pending-requests-list">
                     <div class="no-data">No pending requests</div>
                 </div>
             </div>
@@ -666,6 +677,35 @@
     <script>
         var currentUser = null;
         var API_BASE = window.location.origin + '/api';
+        var currentEncryptedImage = null;
+        var currentOriginalImagePath = null;
+        var autoRefreshInterval = null;
+
+        window.onload = function() {
+            showAuthModal();
+        };
+
+        function startAutoRefresh() {
+            // Clear any existing interval
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+
+            // Refresh only Online Peers and Pending Requests every 5 seconds
+            autoRefreshInterval = setInterval(function() {
+                if (currentUser) {
+                    refreshOnlinePeers();
+                    loadPendingRequests();
+                }
+            }, 5000); // 5 seconds
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
 
         window.onload = function() {
             showAuthModal();
@@ -679,6 +719,7 @@
         function hideAuthModal() {
             document.getElementById('auth-modal').classList.remove('show');
             document.getElementById('main-content').classList.add('show');
+            startAutoRefresh(); // Start auto-refresh when user logs in
         }
 
         function switchAuthTab(tab) {
@@ -778,6 +819,8 @@
             if (!currentUser || !confirm('Are you sure you want to sign out?')) return;
 
             try {
+                stopAutoRefresh(); // Stop auto-refresh when user logs out
+                
                 var response = await fetch(API_BASE + '/signout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -800,54 +843,64 @@
         }
 
         async function loadMyImages() {
-            document.getElementById('my-images-content').innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            var container = document.getElementById('my-images-grid');
+            if (!container) return;
+            
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
 
             try {
                 var response = await fetch(API_BASE + '/my-images');
                 var contentType = response.headers.get('content-type');
 
                 if (!contentType || !contentType.includes('application/json')) {
-                    document.getElementById('my-images-content').innerHTML = '<div class="error">API endpoint not responding</div>';
+                    container.innerHTML = '<div class="no-data">No images yet</div>';
                     return;
                 }
 
                 var data = await response.json();
                 if (data.success && data.images && data.images.length > 0) {
-                    var html = '<div class="image-grid">';
+                    var html = '';
                     data.images.forEach(function(img) {
                         var imageName = img.name || img.image_id.replace(/_/g, '.');
                         var imagePath = img.encrypted_path || '';
                         var displayPath = imagePath ? '/' + imagePath.replace(/\\/g, '/') : '/test_images/' + imageName;
 
                         html += '<div class="image-item">';
-                        html += '<img src="' + displayPath + '" alt="' + imageName + '" onerror="this.src=\'https://via.placeholder.com/140x120/6366f1/ffffff?text=' + encodeURIComponent(imageName) + '\'">';
+                        html += '<img src="' + displayPath + '" alt="' + imageName + '" onerror="this.src=\'https://via.placeholder.com/100x100/8b5cf6/ffffff?text=' + encodeURIComponent(imageName) + '\'">';
                         html += '<div class="image-overlay">' + imageName + '</div></div>';
                     });
-                    html += '</div>';
-                    document.getElementById('my-images-content').innerHTML = html;
+                    container.innerHTML = html;
                 } else {
-                    document.getElementById('my-images-content').innerHTML = '<div class="no-data">No images yet</div>';
+                    container.innerHTML = '<div class="no-data">No images yet</div>';
                 }
             } catch (err) {
-                document.getElementById('my-images-content').innerHTML = '<div class="error">Failed to load images</div>';
+                console.log('Failed to load images:', err);
+                container.innerHTML = '<div class="no-data">No images yet</div>';
             }
         }
 
         async function refreshOnlinePeers() {
-            document.getElementById('online-peers-content').innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            var container = document.getElementById('online-peers-list');
+            if (!container) return;
+            
+            // Don't show loading spinner on auto-refresh
+            var isManualRefresh = !autoRefreshInterval || event;
+            if (isManualRefresh) {
+                container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            }
 
             try {
                 var response = await fetch(API_BASE + '/online-peers');
                 var data = await response.json();
 
                 if (data.success && data.peers && data.peers.length > 0) {
-                    // Filter out current user
+                    // Filter out current user AND only show real clients from Firebase
                     var otherPeers = data.peers.filter(function(peer) {
-                        return peer.client_id !== currentUser;
+                        return peer.client_id !== currentUser && peer.client_id && peer.ip_address;
                     });
 
                     if (otherPeers.length > 0) {
-                        var html = '<div class="peer-list">';
+                        var html = '';
                         otherPeers.forEach(function(peer) {
                             var imageCount = peer.images ? Object.keys(peer.images).length : 0;
                             html += '<div class="peer-card"><div class="peer-header">';
@@ -855,21 +908,18 @@
                             html += '<span class="badge-online">● Online</span></div>';
                             html += '<div class="peer-info">🌐 ' + peer.ip_address + ' • 📁 ' + imageCount + ' images</div></div>';
                         });
-                        html += '</div>';
-                        document.getElementById('online-peers-content').innerHTML = html;
+                        container.innerHTML = html;
                     } else {
-                        document.getElementById('online-peers-content').innerHTML = '<div class="no-data">No online peers</div>';
+                        container.innerHTML = '<div class="no-data">No online peers</div>';
                     }
                 } else {
-                    document.getElementById('online-peers-content').innerHTML = '<div class="no-data">No online peers</div>';
+                    container.innerHTML = '<div class="no-data">No online peers</div>';
                 }
             } catch (err) {
-                document.getElementById('online-peers-content').innerHTML = '<div class="error">Failed to load peers</div>';
+                console.log('Failed to load peers:', err);
+                container.innerHTML = '<div class="no-data">No online peers</div>';
             }
         }
-
-        var currentEncryptedImage = null;
-        var currentOriginalImagePath = null;
 
         async function loadMyImagesForEncrypt() {
             try {
@@ -892,7 +942,6 @@
                         var previewImage = document.getElementById('preview-image');
                         var previewLabel = document.getElementById('preview-label');
 
-                        // Reset state
                         currentEncryptedImage = null;
                         currentOriginalImagePath = null;
                         document.getElementById('encrypt-buttons').style.display = 'block';
@@ -956,7 +1005,6 @@
                 if (data.success) {
                     showMessage('encrypt-message', 'Image encrypted successfully!', 'success');
                     if (data.carrier_image_base64) {
-                        // Replace the preview with encrypted image
                         var previewImage = document.getElementById('preview-image');
                         var previewLabel = document.getElementById('preview-label');
                         var encryptedImageData = 'data:image/png;base64,' + data.carrier_image_base64;
@@ -966,7 +1014,6 @@
                         previewLabel.textContent = 'Encrypted Cover Image';
                         previewLabel.style.color = '#059669';
 
-                        // Show decrypt button, hide encrypt button
                         document.getElementById('encrypt-buttons').style.display = 'none';
                         document.getElementById('decrypt-buttons').style.display = 'block';
                     }
@@ -984,7 +1031,6 @@
                 return;
             }
 
-            // Replace the encrypted image with the original
             var previewImage = document.getElementById('preview-image');
             var previewLabel = document.getElementById('preview-label');
             var select = document.getElementById('encrypt-image-select');
@@ -995,7 +1041,6 @@
             previewLabel.textContent = 'Original: ' + imageName;
             previewLabel.style.color = '#64748b';
 
-            // Show encrypt button, hide decrypt button
             document.getElementById('encrypt-buttons').style.display = 'block';
             document.getElementById('decrypt-buttons').style.display = 'none';
 
@@ -1003,17 +1048,18 @@
         }
 
         async function loadSharedImages() {
-            document.getElementById('shared-images-content').innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            var container = document.getElementById('shared-images-list');
+            if (!container) return;
+            
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
 
             try {
-                // Fetch both online peers and accessible images to determine access rights
                 var peersResponse = await fetch(API_BASE + '/online-peers');
                 var peersData = await peersResponse.json();
 
                 var accessResponse = await fetch(API_BASE + '/accessible-images');
                 var accessData = await accessResponse.json();
 
-                // Create a map of images we have access to
                 var accessMap = {};
                 if (accessData.success && accessData.images) {
                     accessData.images.forEach(function(item) {
@@ -1026,13 +1072,13 @@
                     });
                 }
 
-                // Collect all images from all clients (online and offline)
                 var allImages = [];
 
-                // Add images from online peers
+                // Only add images from valid Firebase clients
                 if (peersData.success && peersData.peers) {
                     peersData.peers.forEach(function(peer) {
-                        if (peer.images) {
+                        // Filter out invalid/placeholder clients
+                        if (peer.client_id && peer.ip_address && peer.images) {
                             Object.values(peer.images).forEach(function(img) {
                                 allImages.push({
                                     clientId: peer.client_id,
@@ -1044,15 +1090,13 @@
                     });
                 }
 
-                // Add images from accessible images (may include offline clients)
                 if (accessData.success && accessData.images) {
                     accessData.images.forEach(function(item) {
-                        // Check if this image is already in allImages
                         var exists = allImages.some(function(img) {
                             return img.clientId === item.owner_id && img.image.image_id === item.image.image_id;
                         });
 
-                        if (!exists) {
+                        if (!exists && item.owner_id && item.image) {
                             allImages.push({
                                 clientId: item.owner_id,
                                 image: item.image,
@@ -1063,126 +1107,63 @@
                 }
 
                 if (allImages.length > 0) {
-                    var html = '<div class="image-grid">';
+                    var html = '';
                     allImages.forEach(function(item) {
                         var imageName = item.image.name || item.image.image_id.replace(/_/g, '.');
                         var imagePath = item.image.encrypted_path || '';
                         var displayPath = imagePath ? '/' + imagePath.replace(/\\/g, '/') : '/test_images/' + imageName;
                         var isOwner = item.clientId === currentUser;
 
-                        // Check if we have access to this image
                         var accessKey = item.clientId + '_' + item.image.image_id;
                         var hasAccess = accessMap[accessKey];
                         var canView = hasAccess && hasAccess.viewsLeft > 0;
                         var limitReached = hasAccess && hasAccess.viewsLeft <= 0;
                         var isLocked = !isOwner && !hasAccess;
 
-                        html += '<div class="shared-image-card"><div class="shared-image-header"><div>';
+                        html += '<div class="shared-image-card"><div class="shared-image-header"><div style="min-width: 0; flex: 1;">';
                         html += '<strong>' + imageName + '</strong><br><small>👤 ' + item.clientId + '</small>';
 
-                        // Show view count if we have access
                         if (hasAccess) {
                             var viewColor = hasAccess.viewsLeft > 0 ? '#10b981' : '#dc2626';
-                            html += '<br><small style="color: ' + viewColor + '; font-weight: 700;">';
-                            html += '👁️ ' + hasAccess.viewCount + ' / ' + hasAccess.viewLimit + ' (' + hasAccess.viewsLeft + ' left)</small>';
+                            html += '<br><small style="color: ' + viewColor + '; font-weight: 700; font-size: 8px;">';
+                            html += '👁️ ' + hasAccess.viewCount + '/' + hasAccess.viewLimit + '</small>';
                         }
                         html += '</div>';
 
-                        // Show access badge
                         if (isOwner) {
-                            html += '<span class="access-badge access-granted">✓ Owner</span>';
+                            html += '<span class="access-badge access-granted">OWNER</span>';
                         } else if (canView) {
-                            html += '<span class="access-badge access-granted">✓ Can View</span>';
+                            html += '<span class="access-badge access-granted">VIEW ACCESS</span>';
                         } else if (limitReached) {
-                            html += '<span class="access-badge access-denied">✗ Limit Reached</span>';
+                            html += '<span class="access-badge access-denied">LIMIT REACHED</span>';
                         } else {
-                            html += '<span class="access-badge access-denied">🔒 Locked</span>';
+                            html += '<span class="access-badge access-denied">LOCKED</span>';
                         }
                         html += '</div>';
 
-                        // Apply blur if no access
                         var blurStyle = (isOwner || canView) ? '' : 'filter: blur(8px);';
-                        var cursorStyle = 'cursor: pointer;'; // Always clickable
-                        html += '<img src="' + displayPath + '" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; ' + blurStyle + cursorStyle + '" ';
-                        html += 'onerror="this.src=\'https://via.placeholder.com/140x120/6366f1/ffffff?text=' + encodeURIComponent(imageName) + '\'" ';
+                        var cursorStyle = 'cursor: pointer;';
+                        html += '<img src="' + displayPath + '" style="' + blurStyle + cursorStyle + '" ';
+                        html += 'onerror="this.src=\'https://via.placeholder.com/150x150/8b5cf6/ffffff?text=' + encodeURIComponent(imageName) + '\'" ';
 
-                        // Make all images clickable with appropriate handler
                         if (isOwner) {
-                            // Owner can always view their own images
                             html += 'onclick="viewOwnImage(\'' + displayPath + '\', \'' + imageName + '\')"';
                         } else if (canView) {
-                            // Has access with views remaining - confirm before viewing
-                            var imageName = item.image.name || item.image.image_id.replace(/_/g, '.');
                             html += 'onclick="confirmViewImage(\'' + item.clientId + '\', \'' + item.image.image_id + '\', ' + hasAccess.viewsLeft + ', \'' + displayPath + '\', \'' + imageName + '\')"';
                         } else if (limitReached) {
-                            // Limit reached - prompt to request more access
                             html += 'onclick="handleLimitReached(\'' + item.clientId + '\', \'' + item.image.image_id + '\')"';
                         } else {
-                            // Locked - prompt to request access
                             html += 'onclick="handleLockedImage(\'' + item.clientId + '\', \'' + item.image.image_id + '\')"';
                         }
                         html += '></div>';
                     });
-                    html += '</div>';
-                    document.getElementById('shared-images-content').innerHTML = html;
+                    container.innerHTML = html;
                 } else {
-                    document.getElementById('shared-images-content').innerHTML = '<div class="no-data">No shared images</div>';
+                    container.innerHTML = '<div class="no-data">No shared images</div>';
                 }
             } catch (err) {
-                document.getElementById('shared-images-content').innerHTML = '<div class="error">Failed to load shared images</div>';
-            }
-        }
-
-        async function loadAccessibleImages() {
-            document.getElementById('accessible-images-content').innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
-
-            try {
-                var response = await fetch(API_BASE + '/accessible-images');
-                var data = await response.json();
-
-                if (data.success && data.images && data.images.length > 0) {
-                    var html = '<div class="image-grid">';
-
-                    data.images.forEach(function(item) {
-                        var imageName = item.image.name || item.image.image_id.replace(/_/g, '.');
-                        var imagePath = item.image.encrypted_path || '';
-                        var displayPath = imagePath ? '/' + imagePath.replace(/\\/g, '/') : '/test_images/' + imageName;
-                        var viewsLeft = item.access.view_limit - item.access.view_count;
-
-                        html += '<div class="shared-image-card">';
-                        html += '<div class="shared-image-header">';
-                        html += '<div>';
-                        html += '<strong>' + imageName + '</strong><br>';
-                        html += '<small>👤 ' + item.owner_id + '</small><br>';
-                        html += '<small style="color: ' + (viewsLeft > 0 ? '#10b981' : '#dc2626') + '; font-weight: 700;">';
-                        html += '👁️ ' + item.access.view_count + ' / ' + item.access.view_limit + ' (' + viewsLeft + ' left)</small>';
-                        html += '</div>';
-                        if (viewsLeft > 0) {
-                            html += '<span class="access-badge access-granted">✓ Can View</span>';
-                        } else {
-                            html += '<span class="access-badge access-denied">✗ Limit Reached</span>';
-                        }
-                        html += '</div>';
-
-                        var blurStyle = viewsLeft > 0 ? '' : 'filter: blur(8px);';
-                        var cursorStyle = viewsLeft > 0 ? 'cursor: pointer;' : '';
-                        html += '<img src="' + displayPath + '" style="width: 100%; height: 120px; object-fit: cover; border-radius: 6px; ' + blurStyle + cursorStyle + '" ';
-                        html += 'onerror="this.src=\'https://via.placeholder.com/140x120/6366f1/ffffff?text=' + encodeURIComponent(imageName) + '\'" ';
-                        if (viewsLeft > 0) {
-                            html += 'onclick="viewImage(\'' + item.owner_id + '\', \'' + item.image.image_id + '\')"';
-                        }
-                        html += '>';
-                        html += '</div>';
-                    });
-
-                    html += '</div>';
-                    document.getElementById('accessible-images-content').innerHTML = html;
-                } else {
-                    document.getElementById('accessible-images-content').innerHTML = '<div class="no-data">No accessible images</div>';
-                }
-            } catch (err) {
-                console.error('Load accessible images error:', err);
-                document.getElementById('accessible-images-content').innerHTML = '<div class="error">Failed to load accessible images</div>';
+                console.log('Failed to load shared images:', err);
+                container.innerHTML = '<div class="no-data">No shared images</div>';
             }
         }
 
@@ -1209,7 +1190,6 @@
         }
 
         function viewOwnImage(imagePath, imageName) {
-            // Owner can view their own images in a modal without restrictions
             showImageModal(imagePath, imageName, 'Your Image');
         }
 
@@ -1219,7 +1199,6 @@
             if (confirm(message)) {
                 var success = await viewImage(ownerId, imageId);
                 if (success) {
-                    // Display the image in modal (we already have the path from the grid)
                     showImageModal(imagePath, imageName, 'Viewing: ' + (viewsLeft - 1) + ' views remaining');
                 }
             }
@@ -1229,7 +1208,6 @@
             var message = 'You have used all your view limits for this image.\nWould you like to request more access from the owner?';
 
             if (confirm(message)) {
-                // Pre-fill the request access form
                 document.getElementById('request-owner-id').value = ownerId;
                 document.getElementById('request-image-id').value = imageId;
                 alert('Please scroll to the "Request Access" section and click "Send Request" to ask the owner for more views.');
@@ -1242,11 +1220,10 @@
                 return;
             }
 
-            // Get default view limit from server
             try {
                 var limitResponse = await fetch(API_BASE + '/default-view-limit');
                 var limitData = await limitResponse.json();
-                var defaultLimit = 2; // fallback
+                var defaultLimit = 2;
 
                 if (limitData.success && limitData.notifications && limitData.notifications[0]) {
                     defaultLimit = limitData.notifications[0].view_limit;
@@ -1255,7 +1232,6 @@
                 var message = 'You can view this image ' + defaultLimit + ' time' + (defaultLimit > 1 ? 's' : '') + '.\nDo you want to proceed?';
 
                 if (confirm(message)) {
-                    // Auto-grant access with default view limit
                     var grantResponse = await fetch(API_BASE + '/auto-grant-access', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1269,7 +1245,6 @@
 
                     if (grantData.success) {
                         alert('✅ Access granted! You now have ' + defaultLimit + ' views. The image will reload - click it again to view.');
-                        // Reload shared images to show updated access status
                         loadSharedImages();
                     } else {
                         alert('❌ Error: ' + (grantData.error || 'Failed to grant access'));
@@ -1281,7 +1256,6 @@
         }
 
         function showImageModal(imagePath, imageName, title) {
-            // Create a modal to display the image
             var modalHtml = '<div id="image-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; align-items: center; justify-content: center;" onclick="document.getElementById(\'image-modal\').remove()">' +
                 '<div style="max-width: 90%; max-height: 90%; text-align: center;">' +
                 '<h3 style="color: white; margin-bottom: 16px;">' + title + '</h3>' +
@@ -1323,7 +1297,14 @@
         }
 
         async function loadPendingRequests() {
-            document.getElementById('pending-requests-content').innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            var container = document.getElementById('pending-requests-list');
+            if (!container) return;
+            
+            // Don't show loading spinner on auto-refresh
+            var isManualRefresh = !autoRefreshInterval || event;
+            if (isManualRefresh) {
+                container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+            }
 
             try {
                 var response = await fetch(API_BASE + '/pending-requests');
@@ -1337,7 +1318,7 @@
                         html += '<strong>📬 Request from ' + req.requester_id + '</strong><br>';
                         html += '<small>🖼️ Image: ' + req.image_id + '</small></div></div>';
                         html += '<div class="form-group" style="margin-top: 8px; margin-bottom: 8px;">';
-                        html += '<label>View Limit (how many times can view)</label>';
+                        html += '<label>View Limit</label>';
                         html += '<input type="number" id="limit-' + requestId + '" placeholder="e.g., 5" min="1" value="5" style="padding: 8px;">';
                         html += '</div>';
                         html += '<div class="button-group">';
@@ -1345,12 +1326,13 @@
                         html += '<button class="btn btn-danger btn-small" onclick="denyRequest(\'' + requestId + '\')">✗ Deny</button>';
                         html += '</div></div>';
                     });
-                    document.getElementById('pending-requests-content').innerHTML = html;
+                    container.innerHTML = html;
                 } else {
-                    document.getElementById('pending-requests-content').innerHTML = '<div class="no-data">No pending requests</div>';
+                    container.innerHTML = '<div class="no-data">No pending requests</div>';
                 }
             } catch (err) {
-                document.getElementById('pending-requests-content').innerHTML = '<div class="error">Failed to load requests</div>';
+                console.log('Failed to load pending requests:', err);
+                container.innerHTML = '<div class="no-data">No pending requests</div>';
             }
         }
 
@@ -1412,9 +1394,16 @@
 
         function showMessage(elementId, message, type) {
             var el = document.getElementById(elementId);
-            el.innerHTML = '<div class="message ' + type + '">' + message + '</div>';
-            setTimeout(function() { el.innerHTML = ''; }, 4000);
+            if (el) {
+                el.innerHTML = '<div class="message ' + type + '">' + message + '</div>';
+                setTimeout(function() { el.innerHTML = ''; }, 4000);
+            }
         }
+
+        // Make encrypt/decrypt buttons functional
+        document.querySelector('#encrypt-buttons .btn-success').onclick = encryptImage;
+        document.querySelector('#decrypt-buttons .btn-primary').onclick = decryptImage;
+        document.querySelector('.card:nth-child(5) .btn-primary').onclick = requestImageAccess;
     </script>
 </body>
 </html>
