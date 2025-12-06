@@ -158,7 +158,7 @@ impl DosClient {
         }
     }
 
-    pub async fn request_image_access(&self, owner_id: &str, image_id: &str) -> Result<String> {
+    pub async fn request_image_access(&self, owner_id: &str, image_id: &str, req_access_limit: Option<u32>) -> Result<String> {
         let client_id = self
             .client_id
             .as_ref()
@@ -171,6 +171,7 @@ impl DosClient {
             requester_id: client_id.clone(),
             owner_id: owner_id.to_string(),
             image_id: image_id.to_string(),
+            req_access_limit,
         };
 
         conn.write_message(&message).await?;
@@ -186,12 +187,13 @@ impl DosClient {
         }
     }
 
-    pub async fn respond_to_access_request(&self, request_id: &str, approved: bool) -> Result<()> {
+    pub async fn respond_to_access_request(&self, request_id: &str, approved: bool, view_limit: Option<u32>) -> Result<()> {
         let mut conn = self.connect().await?;
 
         let message = Message::ImageAccessResponse {
             request_id: request_id.to_string(),
             approved,
+            view_limit,
         };
 
         conn.write_message(&message).await?;
@@ -275,6 +277,28 @@ impl DosClient {
         match response {
             Message::PendingRequestsList { requests } => Ok(requests),
             _ => anyhow::bail!("Unexpected response to get pending requests"),
+        }
+    }
+
+    pub async fn increment_view_count(&self, owner_id: &str, image_id: &str, viewer_id: &str) -> Result<bool> {
+        let mut conn = self.connect().await?;
+
+        let message = Message::IncrementViewCount {
+            owner_id: owner_id.to_string(),
+            image_id: image_id.to_string(),
+            viewer_id: viewer_id.to_string(),
+        };
+
+        conn.write_message(&message).await?;
+
+        let response = conn
+            .read_message()
+            .await?
+            .ok_or_else(|| anyhow::anyhow!("Connection closed"))?;
+
+        match response {
+            Message::IncrementViewCountResponse { allowed } => Ok(allowed),
+            _ => anyhow::bail!("Unexpected response to increment view count"),
         }
     }
 }

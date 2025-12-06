@@ -11,6 +11,7 @@ use base64::{engine::general_purpose, Engine as _};
 use clap::Parser;
 use log::{error, info};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -21,6 +22,7 @@ use cloud_p2p::client::client::ClientCore;
 use cloud_p2p::client::dos_client::DosClient;
 use cloud_p2p::client::middleware::{ClientConfig, ClientMiddleware};
 use cloud_p2p::common::messages::{AccessRight, ImageInfo};
+use cloud_p2p::dos::firebase::FirebaseClient;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -80,6 +82,7 @@ struct SignOutRequest {
 struct RequestAccessRequest {
     owner_id: String,
     image_id: String,
+    req_access_limit: Option<u32>, // How many times the requester wants to view the image
 }
 
 #[derive(Deserialize)]
@@ -98,6 +101,13 @@ struct UpdateAccessRequest {
 struct RespondRequestRequest {
     request_id: String,
     approved: bool,
+    view_limit: Option<u32>, // Owner-set view limit when approving
+}
+
+#[derive(Deserialize)]
+struct ViewImageRequest {
+    owner_id: String,
+    image_id: String,
 }
 
 struct AppState {
@@ -105,6 +115,7 @@ struct AppState {
     dos_client: Arc<Mutex<DosClient>>,
     current_user: Arc<Mutex<Option<String>>>,
     image_dir: String,
+    firebase: Arc<FirebaseClient>,
 }
 
 async fn register_local_images(dos_client: &DosClient, _client_id: &str, image_dir: &str) -> anyhow::Result<()> {
@@ -180,11 +191,16 @@ async fn main() -> anyhow::Result<()> {
         config.client.name.clone(),
     );
 
+    // Initialize Firebase client
+    let firebase_url = "https://distributed-p2p-default-rtdb.europe-west1.firebasedatabase.app/".to_string();
+    let firebase = Arc::new(FirebaseClient::new(firebase_url));
+
     let state = Arc::new(AppState {
         client: Arc::new(Mutex::new(client)),
         dos_client: Arc::new(Mutex::new(dos_client)),
         current_user: Arc::new(Mutex::new(args.client_id)),
         image_dir: config.client.image_dir.clone(),
+        firebase,
     });
 
     // Build router
@@ -200,21 +216,44 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/pending-requests", get(pending_requests_handler))
         .route("/api/respond-request", post(respond_request_handler))
         .route("/api/requested-images", get(requested_images_handler))
+        .route("/api/accessible-images", get(accessible_images_handler))
+        .route("/api/view-image", post(view_image_handler))
+        .route("/api/default-view-limit", get(get_default_view_limit_handler))
+        .route("/api/auto-grant-access", post(auto_grant_access_handler))
         .route("/api/health", get(health_check))
         .nest_service("/test_images", ServeDir::new("test_images"))
         .nest_service("/", ServeDir::new("frontend/build"))
         .layer(CorsLayer::permissive())
-        .with_state(state);
+        .with_state(state.clone());
 
     let addr = format!("0.0.0.0:{}", args.port);
     info!("🌐 Web server running on http://{}", addr);
     info!("📡 API endpoints ready");
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;
+
+    // Set up graceful shutdown handler
+    let state_for_shutdown = state.clone();
+    let shutdown_signal = async move {
+        tokio::signal::ctrl_c()
+            .await
+            .expect("Failed to install CTRL+C signal handler");
+
+        info!("🛑 Shutdown signal received, signing out from DoS...");
+
+        // Sign out from DoS to mark as offline
+        let mut dos_client = state_for_shutdown.dos_client.lock().await;
+        match dos_client.sign_out().await {
+            Ok(_) => info!("✅ Successfully signed out from DoS"),
+            Err(e) => error!("❌ Failed to sign out from DoS: {}", e),
+        }
+    };
+
     axum::serve(
         listener,
         app.into_make_service_with_connect_info::<SocketAddr>(),
     )
+    .with_graceful_shutdown(shutdown_signal)
     .await?;
 
     Ok(())
@@ -539,7 +578,7 @@ async fn request_access_handler(
     }
 
     match dos_client
-        .request_image_access(&payload.owner_id, &payload.image_id)
+        .request_image_access(&payload.owner_id, &payload.image_id, payload.req_access_limit)
         .await
     {
         Ok(request_id) => {
@@ -870,7 +909,7 @@ async fn respond_request_handler(
     let dos_client = state.dos_client.lock().await;
 
     match dos_client
-        .respond_to_access_request(&payload.request_id, payload.approved)
+        .respond_to_access_request(&payload.request_id, payload.approved, payload.view_limit)
         .await
     {
         Ok(_) => {
@@ -1079,4 +1118,288 @@ async fn requested_images_handler(
             images: None,
         }),
     ))
+}
+
+async fn accessible_images_handler(
+    State(state): State<Arc<AppState>>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
+    info!("Fetching accessible images");
+
+    let current_user = state.current_user.lock().await;
+    if current_user.is_none() {
+        return Err((
+            StatusCode::UNAUTHORIZED,
+            Json(ApiResponse {
+                success: false,
+                error: Some("Not signed in".to_string()),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        ));
+    }
+
+    let client_id = current_user.as_ref().unwrap().clone();
+    drop(current_user);
+
+    let dos_client = state.dos_client.lock().await;
+
+    // Get all online clients
+    match dos_client.list_online_clients().await {
+        Ok(clients) => {
+            let mut accessible_images = vec![];
+
+            // Check each client's images for access rights
+            for client in clients {
+                if client.client_id == client_id {
+                    continue; // Skip own images
+                }
+
+                for (image_id, image) in &client.images {
+                    if let Some(access) = image.access_rights.get(&client_id) {
+                        // User has access to this image
+                        accessible_images.push(serde_json::json!({
+                            "owner_id": client.client_id,
+                            "image": image,
+                            "access": access
+                        }));
+                    }
+                }
+            }
+
+            Ok((
+                StatusCode::OK,
+                Json(ApiResponse {
+                    success: true,
+                    images: Some(accessible_images.iter().map(|v| serde_json::from_value(v.clone()).unwrap()).collect()),
+                    message: None,
+                    error: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    requests: None,
+                }),
+            ))
+        }
+        Err(e) => {
+            error!("Failed to fetch accessible images: {}", e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Failed to fetch accessible images: {}", e)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+    }
+}
+
+async fn view_image_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<ViewImageRequest>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
+    info!("View image: {} from {}", payload.image_id, payload.owner_id);
+
+    let current_user = state.current_user.lock().await;
+    if current_user.is_none() {
+        return Err((
+            StatusCode::UNAUTHORIZED,
+            Json(ApiResponse {
+                success: false,
+                error: Some("Not signed in".to_string()),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        ));
+    }
+
+    let viewer_id = current_user.as_ref().unwrap().clone();
+    drop(current_user);
+
+    let dos_client = state.dos_client.lock().await;
+
+    match dos_client
+        .increment_view_count(&payload.owner_id, &payload.image_id, &viewer_id)
+        .await
+    {
+        Ok(allowed) => {
+            if allowed {
+                info!("Image viewed successfully, count incremented");
+                Ok((
+                    StatusCode::OK,
+                    Json(ApiResponse {
+                        success: true,
+                        message: Some("Image viewed successfully".to_string()),
+                        error: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ))
+            } else {
+                Err((
+                    StatusCode::FORBIDDEN,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some("View limit exceeded".to_string()),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ))
+            }
+        }
+        Err(e) => {
+            error!("Failed to increment view count: {}", e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Failed to increment view count: {}", e)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+    }
+}
+
+async fn get_default_view_limit_handler(
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<ApiResponse>, (StatusCode, Json<ApiResponse>)> {
+    match state.firebase.get_default_view_limit().await {
+        Ok(limit) => Ok(Json(ApiResponse {
+            success: true,
+            error: None,
+            message: Some(format!("Default view limit: {}", limit)),
+            carrier_image_base64: None,
+            client_id: None,
+            notifications: Some(vec![json!({"view_limit": limit})]),
+            request_id: None,
+            peers: None,
+            images: None,
+            requests: None,
+        })),
+        Err(e) => Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse {
+                success: false,
+                error: Some(format!("Failed to get default view limit: {}", e)),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        )),
+    }
+}
+
+#[derive(Deserialize)]
+struct AutoGrantAccessRequest {
+    client_id: String,
+    owner_id: String,
+    image_id: String,
+}
+
+async fn auto_grant_access_handler(
+    State(state): State<Arc<AppState>>,
+    Json(req): Json<AutoGrantAccessRequest>,
+) -> Result<Json<ApiResponse>, (StatusCode, Json<ApiResponse>)> {
+
+    // Get default view limit
+    let view_limit = match state.firebase.get_default_view_limit().await {
+        Ok(limit) => limit,
+        Err(e) => {
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Failed to get default view limit: {}", e)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ));
+        }
+    };
+
+    // Auto-grant access to the requesting client
+    match state
+        .firebase
+        .grant_access(&req.owner_id, &req.image_id, &req.client_id, view_limit)
+        .await
+    {
+        Ok(_) => Ok(Json(ApiResponse {
+            success: true,
+            error: None,
+            message: Some(format!("Access granted with {} views", view_limit)),
+            carrier_image_base64: None,
+            client_id: None,
+            notifications: Some(vec![json!({"view_limit": view_limit})]),
+            request_id: None,
+            peers: None,
+            images: None,
+            requests: None,
+        })),
+        Err(e) => Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse {
+                success: false,
+                error: Some(format!("Failed to grant access: {}", e)),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        )),
+    }
 }

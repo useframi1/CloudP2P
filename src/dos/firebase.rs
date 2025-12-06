@@ -1,9 +1,9 @@
 //! Firebase Realtime Database client for DoS
 
 use crate::common::messages::{ClientInfo as DosClientInfo, ClientStatus, ImageInfo};
-use anyhow::{Context, Result};
+use anyhow::Result;
 use reqwest::Client;
-use serde_json::{json, Value};
+use serde_json::Value;
 use std::collections::HashMap;
 
 pub struct FirebaseClient {
@@ -59,6 +59,23 @@ impl FirebaseClient {
         self.client.put(&url).json(&next_id).send().await?;
 
         Ok(current_id)
+    }
+
+    pub async fn get_default_view_limit(&self) -> Result<u32> {
+        let url = format!("{}/metadata/default_view_limit.json", self.base_url);
+        let response = self.client.get(&url).send().await?;
+        let value: Value = response.json().await?;
+
+        let limit = if value.is_null() {
+            // Set default to 2 if not exists
+            let default_limit = 2u32;
+            self.client.put(&url).json(&default_limit).send().await?;
+            default_limit
+        } else {
+            value.as_u64().unwrap_or(2) as u32
+        };
+
+        Ok(limit)
     }
 
     // ========== CLIENT OPERATIONS ==========
@@ -123,6 +140,44 @@ impl FirebaseClient {
         Ok(())
     }
 
+    pub async fn grant_access(
+        &self,
+        owner_id: &str,
+        image_id: &str,
+        requester_id: &str,
+        view_limit: u32,
+    ) -> Result<()> {
+        use crate::common::messages::AccessRight;
+
+        // Get the image
+        let url = format!("{}/clients/{}/images/{}.json", self.base_url, owner_id, image_id);
+        let response = self.client.get(&url).send().await?;
+
+        if !response.status().is_success() {
+            anyhow::bail!("Image not found");
+        }
+
+        let mut image: ImageInfo = response.json().await?;
+
+        // Grant access
+        image.access_rights.insert(
+            requester_id.to_string(),
+            AccessRight {
+                view_limit,
+                view_count: 0,
+            },
+        );
+
+        // Store updated image
+        let response = self.client.put(&url).json(&image).send().await?;
+
+        if !response.status().is_success() {
+            anyhow::bail!("Failed to grant access: {}", response.status());
+        }
+
+        Ok(())
+    }
+
     // ========== PENDING REQUESTS ==========
 
     pub async fn store_pending_request(&self, request_id: &str, data: &Value) -> Result<()> {
@@ -134,6 +189,18 @@ impl FirebaseClient {
         }
 
         Ok(())
+    }
+
+    pub async fn get_pending_request(&self, request_id: &str) -> Result<Option<Value>> {
+        let url = format!("{}/pending_requests/{}.json", self.base_url, request_id);
+        let response = self.client.get(&url).send().await?;
+
+        if !response.status().is_success() {
+            return Ok(None);
+        }
+
+        let request: Option<Value> = response.json().await?;
+        Ok(request)
     }
 
     pub async fn get_pending_requests(&self, owner_id: &str) -> Result<Vec<Value>> {

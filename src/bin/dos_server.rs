@@ -113,8 +113,9 @@ async fn handle_client(dos: Arc<DoSService>, socket: tokio::net::TcpStream) -> R
             requester_id,
             owner_id,
             image_id,
+            req_access_limit,
         } => {
-            info!("Processing ImageAccessRequest from {} for {}", requester_id, image_id);
+            info!("Processing ImageAccessRequest from {} for {} (limit: {:?})", requester_id, image_id, req_access_limit);
             let assigned_request_id = dos
                 .request_image_access(requester_id.clone(), owner_id.clone(), image_id.clone())
                 .await?;
@@ -123,6 +124,7 @@ async fn handle_client(dos: Arc<DoSService>, socket: tokio::net::TcpStream) -> R
                 requester_id,
                 owner_id,
                 image_id,
+                req_access_limit,
             })
             .await?;
         }
@@ -130,9 +132,10 @@ async fn handle_client(dos: Arc<DoSService>, socket: tokio::net::TcpStream) -> R
         Message::ImageAccessResponse {
             request_id,
             approved,
+            view_limit,
         } => {
-            info!("Processing ImageAccessResponse: {} (approved: {})", request_id, approved);
-            dos.respond_to_access_request(request_id, approved).await?;
+            info!("Processing ImageAccessResponse: {} (approved: {}, view_limit: {:?})", request_id, approved, view_limit);
+            dos.respond_to_access_request(request_id, approved, view_limit).await?;
             conn.write_message(&Message::Ack).await?;
         }
 
@@ -157,6 +160,16 @@ async fn handle_client(dos: Arc<DoSService>, socket: tokio::net::TcpStream) -> R
             info!("Processing GetPendingRequests for owner: {}", owner_id);
             let requests = dos.get_pending_requests(owner_id).await?;
             conn.write_message(&Message::PendingRequestsList { requests }).await?;
+        }
+
+        Message::IncrementViewCount {
+            owner_id,
+            image_id,
+            viewer_id,
+        } => {
+            info!("Processing IncrementViewCount: viewer {} viewing image {} of {}", viewer_id, image_id, owner_id);
+            let allowed = dos.increment_view_count(owner_id, image_id, viewer_id).await?;
+            conn.write_message(&Message::IncrementViewCountResponse { allowed }).await?;
         }
 
         _ => {

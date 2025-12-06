@@ -306,10 +306,12 @@ pub enum Message {
         requester_id: String,
         owner_id: String,
         image_id: String,
+        req_access_limit: Option<u32>, // Requested access limit (how many times can view)
     },
     ImageAccessResponse {
         request_id: String,
         approved: bool,
+        view_limit: Option<u32>, // Owner-set view limit when approving
     },
     UpdateAccessRights {
         client_id: String,
@@ -324,6 +326,14 @@ pub enum Message {
     },
     PendingRequestsList {
         requests: Vec<serde_json::Value>,
+    },
+    IncrementViewCount {
+        owner_id: String,
+        image_id: String,
+        viewer_id: String,
+    },
+    IncrementViewCountResponse {
+        allowed: bool,
     },
     Ack,
 }

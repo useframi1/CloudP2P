@@ -122,9 +122,31 @@ impl DoSService {
         self.firebase.get_pending_requests(&owner_id).await
     }
 
-    pub async fn respond_to_access_request(&self, request_id: String, approved: bool) -> Result<()> {
+    pub async fn respond_to_access_request(&self, request_id: String, approved: bool, view_limit: Option<u32>) -> Result<()> {
         if approved {
-            info!("Access request {} approved", request_id);
+            info!("Access request {} approved with view_limit: {:?}", request_id, view_limit);
+
+            // Get the request details
+            let request = self.firebase.get_pending_request(&request_id).await?;
+
+            if let Some(req) = request {
+                let requester_id = req.get("requester_id").and_then(|v| v.as_str()).unwrap_or("");
+                let owner_id = req.get("owner_id").and_then(|v| v.as_str()).unwrap_or("");
+                let image_id = req.get("image_id").and_then(|v| v.as_str()).unwrap_or("");
+
+                // Grant access by adding AccessRight
+                if let Some(mut owner_client) = self.firebase.get_client(owner_id).await? {
+                    if let Some(image) = owner_client.images.get_mut(image_id) {
+                        let access_right = crate::common::messages::AccessRight {
+                            view_limit: view_limit.unwrap_or(999999), // Default to unlimited if not specified
+                            view_count: 0,
+                        };
+                        image.access_rights.insert(requester_id.to_string(), access_right);
+                        self.firebase.store_image(owner_id, image).await?;
+                        info!("Granted access to {} for image {} with limit {}", requester_id, image_id, view_limit.unwrap_or(999999));
+                    }
+                }
+            }
         } else {
             info!("Access request {} denied", request_id);
         }
@@ -148,5 +170,39 @@ impl DoSService {
         self.firebase.update_client_status(&failed_client_id, ClientStatus::Offline).await?;
         info!("Client marked as failed: {}", failed_client_id);
         Ok(())
+    }
+
+    pub async fn increment_view_count(&self, owner_id: String, image_id: String, viewer_id: String) -> Result<bool> {
+        // Get the owner's client info
+        if let Some(mut owner_client) = self.firebase.get_client(&owner_id).await? {
+            if let Some(image) = owner_client.images.get_mut(&image_id) {
+                // Check if viewer has access rights
+                if let Some(access_right) = image.access_rights.get_mut(&viewer_id) {
+                    // Check if view limit exceeded
+                    if access_right.view_count >= access_right.view_limit {
+                        info!("View limit exceeded for {} viewing image {} of {}", viewer_id, image_id, owner_id);
+                        return Ok(false);
+                    }
+
+                    // Increment view count
+                    access_right.view_count += 1;
+                    let new_count = access_right.view_count;
+                    let limit = access_right.view_limit;
+
+                    // Clone the image for storage
+                    let image_clone = image.clone();
+                    self.firebase.store_image(&owner_id, &image_clone).await?;
+                    info!("Incremented view count for {} viewing image {} of {} ({}/{})",
+                          viewer_id, image_id, owner_id, new_count, limit);
+                    return Ok(true);
+                } else {
+                    anyhow::bail!("Viewer {} does not have access to image {}", viewer_id, image_id);
+                }
+            } else {
+                anyhow::bail!("Image {} not found for owner {}", image_id, owner_id);
+            }
+        } else {
+            anyhow::bail!("Owner {} not found", owner_id);
+        }
     }
 }
