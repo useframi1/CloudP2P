@@ -1285,27 +1285,9 @@
                     var grantData = await grantResponse.json();
 
                     if (grantData.success) {
-                        // Now view the image (this will decrement the count)
-                        var viewSuccess = await viewImage(ownerId, imageId);
-                        if (viewSuccess) {
-                            // Fetch and display the image
-                            var imageResponse = await fetch(API_BASE + '/accessible-images');
-                            var imageData = await imageResponse.json();
-
-                            if (imageData.success && imageData.images) {
-                                var imgInfo = imageData.images.find(function(item) {
-                                    return item.owner_id === ownerId && item.image.image_id === imageId;
-                                });
-
-                                if (imgInfo) {
-                                    var imageName = imgInfo.image.name || imgInfo.image.image_id.replace(/_/g, '.');
-                                    var imagePath = imgInfo.image.encrypted_path || '';
-                                    var displayPath = imagePath ? '/' + imagePath.replace(/\\/g, '/') : '/test_images/' + imageName;
-                                    var viewsRemaining = defaultLimit - 1;
-                                    showImageModal(displayPath, imageName, 'Viewing: ' + viewsRemaining + ' view' + (viewsRemaining !== 1 ? 's' : '') + ' remaining');
-                                }
-                            }
-                        }
+                        alert('✅ Access granted! You now have ' + defaultLimit + ' views. The image will reload - click it again to view.');
+                        // Reload shared images to show updated access status
+                        loadSharedImages();
                     } else {
                         alert('❌ Error: ' + (grantData.error || 'Failed to grant access'));
                     }
