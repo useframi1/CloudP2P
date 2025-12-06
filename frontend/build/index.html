@@ -1112,7 +1112,8 @@
                             html += 'onclick="viewOwnImage(\'' + displayPath + '\', \'' + imageName + '\')"';
                         } else if (canView) {
                             // Has access with views remaining - confirm before viewing
-                            html += 'onclick="confirmViewImage(\'' + item.clientId + '\', \'' + item.image.image_id + '\', ' + hasAccess.viewsLeft + ')"';
+                            var imageName = item.image.name || item.image.image_id.replace(/_/g, '.');
+                            html += 'onclick="confirmViewImage(\'' + item.clientId + '\', \'' + item.image.image_id + '\', ' + hasAccess.viewsLeft + ', \'' + displayPath + '\', \'' + imageName + '\')"';
                         } else if (limitReached) {
                             // Limit reached - prompt to request more access
                             html += 'onclick="handleLimitReached(\'' + item.clientId + '\', \'' + item.image.image_id + '\')"';
@@ -1212,32 +1213,14 @@
             showImageModal(imagePath, imageName, 'Your Image');
         }
 
-        async function confirmViewImage(ownerId, imageId, viewsLeft) {
+        async function confirmViewImage(ownerId, imageId, viewsLeft, imagePath, imageName) {
             var message = 'You can view this image ' + viewsLeft + ' more time' + (viewsLeft > 1 ? 's' : '') + '.\nDo you want to proceed?';
 
             if (confirm(message)) {
                 var success = await viewImage(ownerId, imageId);
                 if (success) {
-                    // Fetch the image to display in modal
-                    try {
-                        var response = await fetch(API_BASE + '/accessible-images');
-                        var data = await response.json();
-
-                        if (data.success && data.images) {
-                            var imageData = data.images.find(function(item) {
-                                return item.owner_id === ownerId && item.image.image_id === imageId;
-                            });
-
-                            if (imageData) {
-                                var imageName = imageData.image.name || imageData.image.image_id.replace(/_/g, '.');
-                                var imagePath = imageData.image.encrypted_path || '';
-                                var displayPath = imagePath ? '/' + imagePath.replace(/\\/g, '/') : '/test_images/' + imageName;
-                                showImageModal(displayPath, imageName, 'Viewing: ' + (viewsLeft - 1) + ' views remaining');
-                            }
-                        }
-                    } catch (err) {
-                        console.error('Failed to load image:', err);
-                    }
+                    // Display the image in modal (we already have the path from the grid)
+                    showImageModal(imagePath, imageName, 'Viewing: ' + (viewsLeft - 1) + ' views remaining');
                 }
             }
         }

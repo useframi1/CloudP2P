@@ -58,7 +58,7 @@ struct ApiResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     peers: Option<Vec<serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    images: Option<Vec<ImageInfo>>,
+    images: Option<Vec<serde_json::Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     requests: Option<Vec<serde_json::Value>>,
 }
@@ -655,11 +655,12 @@ async fn my_images_handler(
             if let Some(client) = my_client {
                 let images: Vec<ImageInfo> = client.images.values().cloned().collect();
                 info!("Found {} images", images.len());
+                let images_json: Vec<serde_json::Value> = images.iter().map(|img| serde_json::to_value(img).unwrap()).collect();
                 Ok((
                     StatusCode::OK,
                     Json(ApiResponse {
                         success: true,
-                        images: Some(images),
+                        images: Some(images_json),
                         message: None,
                         error: None,
                         carrier_image_base64: None,
@@ -1176,7 +1177,7 @@ async fn accessible_images_handler(
                 StatusCode::OK,
                 Json(ApiResponse {
                     success: true,
-                    images: Some(accessible_images.iter().map(|v| serde_json::from_value(v.clone()).unwrap()).collect()),
+                    images: Some(accessible_images),
                     message: None,
                     error: None,
                     carrier_image_base64: None,
