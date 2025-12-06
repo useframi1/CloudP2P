@@ -109,7 +109,7 @@ async fn handle_client(dos: Arc<DoSService>, socket: tokio::net::TcpStream) -> R
         }
 
         Message::ImageAccessRequest {
-            request_id,
+            request_id: _request_id,
             requester_id,
             owner_id,
             image_id,

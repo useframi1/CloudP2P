@@ -55,7 +55,7 @@ async fn register_client_images(
         .await
     {
         Ok(_) => println!("  {} signed in successfully", client_id),
-        Err(e) => {
+        Err(_e) => {
             println!("  {} not found, signing up...", client_id);
             dos_client
                 .sign_up(client_id.to_string(), "127.0.0.1".to_string())

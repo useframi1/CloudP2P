@@ -7,7 +7,7 @@ use tokio::net::TcpStream;
 
 pub struct DosClient {
     dos_address: String,
-    client_name: String,
+    _client_name: String,
     client_id: Option<String>,
 }
 
@@ -15,7 +15,7 @@ impl DosClient {
     pub fn new(dos_address: String, client_name: String) -> Self {
         Self {
             dos_address,
-            client_name,
+            _client_name: client_name,
             client_id: None,
         }
     }

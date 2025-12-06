@@ -7,7 +7,6 @@ use log::info;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tokio::sync::RwLock;
 
 pub struct DoSService {
     firebase: Arc<FirebaseClient>,
@@ -56,9 +55,9 @@ impl DoSService {
         Ok(client_id)
     }
 
-    pub async fn sign_in_client(&self, client_id: String, ip_address: String) -> Result<Vec<serde_json::Value>> {
+    pub async fn sign_in_client(&self, client_id: String, _ip_address: String) -> Result<Vec<serde_json::Value>> {
         // Verify client exists
-        let client = self.firebase.get_client(&client_id).await?
+        let _client = self.firebase.get_client(&client_id).await?
             .ok_or_else(|| anyhow::anyhow!("Client not found"))?;
 
         // Update status to online

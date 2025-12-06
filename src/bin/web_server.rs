@@ -267,7 +267,8 @@ async fn health_check() -> impl IntoResponse {
     }))
 }
 
-// Get client IP address
+// Get client IP address (currently unused but kept for future use)
+#[allow(dead_code)]
 fn get_client_ip(connect_info: Option<ConnectInfo<SocketAddr>>) -> String {
     connect_info
         .map(|ci| ci.0.ip().to_string())
@@ -1100,8 +1101,8 @@ async fn requested_images_handler(
         ));
     }
 
-    let client_id = current_user.as_ref().unwrap();
-    let dos_client = state.dos_client.lock().await;
+    let _client_id = current_user.as_ref().unwrap();
+    let _dos_client = state.dos_client.lock().await;
 
     // Return empty list for now - will implement proper tracking later
     Ok((
@@ -1161,7 +1162,7 @@ async fn accessible_images_handler(
                     continue; // Skip own images
                 }
 
-                for (image_id, image) in &client.images {
+                for (_image_id, image) in &client.images {
                     if let Some(access) = image.access_rights.get(&client_id) {
                         // User has access to this image
                         accessible_images.push(serde_json::json!({
