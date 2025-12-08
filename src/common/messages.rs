@@ -10,6 +10,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use crate::processing::EmbeddedAccessRights;
 
 // ============================================================================
 // DoS DATA STRUCTURES
@@ -28,6 +29,8 @@ pub struct ClientInfo {
     pub client_name: String,
     pub status: ClientStatus,
     pub ip_address: String,
+    #[serde(default)]
+    pub p2p_port: u16,
     pub last_seen: u64,
     #[serde(default)]
     pub images: HashMap<String, ImageInfo>,
@@ -279,6 +282,7 @@ pub enum Message {
     ClientSignUp {
         client_name: String,
         ip_address: String,
+        p2p_port: u16,
     },
     ClientSignUpResponse {
         client_id: String,
@@ -286,6 +290,7 @@ pub enum Message {
     ClientSignIn {
         client_id: String,
         ip_address: String,
+        p2p_port: u16,
     },
     ClientSignInResponse {
         notifications: Vec<serde_json::Value>,
@@ -335,6 +340,108 @@ pub enum Message {
     IncrementViewCountResponse {
         allowed: bool,
     },
+
+    // ========== P2P DIRECT IMAGE TRANSFER MESSAGES ==========
+    /// **Get Peer Address**
+    ///
+    /// Request sent to DoS server to get a peer's IP address and P2P port for direct connection.
+    ///
+    /// # Fields
+    /// - `peer_id`: ID of the peer client whose address is being requested
+    GetPeerAddress {
+        peer_id: String,
+    },
+
+    /// **Peer Address Response**
+    ///
+    /// Response from DoS server with peer's connection information.
+    ///
+    /// # Fields
+    /// - `peer_id`: ID of the peer client
+    /// - `ip_address`: IP address of the peer
+    /// - `p2p_port`: TCP port the peer is listening on for P2P connections
+    /// - `online`: Whether the peer is currently online
+    PeerAddressResponse {
+        peer_id: String,
+        ip_address: String,
+        p2p_port: u16,
+        online: bool,
+    },
+
+    /// **P2P Image Request**
+    ///
+    /// Direct peer-to-peer request for an image. Sent from one client directly to another.
+    ///
+    /// # Fields
+    /// - `requester_id`: ID of the client requesting the image
+    /// - `image_id`: ID of the image being requested
+    P2PImageRequest {
+        requester_id: String,
+        image_id: String,
+    },
+
+    /// **P2P Image Response**
+    ///
+    /// Response containing the requested image data, sent directly from owner to requester.
+    ///
+    /// # Fields
+    /// - `image_id`: ID of the image being sent
+    /// - `image_data`: Raw bytes of the image file
+    /// - `success`: Whether the request succeeded
+    P2PImageResponse {
+        image_id: String,
+        image_data: Vec<u8>,
+        success: bool,
+    },
+
+    /// **P2P Access Denied**
+    ///
+    /// Response when a peer rejects an image request due to insufficient access rights.
+    ///
+    /// # Fields
+    /// - `image_id`: ID of the image that was denied
+    /// - `reason`: Human-readable reason for denial
+    P2PAccessDenied {
+        image_id: String,
+        reason: String,
+    },
+
+    // ========== STEGANOGRAPHY ENCRYPTION WITH ACCESS RIGHTS ==========
+    /// **Encrypt With Access Rights**
+    ///
+    /// Sent by clients to compute servers to encrypt a secret image with optional access rights.
+    /// This is used for both initial registration (no access rights) and creating personalized
+    /// carriers for specific requesters (with access rights).
+    ///
+    /// # Fields
+    /// - `client_name`: Name of the client requesting encryption
+    /// - `request_id`: Unique ID for tracking this encryption request
+    /// - `secret_image_data`: Raw bytes of the secret image to embed
+    /// - `access_rights`: Optional access rights to embed (username, view_limit, view_count)
+    ///                     None for initial registration, Some(...) for personalized carriers
+    EncryptWithAccessRights {
+        client_name: String,
+        request_id: u64,
+        secret_image_data: Vec<u8>,
+        access_rights: Option<EmbeddedAccessRights>,
+    },
+
+    /// **Encryption Response**
+    ///
+    /// Server's response after performing steganography encryption with optional access rights.
+    ///
+    /// # Fields
+    /// - `request_id`: ID of the request being answered
+    /// - `encrypted_carrier`: Carrier image bytes with embedded secret image and access rights (PNG format)
+    /// - `success`: Whether the encryption succeeded
+    /// - `error_message`: Error details if success is false
+    EncryptionResponse {
+        request_id: u64,
+        encrypted_carrier: Vec<u8>,
+        success: bool,
+        error_message: Option<String>,
+    },
+
     Ack,
 }
 

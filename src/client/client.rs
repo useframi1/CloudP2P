@@ -47,7 +47,7 @@ use tokio::net::TcpStream;
 
 use crate::common::connection::Connection;
 use crate::common::messages::Message;
-use crate::processing::steganography;
+use crate::processing::{steganography, EmbeddedAccessRights};
 
 /// The minimal core client that handles direct image transmission and encryption verification.
 ///
@@ -234,6 +234,77 @@ impl ClientCore {
                     // Server reported task failure
                     Err(anyhow::anyhow!(
                         "Task failed on server: {}",
+                        error_message.unwrap_or_else(|| "Unknown error".to_string())
+                    ))
+                }
+            }
+            _ => Err(anyhow::anyhow!("Unexpected response or connection closed")),
+        }
+    }
+
+    /// Sends encryption request with access rights to an assigned server.
+    ///
+    /// This method is similar to send_and_receive_encrypted_image but uses the
+    /// EncryptWithAccessRights/EncryptionResponse protocol instead of TaskRequest/TaskResponse.
+    ///
+    /// # Arguments
+    ///
+    /// * `assigned_address` - Network address of the assigned server (from leader)
+    /// * `request_id` - Unique identifier for this request
+    /// * `secret_image_data` - Raw bytes of the secret image to embed
+    /// * `access_rights` - Optional access rights to embed
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Vec<u8>)` - The encrypted carrier image with embedded secret and access rights
+    /// * `Err(anyhow::Error)` - If any step fails
+    pub async fn send_encryption_with_access_rights(
+        &self,
+        assigned_address: &str,
+        request_id: u64,
+        secret_image_data: Vec<u8>,
+        access_rights: Option<EmbeddedAccessRights>,
+    ) -> Result<Vec<u8>> {
+        info!(
+            "🔐 {} Sending encryption request #{} to server at {} (access_rights: {})",
+            self.client_name,
+            request_id,
+            assigned_address,
+            if access_rights.is_some() { "Yes" } else { "No" }
+        );
+
+        // Connect to the assigned server
+        let stream = TcpStream::connect(assigned_address).await?;
+        let mut conn = Connection::new(stream);
+
+        // Construct and send the encryption request
+        let encrypt_request = Message::EncryptWithAccessRights {
+            client_name: self.client_name.clone(),
+            request_id,
+            secret_image_data,
+            access_rights,
+        };
+
+        conn.write_message(&encrypt_request).await?;
+
+        // Wait for and process the response
+        match conn.read_message().await? {
+            Some(Message::EncryptionResponse {
+                request_id: response_id,
+                encrypted_carrier,
+                success,
+                error_message,
+            }) => {
+                if success {
+                    info!(
+                        "✅ {} Encryption request #{} completed successfully ({} bytes)",
+                        self.client_name, response_id, encrypted_carrier.len()
+                    );
+                    Ok(encrypted_carrier)
+                } else {
+                    // Server reported encryption failure
+                    Err(anyhow::anyhow!(
+                        "Encryption failed on server: {}",
                         error_message.unwrap_or_else(|| "Unknown error".to_string())
                     ))
                 }

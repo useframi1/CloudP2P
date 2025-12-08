@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,12 +29,12 @@
             backdrop-filter: blur(10px);
             padding: 16px 24px;
             border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
         .header-left h1 {
@@ -73,12 +74,12 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .btn-primary {
@@ -112,8 +113,8 @@
             backdrop-filter: blur(10px);
             padding: 16px;
             border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
             min-height: 400px;
             display: flex;
             flex-direction: column;
@@ -200,7 +201,7 @@
             position: relative;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transition: all 0.2s ease;
             border: 3px solid #e2e8f0;
             aspect-ratio: 1 / 1;
@@ -208,7 +209,7 @@
 
         .image-item:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             border-color: #8b5cf6;
         }
 
@@ -224,7 +225,7 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
             color: white;
             padding: 6px 8px;
             font-size: 9px;
@@ -298,7 +299,7 @@
 
         .shared-image-card:hover {
             border-color: #cbd5e1;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .shared-image-card img {
@@ -361,7 +362,7 @@
 
         .request-card:hover {
             border-color: #cbd5e1;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         }
 
         .request-header {
@@ -400,8 +401,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .message {
@@ -439,7 +445,7 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.6);
+            background-color: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(8px);
         }
 
@@ -455,7 +461,7 @@
             border-radius: 16px;
             max-width: 380px;
             width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         .modal-header {
@@ -534,6 +540,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Sign In/Sign Up Modal -->
     <div class="modal" id="auth-modal">
@@ -591,7 +598,9 @@
                     <button class="refresh-btn" onclick="loadMyImages()">Refresh</button>
                 </div>
                 <div class="image-grid" id="my-images-grid">
-                    <div class="loading"><div class="spinner"></div>Loading...</div>
+                    <div class="loading">
+                        <div class="spinner"></div>Loading...
+                    </div>
                 </div>
             </div>
 
@@ -602,7 +611,9 @@
                     <button class="refresh-btn" onclick="refreshOnlinePeers()">Refresh</button>
                 </div>
                 <div class="peer-list" id="online-peers-list">
-                    <div class="loading"><div class="spinner"></div>Loading...</div>
+                    <div class="loading">
+                        <div class="spinner"></div>Loading...
+                    </div>
                 </div>
             </div>
 
@@ -621,8 +632,10 @@
                     </select>
                 </div>
                 <div id="image-preview-container" style="margin: 12px 0; text-align: center; display: none;">
-                    <img id="preview-image" src="" style="max-width: 100%; max-height: 150px; border-radius: 8px; border: 2px solid #e2e8f0;">
-                    <p id="preview-label" style="margin-top: 8px; font-size: 11px; font-weight: 600; color: #64748b;"></p>
+                    <img id="preview-image" src=""
+                        style="max-width: 100%; max-height: 150px; border-radius: 8px; border: 2px solid #e2e8f0;">
+                    <p id="preview-label" style="margin-top: 8px; font-size: 11px; font-weight: 600; color: #64748b;">
+                    </p>
                 </div>
                 <div id="encrypt-buttons">
                     <button class="btn btn-success" style="width: 100%">🔒 Encrypt</button>
@@ -640,7 +653,9 @@
                     <button class="refresh-btn" onclick="loadSharedImages()">Refresh</button>
                 </div>
                 <div class="peer-list" id="shared-images-list">
-                    <div class="loading"><div class="spinner"></div>Loading...</div>
+                    <div class="loading">
+                        <div class="spinner"></div>Loading...
+                    </div>
                 </div>
             </div>
 
@@ -681,7 +696,7 @@
         var currentOriginalImagePath = null;
         var autoRefreshInterval = null;
 
-        window.onload = function() {
+        window.onload = function () {
             showAuthModal();
         };
 
@@ -692,7 +707,7 @@
             }
 
             // Refresh only Online Peers and Pending Requests every 5 seconds
-            autoRefreshInterval = setInterval(function() {
+            autoRefreshInterval = setInterval(function () {
                 if (currentUser) {
                     refreshOnlinePeers();
                     loadPendingRequests();
@@ -707,7 +722,7 @@
             }
         }
 
-        window.onload = function() {
+        window.onload = function () {
             showAuthModal();
         };
 
@@ -820,7 +835,7 @@
 
             try {
                 stopAutoRefresh(); // Stop auto-refresh when user logs out
-                
+
                 var response = await fetch(API_BASE + '/signout', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -845,7 +860,7 @@
         async function loadMyImages() {
             var container = document.getElementById('my-images-grid');
             if (!container) return;
-            
+
             container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
 
             try {
@@ -860,7 +875,7 @@
                 var data = await response.json();
                 if (data.success && data.images && data.images.length > 0) {
                     var html = '';
-                    data.images.forEach(function(img) {
+                    data.images.forEach(function (img) {
                         var imageName = img.name || img.image_id.replace(/_/g, '.');
                         var imagePath = img.encrypted_path || '';
                         var displayPath = imagePath ? '/' + imagePath.replace(/\\/g, '/') : '/test_images/' + imageName;
@@ -882,7 +897,7 @@
         async function refreshOnlinePeers() {
             var container = document.getElementById('online-peers-list');
             if (!container) return;
-            
+
             // Don't show loading spinner on auto-refresh
             var isManualRefresh = !autoRefreshInterval || event;
             if (isManualRefresh) {
@@ -895,13 +910,13 @@
 
                 if (data.success && data.peers && data.peers.length > 0) {
                     // Filter out current user AND only show real clients from Firebase
-                    var otherPeers = data.peers.filter(function(peer) {
+                    var otherPeers = data.peers.filter(function (peer) {
                         return peer.client_id !== currentUser && peer.client_id && peer.ip_address;
                     });
 
                     if (otherPeers.length > 0) {
                         var html = '';
-                        otherPeers.forEach(function(peer) {
+                        otherPeers.forEach(function (peer) {
                             var imageCount = peer.images ? Object.keys(peer.images).length : 0;
                             html += '<div class="peer-card"><div class="peer-header">';
                             html += '<h3>👤 ' + peer.client_id + '</h3>';
@@ -929,13 +944,13 @@
                 select.innerHTML = '<option value="">-- Select Image --</option>';
 
                 if (data.success && data.images) {
-                    data.images.forEach(function(img) {
+                    data.images.forEach(function (img) {
                         var imageName = img.name || img.image_id.replace(/_/g, '.');
                         var imagePath = img.encrypted_path || '';
                         select.innerHTML += '<option value="' + img.image_id + '" data-path="' + imagePath + '">' + imageName + '</option>';
                     });
 
-                    select.onchange = function() {
+                    select.onchange = function () {
                         var selectedOption = select.options[select.selectedIndex];
                         var imagePath = selectedOption.getAttribute('data-path');
                         var previewContainer = document.getElementById('image-preview-container');
@@ -1050,7 +1065,7 @@
         async function loadSharedImages() {
             var container = document.getElementById('shared-images-list');
             if (!container) return;
-            
+
             container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
 
             try {
@@ -1062,7 +1077,7 @@
 
                 var accessMap = {};
                 if (accessData.success && accessData.images) {
-                    accessData.images.forEach(function(item) {
+                    accessData.images.forEach(function (item) {
                         var key = item.owner_id + '_' + item.image.image_id;
                         accessMap[key] = {
                             viewCount: item.access.view_count,
@@ -1076,10 +1091,10 @@
 
                 // Only add images from valid Firebase clients
                 if (peersData.success && peersData.peers) {
-                    peersData.peers.forEach(function(peer) {
+                    peersData.peers.forEach(function (peer) {
                         // Filter out invalid/placeholder clients
                         if (peer.client_id && peer.ip_address && peer.images) {
-                            Object.values(peer.images).forEach(function(img) {
+                            Object.values(peer.images).forEach(function (img) {
                                 allImages.push({
                                     clientId: peer.client_id,
                                     image: img,
@@ -1091,8 +1106,8 @@
                 }
 
                 if (accessData.success && accessData.images) {
-                    accessData.images.forEach(function(item) {
-                        var exists = allImages.some(function(img) {
+                    accessData.images.forEach(function (item) {
+                        var exists = allImages.some(function (img) {
                             return img.clientId === item.owner_id && img.image.image_id === item.image.image_id;
                         });
 
@@ -1108,7 +1123,7 @@
 
                 if (allImages.length > 0) {
                     var html = '';
-                    allImages.forEach(function(item) {
+                    allImages.forEach(function (item) {
                         var imageName = item.image.name || item.image.image_id.replace(/_/g, '.');
                         var imagePath = item.image.encrypted_path || '';
                         var displayPath = imagePath ? '/' + imagePath.replace(/\\/g, '/') : '/test_images/' + imageName;
@@ -1299,7 +1314,7 @@
         async function loadPendingRequests() {
             var container = document.getElementById('pending-requests-list');
             if (!container) return;
-            
+
             // Don't show loading spinner on auto-refresh
             var isManualRefresh = !autoRefreshInterval || event;
             if (isManualRefresh) {
@@ -1312,7 +1327,7 @@
 
                 if (data.success && data.requests && data.requests.length > 0) {
                     var html = '';
-                    data.requests.forEach(function(req) {
+                    data.requests.forEach(function (req) {
                         var requestId = req.request_id;
                         html += '<div class="request-card"><div class="request-header"><div>';
                         html += '<strong>📬 Request from ' + req.requester_id + '</strong><br>';
@@ -1396,7 +1411,7 @@
             var el = document.getElementById(elementId);
             if (el) {
                 el.innerHTML = '<div class="message ' + type + '">' + message + '</div>';
-                setTimeout(function() { el.innerHTML = ''; }, 4000);
+                setTimeout(function () { el.innerHTML = ''; }, 4000);
             }
         }
 
@@ -1406,4 +1421,5 @@
         document.querySelector('.card:nth-child(5) .btn-primary').onclick = requestImageAccess;
     </script>
 </body>
+
 </html>

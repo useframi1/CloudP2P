@@ -1,0 +1,371 @@
+//! # P2P Service
+//!
+//! Handles peer-to-peer direct image transfer between clients.
+//! Provides:
+//! - P2P listener for incoming image requests from peers
+//! - Direct peer connection for requesting images
+//! - Access control verification before sending images
+//! - View count management
+
+use crate::common::connection::Connection;
+use crate::common::messages::Message;
+use crate::client::dos_client::DosClient;
+use crate::client::middleware::ClientMiddleware;
+use crate::dos::firebase::FirebaseClient;
+use crate::processing::{extract_image_with_access_rights, EmbeddedAccessRights};
+use anyhow::{anyhow, Result};
+use std::sync::Arc;
+use tokio::net::{TcpListener, TcpStream};
+use tokio::sync::Mutex;
+
+/// P2P Service for handling direct peer-to-peer image transfers
+pub struct P2PService {
+    /// Port this client listens on for P2P connections
+    pub p2p_port: u16,
+    /// Client ID of this client
+    pub client_id: String,
+    /// DoS client for access control verification
+    pub dos_client: Arc<Mutex<DosClient>>,
+    /// Firebase client for direct database access
+    pub firebase: Arc<FirebaseClient>,
+    /// Directory where encrypted images are stored
+    pub image_dir: String,
+    /// Client middleware for distributed server encryption
+    pub client_middleware: Arc<Mutex<ClientMiddleware>>,
+}
+
+impl P2PService {
+    /// Create a new P2P service instance
+    pub fn new(
+        p2p_port: u16,
+        client_id: String,
+        dos_client: Arc<Mutex<DosClient>>,
+        firebase: Arc<FirebaseClient>,
+        image_dir: String,
+        client_middleware: Arc<Mutex<ClientMiddleware>>,
+    ) -> Self {
+        Self {
+            p2p_port,
+            client_id,
+            dos_client,
+            firebase,
+            image_dir,
+            client_middleware,
+        }
+    }
+
+    /// Start listening for incoming P2P connections
+    ///
+    /// This method spawns a background task that listens on the P2P port
+    /// and handles incoming image requests from peers.
+    pub async fn start_listener(self: Arc<Self>) -> Result<()> {
+        let addr = format!("0.0.0.0:{}", self.p2p_port);
+        let listener = TcpListener::bind(&addr).await?;
+
+        println!("[P2P] Listening on {} for peer connections", addr);
+
+        loop {
+            match listener.accept().await {
+                Ok((socket, peer_addr)) => {
+                    println!("[P2P] Accepted connection from {}", peer_addr);
+                    let service = self.clone();
+                    tokio::spawn(async move {
+                        if let Err(e) = service.handle_peer_connection(socket).await {
+                            eprintln!("[P2P] Error handling peer connection: {}", e);
+                        }
+                    });
+                }
+                Err(e) => {
+                    eprintln!("[P2P] Error accepting connection: {}", e);
+                }
+            }
+        }
+    }
+
+    /// Handle an incoming P2P connection from a peer
+    async fn handle_peer_connection(&self, socket: TcpStream) -> Result<()> {
+        let mut conn = Connection::new(socket);
+
+        // Read the incoming request
+        let message = conn
+            .read_message()
+            .await?
+            .ok_or_else(|| anyhow!("Connection closed before receiving message"))?;
+
+        match message {
+            Message::P2PImageRequest {
+                requester_id,
+                image_id,
+            } => {
+                println!(
+                    "[P2P] Received image request for {} from {}",
+                    image_id, requester_id
+                );
+                self.handle_image_request(&mut conn, &requester_id, &image_id)
+                    .await?;
+            }
+            _ => {
+                println!("[P2P] Unexpected message type received");
+                let response = Message::P2PAccessDenied {
+                    image_id: String::new(),
+                    reason: "Invalid message type".to_string(),
+                };
+                conn.write_message(&response).await?;
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Handle an image request from a peer - Steganography Flow
+    ///
+    /// 1. Get image info and access rights from Firebase
+    /// 2. Read encrypted carrier (has secret, no access rights)
+    /// 3. Extract secret image from carrier
+    /// 4. Create personalized carrier with secret + requester's access rights
+    /// 5. Send personalized carrier to requester
+    /// 6. Increment view count
+    async fn handle_image_request(
+        &self,
+        conn: &mut Connection,
+        requester_id: &str,
+        image_id: &str,
+    ) -> Result<()> {
+        println!("🔐 [P2P_HANDLER] Processing request from {} for {}", requester_id, image_id);
+
+        // Get image info and access rights from Firebase
+        let owner_client = match self.firebase.get_client(&self.client_id).await {
+            Ok(Some(client)) => client,
+            Ok(None) => {
+                println!("❌ [P2P_HANDLER] Owner {} not found", self.client_id);
+                let response = Message::P2PAccessDenied {
+                    image_id: image_id.to_string(),
+                    reason: "Owner not found".to_string(),
+                };
+                conn.write_message(&response).await?;
+                return Ok(());
+            }
+            Err(e) => {
+                println!("❌ [P2P_HANDLER] Failed to get owner info: {}", e);
+                let response = Message::P2PAccessDenied {
+                    image_id: image_id.to_string(),
+                    reason: format!("Failed to get owner info: {}", e),
+                };
+                conn.write_message(&response).await?;
+                return Ok(());
+            }
+        };
+
+        // Get the image and check access rights
+        let image_info = match owner_client.images.get(image_id) {
+            Some(img) => img.clone(),
+            None => {
+                println!("❌ [P2P_HANDLER] Image {} not found", image_id);
+                let response = Message::P2PAccessDenied {
+                    image_id: image_id.to_string(),
+                    reason: "Image not found".to_string(),
+                };
+                conn.write_message(&response).await?;
+                return Ok(());
+            }
+        };
+
+        let access_right = match image_info.access_rights.get(requester_id) {
+            Some(ar) => ar.clone(),
+            None => {
+                println!("❌ [P2P_HANDLER] No access rights for {}", requester_id);
+                let response = Message::P2PAccessDenied {
+                    image_id: image_id.to_string(),
+                    reason: "No access rights".to_string(),
+                };
+                conn.write_message(&response).await?;
+                return Ok(());
+            }
+        };
+
+        // Check view limit BEFORE incrementing
+        if access_right.view_count >= access_right.view_limit {
+            println!("🚫 [P2P_HANDLER] View limit reached: {}/{}", access_right.view_count, access_right.view_limit);
+            let response = Message::P2PAccessDenied {
+                image_id: image_id.to_string(),
+                reason: "View limit reached".to_string(),
+            };
+            conn.write_message(&response).await?;
+            return Ok(());
+        }
+
+        println!("✅ [P2P_HANDLER] Access granted: {}/{} views used", access_right.view_count, access_right.view_limit);
+
+        let encrypted_path = image_info.encrypted_path.clone();
+
+        // Read the encrypted carrier (has secret, no access rights)
+        println!("📂 [P2P_HANDLER] Reading encrypted carrier from: {}", encrypted_path);
+        let encrypted_carrier = match std::fs::read(&encrypted_path) {
+            Ok(data) => data,
+            Err(e) => {
+                println!("❌ [P2P_HANDLER] Failed to read encrypted carrier: {}", e);
+                let response = Message::P2PAccessDenied {
+                    image_id: image_id.to_string(),
+                    reason: format!("Encrypted carrier not found: {}", e),
+                };
+                conn.write_message(&response).await?;
+                return Ok(());
+            }
+        };
+
+        // Extract secret image from carrier
+        println!("🔓 [P2P_HANDLER] Extracting secret image from carrier...");
+        let (secret_image, _) = match extract_image_with_access_rights(&encrypted_carrier) {
+            Ok(data) => data,
+            Err(e) => {
+                println!("❌ [P2P_HANDLER] Failed to extract secret: {}", e);
+                let response = Message::P2PAccessDenied {
+                    image_id: image_id.to_string(),
+                    reason: format!("Failed to extract secret: {}", e),
+                };
+                conn.write_message(&response).await?;
+                return Ok(());
+            }
+        };
+
+        println!("✅ [P2P_HANDLER] Extracted secret image: {} bytes", secret_image.len());
+
+        // Create personalized carrier with requester's access rights using distributed server encryption
+        let embedded_rights = EmbeddedAccessRights {
+            username: requester_id.to_string(),
+            view_limit: access_right.view_limit,
+            view_count: access_right.view_count,
+        };
+
+        println!("🎨 [P2P_HANDLER] Requesting server to create personalized carrier for {} (limit: {}, count: {})",
+            requester_id, embedded_rights.view_limit, embedded_rights.view_count);
+
+        // Generate unique request ID
+        let request_id = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as u64;
+
+        // Send encryption request to distributed servers
+        let personalized_carrier = match self
+            .client_middleware
+            .lock()
+            .await
+            .submit_encryption_with_access_rights(
+                request_id,
+                secret_image.clone(),
+                Some(embedded_rights),
+            )
+            .await
+        {
+            Ok(data) => data,
+            Err(e) => {
+                println!("❌ [P2P_HANDLER] Server failed to create personalized carrier: {}", e);
+                let response = Message::P2PAccessDenied {
+                    image_id: image_id.to_string(),
+                    reason: format!("Failed to create personalized carrier: {}", e),
+                };
+                conn.write_message(&response).await?;
+                return Ok(());
+            }
+        };
+
+        println!("✅ [P2P_HANDLER] Server created personalized carrier: {} bytes", personalized_carrier.len());
+
+        // Increment view count in Firebase AFTER successful creation
+        let dos_client = self.dos_client.lock().await;
+        if let Err(e) = dos_client.increment_view_count(&self.client_id, image_id, requester_id).await {
+            println!("⚠️ [P2P_HANDLER] Failed to increment view count: {}", e);
+        }
+        drop(dos_client);
+
+        // Send personalized carrier to requester
+        println!("📤 [P2P_HANDLER] Sending personalized carrier to {}", requester_id);
+        let response = Message::P2PImageResponse {
+            image_id: image_id.to_string(),
+            image_data: personalized_carrier,
+            success: true,
+        };
+        conn.write_message(&response).await?;
+        println!("✅ [P2P_HANDLER] Personalized carrier sent successfully");
+
+        Ok(())
+    }
+
+    /// Request an image directly from a peer
+    ///
+    /// # Arguments
+    /// - `peer_ip`: IP address of the peer
+    /// - `peer_port`: P2P port of the peer
+    /// - `image_id`: ID of the image to request
+    /// - `requester_id`: ID of the client making the request
+    ///
+    /// # Returns
+    /// Image data as bytes on success
+    pub async fn request_image_from_peer(
+        peer_ip: &str,
+        peer_port: u16,
+        image_id: &str,
+        requester_id: &str,
+    ) -> Result<Vec<u8>> {
+        let addr = format!("{}:{}", peer_ip, peer_port);
+        println!("🔌 [P2P_REQUEST] Attempting to connect to peer at {}", addr);
+        println!("📋 [P2P_REQUEST] Requester: {}, Image: {}", requester_id, image_id);
+
+        // Connect to peer
+        println!("🔗 [P2P_REQUEST] Connecting...");
+        let socket = match TcpStream::connect(&addr).await {
+            Ok(s) => {
+                println!("✅ [P2P_REQUEST] TCP connection established");
+                s
+            }
+            Err(e) => {
+                println!("❌ [P2P_REQUEST] Failed to connect: {}", e);
+                return Err(anyhow!("Failed to connect to peer: {}", e));
+            }
+        };
+        let mut conn = Connection::new(socket);
+
+        // Send image request
+        let request = Message::P2PImageRequest {
+            requester_id: requester_id.to_string(),
+            image_id: image_id.to_string(),
+        };
+        println!("📤 [P2P_REQUEST] Sending P2PImageRequest message");
+        conn.write_message(&request).await?;
+        println!("✅ [P2P_REQUEST] Request sent, waiting for response...");
+
+        // Read response
+        println!("📥 [P2P_REQUEST] Reading response...");
+        let response = conn
+            .read_message()
+            .await?
+            .ok_or_else(|| anyhow!("Connection closed before receiving response"))?;
+
+        println!("📨 [P2P_REQUEST] Received response: {:?}", response);
+
+        match response {
+            Message::P2PImageResponse {
+                image_data,
+                success,
+                ..
+            } => {
+                if success {
+                    println!("✅ [P2P_REQUEST] Success! Received image data ({} bytes)", image_data.len());
+                    Ok(image_data)
+                } else {
+                    println!("❌ [P2P_REQUEST] Peer returned unsuccessful response");
+                    Err(anyhow!("Peer returned unsuccessful response"))
+                }
+            }
+            Message::P2PAccessDenied { reason, .. } => {
+                println!("🚫 [P2P_REQUEST] Access denied: {}", reason);
+                Err(anyhow!("Access denied by peer: {}", reason))
+            }
+            _ => {
+                println!("❌ [P2P_REQUEST] Unexpected response type");
+                Err(anyhow!("Unexpected response type from peer"))
+            }
+        }
+    }
+}

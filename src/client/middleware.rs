@@ -57,6 +57,7 @@ use crate::client::client::ClientCore;
 use crate::client::metrics::ClientMetrics;
 use crate::common::connection::Connection;
 use crate::common::messages::Message;
+use crate::processing::EmbeddedAccessRights;
 
 /// Client configuration loaded from TOML file.
 ///
@@ -918,6 +919,174 @@ impl ClientMiddleware {
         match self.send_request(request_id, secret_image_data).await {
             Some(encrypted_image_data) => Ok(encrypted_image_data),
             None => Err(anyhow::anyhow!("Task submission failed")),
+        }
+    }
+
+    /// Submit encryption request with access rights using the distributed task system.
+    ///
+    /// This method uses the same distributed architecture as submit_task:
+    /// 1. Get task assignment from leader (polls until leader available)
+    /// 2. Send encryption request to assigned server
+    /// 3. Handle failover if server fails
+    /// 4. Return encrypted carrier
+    ///
+    /// # Arguments
+    ///
+    /// * `request_id` - Unique identifier for this request
+    /// * `secret_image_data` - Binary data of the secret image to embed
+    /// * `access_rights` - Optional access rights to embed (None for registration, Some(...) for personalized carriers)
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Vec<u8>)` - The encrypted carrier image with embedded secret and access rights
+    /// * `Err(anyhow::Error)` - If the encryption submission failed
+    pub async fn submit_encryption_with_access_rights(
+        &mut self,
+        request_id: u64,
+        secret_image_data: Vec<u8>,
+        access_rights: Option<EmbeddedAccessRights>,
+    ) -> anyhow::Result<Vec<u8>> {
+        info!(
+            "🔐 Encryption request #{}: Submitting image ({} bytes, access_rights: {})",
+            request_id,
+            secret_image_data.len(),
+            if access_rights.is_some() { "Yes" } else { "No" }
+        );
+
+        match self.send_encryption_request(request_id, secret_image_data, access_rights).await {
+            Some(encrypted_carrier) => Ok(encrypted_carrier),
+            None => Err(anyhow::anyhow!("Encryption submission failed")),
+        }
+    }
+
+    /// Send encryption request with leader assignment and failover support.
+    ///
+    /// Similar to send_request but for encryption with access rights.
+    async fn send_encryption_request(
+        &mut self,
+        request_num: u64,
+        secret_image_data: Vec<u8>,
+        access_rights: Option<EmbeddedAccessRights>,
+    ) -> Option<Vec<u8>> {
+        const POLL_INTERVAL_SECS: u64 = 2;
+        const MAX_RESUBMISSION_ATTEMPTS: u32 = 5;
+
+        let start_time = Instant::now();
+        let mut resubmission_attempt = 0;
+
+        loop {
+            if resubmission_attempt > 0 {
+                warn!(
+                    "🔄 {} Encryption request #{} resubmission attempt {}/{}",
+                    self.config.client.name,
+                    request_num,
+                    resubmission_attempt,
+                    MAX_RESUBMISSION_ATTEMPTS
+                );
+            }
+
+            // Step 1: Get task assignment from leader
+            info!(
+                "📡 {} Getting server assignment for encryption request #{}",
+                self.config.client.name, request_num
+            );
+
+            let (assigned_server_id, assigned_address, _leader_id) = loop {
+                match self.broadcast_assignment_request(request_num).await {
+                    Ok(assignment) => break assignment,
+                    Err(e) => {
+                        warn!(
+                            "Assignment request failed for encryption #{}: {} - waiting for leader...",
+                            request_num, e
+                        );
+                        tokio::time::sleep(Duration::from_secs(POLL_INTERVAL_SECS)).await;
+                    }
+                }
+            };
+
+            info!(
+                "✅ {} Encryption request #{} assigned to Server {}",
+                self.config.client.name, request_num, assigned_server_id
+            );
+
+            // Step 2: Send encryption request to assigned server
+            let result = self
+                .core
+                .send_encryption_with_access_rights(
+                    &assigned_address,
+                    request_num,
+                    secret_image_data.clone(),
+                    access_rights.clone(),
+                )
+                .await;
+
+            match result {
+                Ok(encrypted_carrier) => {
+                    let latency = start_time.elapsed();
+
+                    // Record metrics if enabled
+                    if let Some(metrics) = &self.metrics {
+                        let mut metrics = metrics.lock().unwrap();
+                        metrics.record_request(
+                            request_num,
+                            latency,
+                            true,
+                            None,
+                            Some(assigned_server_id),
+                        );
+                    }
+
+                    info!(
+                        "✅ {} Encryption request #{} completed successfully{}",
+                        self.config.client.name,
+                        request_num,
+                        if resubmission_attempt > 0 {
+                            format!(" (after {} resubmission(s))", resubmission_attempt)
+                        } else {
+                            String::new()
+                        }
+                    );
+                    return Some(encrypted_carrier);
+                }
+                Err(e) => {
+                    // If server failed and we haven't exceeded max attempts, retry
+                    if resubmission_attempt < MAX_RESUBMISSION_ATTEMPTS {
+                        resubmission_attempt += 1;
+                        warn!(
+                            "🔄 {} Encryption request #{} failed - attempting resubmission ({}/{}): {}",
+                            self.config.client.name,
+                            request_num,
+                            resubmission_attempt,
+                            MAX_RESUBMISSION_ATTEMPTS,
+                            e
+                        );
+                        tokio::time::sleep(Duration::from_secs(POLL_INTERVAL_SECS)).await;
+                        continue;
+                    } else {
+                        // Exceeded max attempts - give up
+                        error!(
+                            "❌ {} Encryption request #{} failed after {} attempts: {}",
+                            self.config.client.name,
+                            request_num,
+                            MAX_RESUBMISSION_ATTEMPTS,
+                            e
+                        );
+
+                        if let Some(metrics) = &self.metrics {
+                            let mut metrics = metrics.lock().unwrap();
+                            metrics.record_request(
+                                request_num,
+                                start_time.elapsed(),
+                                false,
+                                Some(e.to_string()),
+                                Some(assigned_server_id),
+                            );
+                        }
+
+                        return None;
+                    }
+                }
+            }
         }
     }
 }

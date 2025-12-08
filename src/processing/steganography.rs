@@ -29,6 +29,15 @@
 
 use anyhow::Result;
 use image::GenericImageView;
+use serde::{Deserialize, Serialize};
+
+/// Access rights for a specific user embedded in the carrier image
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmbeddedAccessRights {
+    pub username: String,
+    pub view_limit: u32,
+    pub view_count: u32,
+}
 
 /// Embed text into an image using LSB steganography.
 ///
@@ -454,4 +463,285 @@ pub fn extract_image_bytes(carrier_image_bytes: &[u8]) -> Result<Vec<u8>> {
     }
 
     Ok(image_bytes)
+}
+
+/// Embed a secret image AND access rights into a carrier image using LSB steganography.
+///
+/// Data format: [4 bytes: secret_len][secret_image_bytes][4 bytes: access_len][access_rights_json]
+///
+/// # Arguments
+/// - `carrier_image_bytes`: Raw bytes of the carrier image
+/// - `secret_image_bytes`: Raw bytes of the secret image to embed
+/// - `access_rights`: Optional access rights for a specific user
+///
+/// # Returns
+/// - `Ok(Vec<u8>)`: PNG image bytes with embedded secret image and access rights
+///
+/// # Example
+/// ```ignore
+/// let carrier = std::fs::read("carrier.jpg")?;
+/// let secret = std::fs::read("secret.png")?;
+/// let rights = EmbeddedAccessRights {
+///     username: "client2".to_string(),
+///     view_limit: 5,
+///     view_count: 0,
+/// };
+/// let result = embed_image_with_access_rights(&carrier, &secret, Some(&rights))?;
+/// std::fs::write("personalized_carrier.png", result)?;
+/// ```
+pub fn embed_image_with_access_rights(
+    carrier_image_bytes: &[u8],
+    secret_image_bytes: &[u8],
+    access_rights: Option<&EmbeddedAccessRights>,
+) -> Result<Vec<u8>> {
+    // Load the carrier image
+    let img = image::load_from_memory(carrier_image_bytes)?;
+    let (width, height) = img.dimensions();
+
+    // Convert to RGBA format
+    let mut img = img.to_rgba8();
+
+    // Serialize access rights if provided
+    let access_json = match access_rights {
+        Some(rights) => serde_json::to_vec(rights)?,
+        None => Vec::new(),
+    };
+
+    let secret_len = secret_image_bytes.len() as u32;
+    let access_len = access_json.len() as u32;
+
+    // Prepare data: [secret_len: 4][secret_bytes][access_len: 4][access_json]
+    let mut data_to_embed = Vec::new();
+    data_to_embed.extend_from_slice(&secret_len.to_be_bytes());
+    data_to_embed.extend_from_slice(secret_image_bytes);
+    data_to_embed.extend_from_slice(&access_len.to_be_bytes());
+    data_to_embed.extend_from_slice(&access_json);
+
+    // Check capacity
+    let available_bits = (width * height * 3) as usize;
+    let required_bits = data_to_embed.len() * 8;
+
+    if required_bits > available_bits {
+        return Err(anyhow::anyhow!(
+            "Carrier image too small: need {} bits but only have {} bits available",
+            required_bits, available_bits
+        ));
+    }
+
+    // Embed data into LSBs
+    let mut data_index = 0;
+    let mut bit_index = 0;
+
+    'outer: for y in 0..height {
+        for x in 0..width {
+            if data_index >= data_to_embed.len() {
+                break 'outer;
+            }
+
+            let pixel = img.get_pixel(x, y);
+            let mut new_pixel = *pixel;
+
+            for channel in 0..3 {
+                if data_index >= data_to_embed.len() {
+                    break 'outer;
+                }
+
+                let bit = (data_to_embed[data_index] >> (7 - bit_index)) & 1;
+                new_pixel[channel] = (pixel[channel] & 0xFE) | bit;
+
+                bit_index += 1;
+                if bit_index == 8 {
+                    bit_index = 0;
+                    data_index += 1;
+                }
+            }
+
+            img.put_pixel(x, y, new_pixel);
+        }
+    }
+
+    // Encode as PNG
+    let mut output_bytes = Vec::new();
+    img.write_to(
+        &mut std::io::Cursor::new(&mut output_bytes),
+        image::ImageFormat::Png,
+    )?;
+
+    Ok(output_bytes)
+}
+
+/// Extract secret image and access rights from a carrier image.
+///
+/// # Returns
+/// - Tuple of (secret_image_bytes, optional_access_rights)
+///
+/// # Example
+/// ```ignore
+/// let carrier = std::fs::read("personalized_carrier.png")?;
+/// let (secret_image, access_rights) = extract_image_with_access_rights(&carrier)?;
+/// if let Some(rights) = access_rights {
+///     println!("User: {}, views: {}/{}", rights.username, rights.view_count, rights.view_limit);
+/// }
+/// std::fs::write("extracted_secret.png", secret_image)?;
+/// ```
+pub fn extract_image_with_access_rights(
+    carrier_image_bytes: &[u8],
+) -> Result<(Vec<u8>, Option<EmbeddedAccessRights>)> {
+    let img = image::load_from_memory(carrier_image_bytes)?;
+    let img = img.to_rgba8();
+    let (width, height) = img.dimensions();
+
+    // Extract secret_len (first 4 bytes = 32 bits)
+    let mut secret_len_bytes = [0u8; 4];
+    let mut data_index = 0;
+    let mut bit_index = 0;
+
+    'length_loop: for y in 0..height {
+        for x in 0..width {
+            if data_index >= 4 {
+                break 'length_loop;
+            }
+
+            let pixel = img.get_pixel(x, y);
+
+            for channel in 0..3 {
+                if data_index >= 4 {
+                    break 'length_loop;
+                }
+
+                let bit = pixel[channel] & 1;
+                secret_len_bytes[data_index] |= bit << (7 - bit_index);
+
+                bit_index += 1;
+                if bit_index == 8 {
+                    bit_index = 0;
+                    data_index += 1;
+                }
+            }
+        }
+    }
+
+    let secret_len = u32::from_be_bytes(secret_len_bytes) as usize;
+
+    // Extract secret image bytes
+    let mut secret_bytes = vec![0u8; secret_len];
+    data_index = 0;
+    bit_index = 0;
+    let mut skip_bits = 32; // Skip the secret_len we already read
+
+    'secret_loop: for y in 0..height {
+        for x in 0..width {
+            if data_index >= secret_len {
+                break 'secret_loop;
+            }
+
+            let pixel = img.get_pixel(x, y);
+
+            for channel in 0..3 {
+                if skip_bits > 0 {
+                    skip_bits -= 1;
+                    continue;
+                }
+
+                if data_index >= secret_len {
+                    break 'secret_loop;
+                }
+
+                let bit = pixel[channel] & 1;
+                secret_bytes[data_index] |= bit << (7 - bit_index);
+
+                bit_index += 1;
+                if bit_index == 8 {
+                    bit_index = 0;
+                    data_index += 1;
+                }
+            }
+        }
+    }
+
+    // Extract access_len (next 4 bytes)
+    let total_bits_read = 32 + (secret_len * 8);
+    let mut access_len_bytes = [0u8; 4];
+    data_index = 0;
+    bit_index = 0;
+    skip_bits = total_bits_read;
+
+    'access_len_loop: for y in 0..height {
+        for x in 0..width {
+            if data_index >= 4 {
+                break 'access_len_loop;
+            }
+
+            let pixel = img.get_pixel(x, y);
+
+            for channel in 0..3 {
+                if skip_bits > 0 {
+                    skip_bits -= 1;
+                    continue;
+                }
+
+                if data_index >= 4 {
+                    break 'access_len_loop;
+                }
+
+                let bit = pixel[channel] & 1;
+                access_len_bytes[data_index] |= bit << (7 - bit_index);
+
+                bit_index += 1;
+                if bit_index == 8 {
+                    bit_index = 0;
+                    data_index += 1;
+                }
+            }
+        }
+    }
+
+    let access_len = u32::from_be_bytes(access_len_bytes) as usize;
+
+    // Extract access rights JSON if present
+    let access_rights = if access_len > 0 {
+        let mut access_bytes = vec![0u8; access_len];
+        data_index = 0;
+        bit_index = 0;
+        skip_bits = total_bits_read + 32; // Skip secret + secret_len + access_len
+
+        'access_loop: for y in 0..height {
+            for x in 0..width {
+                if data_index >= access_len {
+                    break 'access_loop;
+                }
+
+                let pixel = img.get_pixel(x, y);
+
+                for channel in 0..3 {
+                    if skip_bits > 0 {
+                        skip_bits -= 1;
+                        continue;
+                    }
+
+                    if data_index >= access_len {
+                        break 'access_loop;
+                    }
+
+                    let bit = pixel[channel] & 1;
+                    access_bytes[data_index] |= bit << (7 - bit_index);
+
+                    bit_index += 1;
+                    if bit_index == 8 {
+                        bit_index = 0;
+                        data_index += 1;
+                    }
+                }
+            }
+        }
+
+        match serde_json::from_slice::<EmbeddedAccessRights>(&access_bytes) {
+            Ok(rights) => Some(rights),
+            Err(_) => None,
+        }
+    } else {
+        None
+    };
+
+    Ok((secret_bytes, access_rights))
 }

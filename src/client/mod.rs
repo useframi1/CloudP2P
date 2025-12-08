@@ -19,9 +19,11 @@ pub mod client;
 pub mod dos_client;
 pub mod middleware;
 pub mod metrics;
+pub mod p2p_service;
 
 // Re-export for convenience
 pub use middleware::ClientMiddleware;
 pub use client::ClientCore;
 pub use dos_client::DosClient;
 pub use metrics::ClientMetrics;
+pub use p2p_service::P2PService;

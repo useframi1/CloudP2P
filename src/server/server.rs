@@ -10,7 +10,7 @@ use anyhow::Result;
 use log::info;
 use std::sync::Arc;
 
-use crate::processing::steganography;
+use crate::processing::{steganography, embed_image_with_access_rights, EmbeddedAccessRights};
 
 /// Core server component that performs image encryption tasks.
 ///
@@ -168,6 +168,70 @@ impl ServerCore {
         info!(
             "✅ Server {} completed text encryption for request #{}",
             self.server_id, request_id
+        );
+
+        Ok(encryption_result)
+    }
+
+    /// Encrypt a secret image with optional access rights for a specific user.
+    ///
+    /// This function embeds:
+    /// 1. The secret image into the carrier
+    /// 2. Optional access rights (username, view_limit, view_count) for personalized carriers
+    ///
+    /// # Arguments
+    /// - `request_id`: Unique identifier for logging
+    /// - `client_name`: Name of the client making the request
+    /// - `secret_image_data`: Raw bytes of the secret image to embed
+    /// - `access_rights`: Optional access rights for a specific requester
+    ///
+    /// # Returns
+    /// - `Ok(Vec<u8>)`: PNG bytes with embedded secret and access rights
+    ///
+    /// # Example
+    /// ```ignore
+    /// // Registration (no access rights)
+    /// let encrypted = server.encrypt_image_with_access_rights(1, "client3", secret, None).await?;
+    ///
+    /// // Personalized carrier for requester
+    /// let rights = EmbeddedAccessRights {
+    ///     username: "client2".to_string(),
+    ///     view_limit: 5,
+    ///     view_count: 0,
+    /// };
+    /// let personalized = server.encrypt_image_with_access_rights(2, "client3", secret, Some(rights)).await?;
+    /// ```
+    pub async fn encrypt_image_with_access_rights(
+        &self,
+        request_id: u64,
+        client_name: String,
+        secret_image_data: Vec<u8>,
+        access_rights: Option<EmbeddedAccessRights>,
+    ) -> Result<Vec<u8>> {
+        info!(
+            "🔐 Server {} processing encryption with access rights - request #{} from '{}'",
+            self.server_id, request_id, client_name
+        );
+
+        if let Some(ref rights) = access_rights {
+            info!(
+                "  └─ Embedding access rights for user '{}' (limit: {}, count: {})",
+                rights.username, rights.view_limit, rights.view_count
+            );
+        }
+
+        let carrier_image = self.default_carrier_image.clone();
+
+        // Perform encryption in blocking thread pool
+        let encryption_result = tokio::task::spawn_blocking(move || {
+            embed_image_with_access_rights(&carrier_image, &secret_image_data, access_rights.as_ref())
+        })
+        .await
+        .map_err(|e| anyhow::anyhow!("Encryption task panicked: {}", e))??;
+
+        info!(
+            "✅ Server {} completed encryption for request #{} ({} bytes)",
+            self.server_id, request_id, encryption_result.len()
         );
 
         Ok(encryption_result)

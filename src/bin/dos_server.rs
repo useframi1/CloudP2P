@@ -73,9 +73,10 @@ async fn handle_client(dos: Arc<DoSService>, socket: tokio::net::TcpStream) -> R
         Message::ClientSignUp {
             client_name,
             ip_address,
+            p2p_port,
         } => {
-            info!("Processing ClientSignUp: {}", client_name);
-            let client_id = dos.sign_up_client(client_name, ip_address).await?;
+            info!("Processing ClientSignUp: {} (P2P port: {})", client_name, p2p_port);
+            let client_id = dos.sign_up_client(client_name, ip_address, p2p_port).await?;
             conn.write_message(&Message::ClientSignUpResponse { client_id })
                 .await?;
         }
@@ -83,9 +84,10 @@ async fn handle_client(dos: Arc<DoSService>, socket: tokio::net::TcpStream) -> R
         Message::ClientSignIn {
             client_id,
             ip_address,
+            p2p_port,
         } => {
-            info!("Processing ClientSignIn: {}", client_id);
-            let notifications = dos.sign_in_client(client_id, ip_address).await?;
+            info!("Processing ClientSignIn: {} (P2P port: {})", client_id, p2p_port);
+            let notifications = dos.sign_in_client(client_id, ip_address, p2p_port).await?;
             conn.write_message(&Message::ClientSignInResponse { notifications })
                 .await?;
         }
@@ -170,6 +172,30 @@ async fn handle_client(dos: Arc<DoSService>, socket: tokio::net::TcpStream) -> R
             info!("Processing IncrementViewCount: viewer {} viewing image {} of {}", viewer_id, image_id, owner_id);
             let allowed = dos.increment_view_count(owner_id, image_id, viewer_id).await?;
             conn.write_message(&Message::IncrementViewCountResponse { allowed }).await?;
+        }
+
+        Message::GetPeerAddress { peer_id } => {
+            info!("Processing GetPeerAddress: {}", peer_id);
+            match dos.get_peer_address(&peer_id).await {
+                Ok((ip_address, p2p_port, online)) => {
+                    conn.write_message(&Message::PeerAddressResponse {
+                        peer_id,
+                        ip_address,
+                        p2p_port,
+                        online,
+                    }).await?;
+                }
+                Err(e) => {
+                    error!("Failed to get peer address: {}", e);
+                    // Send response with offline status
+                    conn.write_message(&Message::PeerAddressResponse {
+                        peer_id,
+                        ip_address: String::new(),
+                        p2p_port: 0,
+                        online: false,
+                    }).await?;
+                }
+            }
         }
 
         _ => {

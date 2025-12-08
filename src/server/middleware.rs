@@ -61,6 +61,7 @@ use tokio::sync::{mpsc, RwLock};
 use crate::common::config::{ElectionConfig, PeersConfig};
 use crate::common::connection::Connection;
 use crate::common::messages::*;
+use crate::processing::EmbeddedAccessRights;
 use crate::server::election::ServerMetrics;
 use crate::server::server::ServerCore;
 
@@ -573,6 +574,30 @@ impl ServerMiddleware {
                         error!("❌ Failed to send response to client: {}", e);
                     }
                 }
+            }
+
+            // Client sending encryption request with access rights
+            Message::EncryptWithAccessRights {
+                client_name,
+                request_id,
+                secret_image_data,
+                access_rights,
+            } => {
+                info!(
+                    "🔐 Server {} received encryption request #{} from client '{}' (access_rights: {})",
+                    self.config.server.id, request_id, client_name,
+                    if access_rights.is_some() { "Yes" } else { "No" }
+                );
+
+                // Process encryption directly (no task assignment needed for this)
+                self.process_encryption_with_access_rights(
+                    request_id,
+                    client_name,
+                    secret_image_data,
+                    access_rights,
+                    conn,
+                )
+                .await;
             }
 
             // Leader receives request to assign task to best server
@@ -1517,5 +1542,96 @@ impl ServerMiddleware {
 
         // Track the task handle
         self.active_tasks.write().await.insert(request_id, handle);
+    }
+
+    /// Process an encryption request with access rights.
+    ///
+    /// # Arguments
+    /// - `request_id`: Unique identifier for this request
+    /// - `client_name`: Name of the client requesting encryption
+    /// - `secret_image_data`: Raw image bytes (the secret image to hide)
+    /// - `access_rights`: Optional access rights to embed
+    /// - `conn`: Connection to send response back to client
+    ///
+    /// # Process
+    ///
+    /// 1. Increment active task counter
+    /// 2. Call ServerCore's encrypt_image_with_access_rights
+    /// 3. Send EncryptionResponse back to client
+    /// 4. Decrement active task counter
+    async fn process_encryption_with_access_rights(
+        &self,
+        request_id: u64,
+        client_name: String,
+        secret_image_data: Vec<u8>,
+        access_rights: Option<EmbeddedAccessRights>,
+        conn: &mut Connection,
+    ) {
+        // START TRACKING: Increment active task count
+        self.metrics.task_started();
+
+        let current_tasks = self.metrics.get_active_tasks();
+        let cpu_usage = self.metrics.get_cpu_usage();
+
+        info!(
+            "📊 Server {} starting encryption task #{} (Active tasks: {}, CPU: {:.1}%)",
+            self.config.server.id, request_id, current_tasks, cpu_usage
+        );
+
+        info!(
+            "🔐 Server {} processing encryption with access rights request #{} from client '{}'",
+            self.config.server.id, request_id, client_name
+        );
+
+        // Delegate to ServerCore for actual encryption
+        let encryption_result = self
+            .core
+            .encrypt_image_with_access_rights(request_id, client_name.clone(), secret_image_data, access_rights)
+            .await;
+
+        let response = match encryption_result {
+            Ok(encrypted_carrier) => {
+                info!(
+                    "✅ Server {} completed encryption for request #{}",
+                    self.config.server.id, request_id
+                );
+
+                Message::EncryptionResponse {
+                    request_id,
+                    encrypted_carrier,
+                    success: true,
+                    error_message: None,
+                }
+            }
+            Err(e) => {
+                error!(
+                    "❌ Server {} failed to encrypt image with access rights: {}",
+                    self.config.server.id, e
+                );
+
+                Message::EncryptionResponse {
+                    request_id,
+                    encrypted_carrier: Vec::new(),
+                    success: false,
+                    error_message: Some(e.to_string()),
+                }
+            }
+        };
+
+        // Send response back to client
+        if let Err(e) = conn.write_message(&response).await {
+            error!("❌ Failed to send encryption response to client: {}", e);
+        }
+
+        // FINISH TRACKING: Decrement active task count
+        self.metrics.task_finished();
+
+        let remaining_tasks = self.metrics.get_active_tasks();
+        let new_cpu = self.metrics.get_cpu_usage();
+
+        info!(
+            "✅ Server {} completed encryption task #{} (Remaining tasks: {}, CPU: {:.1}%)",
+            self.config.server.id, request_id, remaining_tasks, new_cpu
+        );
     }
 }

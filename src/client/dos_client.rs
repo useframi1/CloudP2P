@@ -33,12 +33,13 @@ impl DosClient {
 
     // ========== CLIENT MANAGEMENT ==========
 
-    pub async fn sign_up(&mut self, client_id: String, ip_address: String) -> Result<String> {
+    pub async fn sign_up(&mut self, client_id: String, ip_address: String, p2p_port: u16) -> Result<String> {
         let mut conn = self.connect().await?;
 
         let message = Message::ClientSignUp {
             client_name: client_id.clone(),
             ip_address,
+            p2p_port,
         };
 
         conn.write_message(&message).await?;
@@ -61,12 +62,14 @@ impl DosClient {
         &mut self,
         client_id: String,
         ip_address: String,
+        p2p_port: u16,
     ) -> Result<Vec<serde_json::Value>> {
         let mut conn = self.connect().await?;
 
         let message = Message::ClientSignIn {
             client_id: client_id.clone(),
             ip_address,
+            p2p_port,
         };
 
         conn.write_message(&message).await?;
@@ -299,6 +302,59 @@ impl DosClient {
         match response {
             Message::IncrementViewCountResponse { allowed } => Ok(allowed),
             _ => anyhow::bail!("Unexpected response to increment view count"),
+        }
+    }
+
+    // ========== P2P SUPPORT ==========
+
+    /// Get a peer's IP address and P2P port for direct connection
+    ///
+    /// # Arguments
+    /// - `peer_id`: ID of the peer client
+    ///
+    /// # Returns
+    /// - `Ok(Some((ip_address, p2p_port)))`: Peer's connection info if online
+    /// - `Ok(None)`: Peer is offline or not found
+    pub async fn get_peer_address(&self, peer_id: &str) -> Result<Option<(String, u16)>> {
+        println!("🔍 [DOS_CLIENT] Requesting peer address for: {}", peer_id);
+        let mut conn = self.connect().await?;
+        println!("✅ [DOS_CLIENT] Connected to DoS server");
+
+        let message = Message::GetPeerAddress {
+            peer_id: peer_id.to_string(),
+        };
+
+        println!("📤 [DOS_CLIENT] Sending GetPeerAddress request");
+        conn.write_message(&message).await?;
+
+        println!("📥 [DOS_CLIENT] Waiting for response...");
+        let response = conn
+            .read_message()
+            .await?
+            .ok_or_else(|| anyhow::anyhow!("Connection closed"))?;
+
+        println!("📨 [DOS_CLIENT] Received response: {:?}", response);
+
+        match response {
+            Message::PeerAddressResponse {
+                ip_address,
+                p2p_port,
+                online,
+                ..
+            } => {
+                println!("📊 [DOS_CLIENT] Peer info - IP: {}, Port: {}, Online: {}", ip_address, p2p_port, online);
+                if online && p2p_port > 0 {
+                    println!("✅ [DOS_CLIENT] Peer is online and available");
+                    Ok(Some((ip_address, p2p_port)))
+                } else {
+                    println!("⚠️  [DOS_CLIENT] Peer is offline or has no P2P port");
+                    Ok(None)
+                }
+            }
+            _ => {
+                println!("❌ [DOS_CLIENT] Unexpected response type");
+                anyhow::bail!("Unexpected response to get peer address")
+            }
         }
     }
 }

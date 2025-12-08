@@ -21,8 +21,10 @@ use tower_http::services::ServeDir;
 use cloud_p2p::client::client::ClientCore;
 use cloud_p2p::client::dos_client::DosClient;
 use cloud_p2p::client::middleware::{ClientConfig, ClientMiddleware};
+use cloud_p2p::client::p2p_service::P2PService;
 use cloud_p2p::common::messages::{AccessRight, ImageInfo};
 use cloud_p2p::dos::firebase::FirebaseClient;
+use cloud_p2p::processing::{embed_image_with_access_rights, extract_image_with_access_rights};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -34,6 +36,10 @@ struct Args {
     /// Port to bind to
     #[arg(long, default_value_t = 3000)]
     port: u16,
+
+    /// P2P port for direct peer connections
+    #[arg(long, default_value_t = 7000)]
+    p2p_port: u16,
 
     /// Client ID for this web server
     #[arg(long)]
@@ -113,35 +119,68 @@ struct ViewImageRequest {
 struct AppState {
     client: Arc<Mutex<ClientMiddleware>>,
     dos_client: Arc<Mutex<DosClient>>,
+    p2p_service: Arc<P2PService>,
     current_user: Arc<Mutex<Option<String>>>,
     image_dir: String,
     firebase: Arc<FirebaseClient>,
 }
 
-async fn register_local_images(dos_client: &DosClient, _client_id: &str, image_dir: &str) -> anyhow::Result<()> {
+async fn register_local_images(
+    dos_client: &DosClient,
+    client_middleware: Arc<Mutex<ClientMiddleware>>,
+    client_id: &str,
+    image_dir: &str,
+) -> anyhow::Result<()> {
     let path = std::path::Path::new(image_dir);
     if !path.exists() {
-        info!("Image directory {} does not exist, skipping auto-registration", image_dir);
+        info!(
+            "Image directory {} does not exist, skipping auto-registration",
+            image_dir
+        );
         return Ok(());
     }
+
+    // Create encrypted_images directory for this client
+    let encrypted_dir = format!("encrypted_images/{}", client_id);
+    std::fs::create_dir_all(&encrypted_dir)?;
 
     let entries = match std::fs::read_dir(path) {
         Ok(e) => e,
         Err(_) => return Ok(()),
     };
 
+    // Get list of carrier images
+    let carrier_files: Vec<_> = std::fs::read_dir("cover_images")?
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            e.path().is_file()
+                && e.path()
+                    .extension()
+                    .map(|ext| {
+                        let ext = ext.to_string_lossy().to_lowercase();
+                        ext == "jpg" || ext == "jpeg" || ext == "png"
+                    })
+                    .unwrap_or(false)
+        })
+        .collect();
+
+    if carrier_files.is_empty() {
+        error!("No carrier images found in cover_images/ folder. Please add carrier images.");
+        return Ok(());
+    }
+
     for entry in entries {
         let entry = match entry {
             Ok(e) => e,
             Err(_) => continue,
         };
-        let path = entry.path();
+        let secret_path = entry.path();
 
-        if path.is_file() {
-            if let Some(extension) = path.extension() {
+        if secret_path.is_file() {
+            if let Some(extension) = secret_path.extension() {
                 let ext = extension.to_string_lossy().to_lowercase();
                 if ext == "jpg" || ext == "jpeg" || ext == "png" {
-                    let filename = path
+                    let filename = secret_path
                         .file_name()
                         .unwrap()
                         .to_string_lossy()
@@ -149,15 +188,63 @@ async fn register_local_images(dos_client: &DosClient, _client_id: &str, image_d
 
                     let image_id = filename.replace(".", "_");
 
+                    // Read secret image
+                    let secret_bytes = match std::fs::read(&secret_path) {
+                        Ok(b) => b,
+                        Err(e) => {
+                            error!("Failed to read secret image {}: {}", filename, e);
+                            continue;
+                        }
+                    };
+
+                    // Generate unique request ID for this encryption
+                    let request_id = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_millis() as u64;
+
+                    // Send secret image to compute server for encryption (no access rights at registration)
+                    info!("🔐 Sending {} to compute server for encryption...", filename);
+                    let encrypted_carrier = match client_middleware
+                        .lock()
+                        .await
+                        .submit_encryption_with_access_rights(
+                            request_id,
+                            secret_bytes.clone(),
+                            None, // No access rights yet - will be added per requester on approval
+                        )
+                        .await
+                    {
+                        Ok(c) => c,
+                        Err(e) => {
+                            error!("Failed to encrypt {} on server: {}", filename, e);
+                            continue;
+                        }
+                    };
+
+                    info!("✅ Server encrypted {} successfully", filename);
+
+                    // Save encrypted carrier
+                    let encrypted_path = format!("{}/{}", encrypted_dir, filename);
+                    if let Err(e) = std::fs::write(&encrypted_path, &encrypted_carrier) {
+                        error!("Failed to save encrypted carrier: {}", e);
+                        continue;
+                    }
+
+                    info!(
+                        "✅ Encrypted {} into carrier, saved to {}",
+                        filename, encrypted_path
+                    );
+
                     let image_info = ImageInfo {
                         image_id: image_id.clone(),
                         name: filename.clone(),
                         access_rights: std::collections::HashMap::new(),
-                        encrypted_path: path.to_string_lossy().to_string(),
+                        encrypted_path: encrypted_path.clone(),
                     };
 
                     match dos_client.register_image(image_info).await {
-                        Ok(_) => info!("Auto-registered image: {}", filename),
+                        Ok(_) => info!("📝 Registered image in DoS: {}", filename),
                         Err(e) => error!("Failed to register {}: {}", filename, e),
                     }
                 }
@@ -192,12 +279,35 @@ async fn main() -> anyhow::Result<()> {
     );
 
     // Initialize Firebase client
-    let firebase_url = "https://distributed-p2p-default-rtdb.europe-west1.firebasedatabase.app/".to_string();
+    let firebase_url =
+        "https://distributed-p2p-default-rtdb.europe-west1.firebasedatabase.app/".to_string();
     let firebase = Arc::new(FirebaseClient::new(firebase_url));
 
+    let dos_client_arc = Arc::new(Mutex::new(dos_client));
+
+    // Create P2P service
+    // IMPORTANT: Use lowercase client_id to match Firebase convention (client3 not Client3)
+    let p2p_client_id = args
+        .client_id
+        .clone()
+        .unwrap_or_else(|| config.client.name.to_lowercase());
+
+    // Wrap client middleware in Arc<Mutex<>> for sharing
+    let client_middleware_arc = Arc::new(Mutex::new(client));
+
+    let p2p_service = Arc::new(P2PService::new(
+        args.p2p_port,
+        p2p_client_id,
+        dos_client_arc.clone(),
+        firebase.clone(),
+        config.client.image_dir.clone(),
+        client_middleware_arc.clone(),
+    ));
+
     let state = Arc::new(AppState {
-        client: Arc::new(Mutex::new(client)),
-        dos_client: Arc::new(Mutex::new(dos_client)),
+        client: client_middleware_arc,
+        dos_client: dos_client_arc,
+        p2p_service: p2p_service.clone(),
         current_user: Arc::new(Mutex::new(args.client_id)),
         image_dir: config.client.image_dir.clone(),
         firebase,
@@ -218,7 +328,10 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/requested-images", get(requested_images_handler))
         .route("/api/accessible-images", get(accessible_images_handler))
         .route("/api/view-image", post(view_image_handler))
-        .route("/api/default-view-limit", get(get_default_view_limit_handler))
+        .route(
+            "/api/default-view-limit",
+            get(get_default_view_limit_handler),
+        )
         .route("/api/auto-grant-access", post(auto_grant_access_handler))
         .route("/api/health", get(health_check))
         .nest_service("/test_images", ServeDir::new("test_images"))
@@ -229,8 +342,17 @@ async fn main() -> anyhow::Result<()> {
     let addr = format!("0.0.0.0:{}", args.port);
     info!("🌐 Web server running on http://{}", addr);
     info!("📡 API endpoints ready");
+    info!("🔗 P2P listener starting on port {}", args.p2p_port);
 
     let listener = tokio::net::TcpListener::bind(&addr).await?;
+
+    // Start P2P listener in background
+    let p2p_service_for_listener = p2p_service.clone();
+    tokio::spawn(async move {
+        if let Err(e) = p2p_service_for_listener.start_listener().await {
+            error!("❌ P2P listener error: {}", e);
+        }
+    });
 
     // Set up graceful shutdown handler
     let state_for_shutdown = state.clone();
@@ -281,19 +403,33 @@ async fn signup_handler(
     Json(payload): Json<SignUpRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
     let ip_address = addr.ip().to_string();
-    info!("Sign up request for {} from {}", payload.client_id, ip_address);
+    info!(
+        "Sign up request for {} from {}",
+        payload.client_id, ip_address
+    );
 
     let mut dos_client = state.dos_client.lock().await;
+    let p2p_port = state.p2p_service.p2p_port;
 
     // Use the client_id provided by the user
-    match dos_client.sign_up(payload.client_id.clone(), ip_address).await {
+    match dos_client
+        .sign_up(payload.client_id.clone(), ip_address, p2p_port)
+        .await
+    {
         Ok(client_id) => {
             *state.current_user.lock().await = Some(client_id.clone());
             info!("Sign up successful: {}", client_id);
 
             // Auto-register images from local folder
             let image_dir = state.image_dir.clone();
-            if let Err(e) = register_local_images(&*dos_client, &client_id, &image_dir).await {
+            if let Err(e) = register_local_images(
+                &*dos_client,
+                state.client.clone(),
+                &client_id,
+                &image_dir,
+            )
+            .await
+            {
                 error!("Failed to auto-register images: {}", e);
             }
 
@@ -345,16 +481,37 @@ async fn signin_handler(
     Json(payload): Json<SignInRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
     let ip_address = addr.ip().to_string();
-    info!("Sign in request for {} from {}", payload.client_id, ip_address);
+    info!(
+        "Sign in request for {} from {}",
+        payload.client_id, ip_address
+    );
 
     let mut dos_client = state.dos_client.lock().await;
+    let p2p_port = state.p2p_service.p2p_port;
 
     match dos_client
-        .sign_in(payload.client_id.clone(), ip_address)
+        .sign_in(payload.client_id.clone(), ip_address, p2p_port)
         .await
     {
         Ok(notifications) => {
             *state.current_user.lock().await = Some(payload.client_id.clone());
+
+            // CRITICAL: Update P2P service's client_id to match the actual signed-in ID
+            // The P2P service was initialized with config.client.name which might have different casing
+            // But we need it to match the actual client_id used in Firebase (e.g., "client3" not "Client3")
+            // This is a hack - ideally P2P service client_id should be mutable or set after sign-in
+            // For now, we'll create a new P2P service with the correct client_id
+            // Actually, we can't easily do this because P2P service is Arc<> and already listening
+            // The real fix is to make client_id in P2P service Arc<Mutex<String>> or similar
+            // For now, let's just log a warning if they don't match
+            if state.p2p_service.client_id != payload.client_id {
+                error!(
+                    "⚠️  WARNING: P2P service client_id ({}) doesn't match signed-in client_id ({}). \
+                    P2P transfers will fail! Update config file or sign in with correct ID.",
+                    state.p2p_service.client_id, payload.client_id
+                );
+            }
+
             info!(
                 "Sign in successful: {} ({} notifications)",
                 payload.client_id,
@@ -364,7 +521,14 @@ async fn signin_handler(
             // Auto-register images from local folder
             let image_dir = state.image_dir.clone();
             let client_id = payload.client_id.clone();
-            if let Err(e) = register_local_images(&*dos_client, &client_id, &image_dir).await {
+            if let Err(e) = register_local_images(
+                &*dos_client,
+                state.client.clone(),
+                &client_id,
+                &image_dir,
+            )
+            .await
+            {
                 error!("Failed to auto-register images: {}", e);
             }
 
@@ -552,8 +716,9 @@ async fn request_access_handler(
             dos_client.client_id()
         );
         // Re-sign in with the correct client_id
+        let p2p_port = state.p2p_service.p2p_port;
         match dos_client
-            .sign_in(requester_id.clone(), "127.0.0.1".to_string())
+            .sign_in(requester_id.clone(), "127.0.0.1".to_string(), p2p_port)
             .await
         {
             Ok(_) => info!("Re-signed in successfully as {}", requester_id),
@@ -579,7 +744,11 @@ async fn request_access_handler(
     }
 
     match dos_client
-        .request_image_access(&payload.owner_id, &payload.image_id, payload.req_access_limit)
+        .request_image_access(
+            &payload.owner_id,
+            &payload.image_id,
+            payload.req_access_limit,
+        )
         .await
     {
         Ok(request_id) => {
@@ -656,7 +825,10 @@ async fn my_images_handler(
             if let Some(client) = my_client {
                 let images: Vec<ImageInfo> = client.images.values().cloned().collect();
                 info!("Found {} images", images.len());
-                let images_json: Vec<serde_json::Value> = images.iter().map(|img| serde_json::to_value(img).unwrap()).collect();
+                let images_json: Vec<serde_json::Value> = images
+                    .iter()
+                    .map(|img| serde_json::to_value(img).unwrap())
+                    .collect();
                 Ok((
                     StatusCode::OK,
                     Json(ApiResponse {
@@ -748,8 +920,9 @@ async fn update_access_handler(
             client_id,
             dos_client.client_id()
         );
+        let p2p_port = state.p2p_service.p2p_port;
         match dos_client
-            .sign_in(client_id.clone(), "127.0.0.1".to_string())
+            .sign_in(client_id.clone(), "127.0.0.1".to_string(), p2p_port)
             .await
         {
             Ok(_) => info!("Re-signed in successfully as {}", client_id),
@@ -1215,10 +1388,14 @@ async fn view_image_handler(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<ViewImageRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
-    info!("View image: {} from {}", payload.image_id, payload.owner_id);
+    info!(
+        "🔍 [VIEW_IMAGE] Request received - image_id: {}, owner_id: {}",
+        payload.image_id, payload.owner_id
+    );
 
     let current_user = state.current_user.lock().await;
     if current_user.is_none() {
+        error!("❌ [VIEW_IMAGE] Not signed in");
         return Err((
             StatusCode::UNAUTHORIZED,
             Json(ApiResponse {
@@ -1237,57 +1414,40 @@ async fn view_image_handler(
     }
 
     let viewer_id = current_user.as_ref().unwrap().clone();
+    info!("👤 [VIEW_IMAGE] Viewer ID: {}", viewer_id);
     drop(current_user);
 
     let dos_client = state.dos_client.lock().await;
 
-    match dos_client
-        .increment_view_count(&payload.owner_id, &payload.image_id, &viewer_id)
-        .await
-    {
-        Ok(allowed) => {
-            if allowed {
-                info!("Image viewed successfully, count incremented");
-                Ok((
-                    StatusCode::OK,
-                    Json(ApiResponse {
-                        success: true,
-                        message: Some("Image viewed successfully".to_string()),
-                        error: None,
-                        carrier_image_base64: None,
-                        client_id: None,
-                        notifications: None,
-                        request_id: None,
-                        peers: None,
-                        images: None,
-                        requests: None,
-                    }),
-                ))
-            } else {
-                Err((
-                    StatusCode::FORBIDDEN,
-                    Json(ApiResponse {
-                        success: false,
-                        error: Some("View limit exceeded".to_string()),
-                        message: None,
-                        carrier_image_base64: None,
-                        client_id: None,
-                        notifications: None,
-                        request_id: None,
-                        peers: None,
-                        images: None,
-                        requests: None,
-                    }),
-                ))
-            }
+    // Get peer address from DoS (pure P2P - no centralized storage)
+    info!(
+        "🔎 [VIEW_IMAGE] Querying DoS for peer {} address...",
+        payload.owner_id
+    );
+    let peer_address_result = dos_client.get_peer_address(&payload.owner_id).await;
+    drop(dos_client); // Release lock immediately
+
+    info!(
+        "📡 [VIEW_IMAGE] DoS query result: {:?}",
+        peer_address_result
+    );
+
+    // Extract peer address or fail
+    let (peer_ip, peer_port) = match peer_address_result {
+        Ok(Some((ip, port))) => {
+            info!("🎯 [VIEW_IMAGE] Peer found online at {}:{}", ip, port);
+            (ip, port)
         }
-        Err(e) => {
-            error!("Failed to increment view count: {}", e);
-            Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
+        Ok(None) => {
+            error!("❌ [VIEW_IMAGE] Peer {} is offline", payload.owner_id);
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
                 Json(ApiResponse {
                     success: false,
-                    error: Some(format!("Failed to increment view count: {}", e)),
+                    error: Some(format!(
+                        "Peer {} is offline - pure P2P system requires owner to be online",
+                        payload.owner_id
+                    )),
                     message: None,
                     carrier_image_base64: None,
                     client_id: None,
@@ -1297,9 +1457,215 @@ async fn view_image_handler(
                     images: None,
                     requests: None,
                 }),
-            ))
+            ));
         }
+        Err(e) => {
+            error!("❌ [VIEW_IMAGE] Failed to get peer address: {}", e);
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Failed to locate peer: {}", e)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ));
+        }
+    };
+
+    // Check if we already have this carrier image locally
+    let local_carrier_path = format!(
+        "received_carriers/{}/{}_{}.png",
+        viewer_id, payload.owner_id, payload.image_id
+    );
+
+    let carrier_data = if std::path::Path::new(&local_carrier_path).exists() {
+        info!("📂 [VIEW_IMAGE] Found local carrier at {}", local_carrier_path);
+        match std::fs::read(&local_carrier_path) {
+            Ok(data) => data,
+            Err(e) => {
+                error!("❌ [VIEW_IMAGE] Failed to read local carrier: {}", e);
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some(format!("Failed to read local carrier: {}", e)),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        }
+    } else {
+        // First time - perform P2P transfer
+        info!(
+            "🚀 [VIEW_IMAGE] No local carrier found, initiating P2P transfer from {}:{}",
+            peer_ip, peer_port
+        );
+        let data = match P2PService::request_image_from_peer(
+            &peer_ip,
+            peer_port,
+            &payload.image_id,
+            &viewer_id,
+        )
+        .await
+        {
+            Ok(data) => {
+                info!(
+                    "✅ [VIEW_IMAGE] P2P transfer successful ({} bytes)",
+                    data.len()
+                );
+                data
+            }
+            Err(e) => {
+                error!("❌ [VIEW_IMAGE] P2P transfer failed: {}", e);
+                return Err((
+                    StatusCode::FORBIDDEN,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some(format!("P2P transfer failed: {}", e)),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        };
+
+        // Save carrier locally
+        std::fs::create_dir_all(format!("received_carriers/{}", viewer_id)).ok();
+        if let Err(e) = std::fs::write(&local_carrier_path, &data) {
+            error!("⚠️ [VIEW_IMAGE] Failed to save carrier locally: {}", e);
+        } else {
+            info!("💾 [VIEW_IMAGE] Saved carrier to {}", local_carrier_path);
+        }
+
+        data
+    };
+
+    // Extract secret image and access rights from carrier
+    info!("🔓 [VIEW_IMAGE] Extracting secret image and access rights...");
+    let (secret_image, access_rights_opt) = match extract_image_with_access_rights(&carrier_data) {
+        Ok(data) => data,
+        Err(e) => {
+            error!("❌ [VIEW_IMAGE] Failed to extract secret: {}", e);
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Failed to decrypt carrier: {}", e)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ));
+        }
+    };
+
+    // Check and enforce view limits
+    if let Some(mut access_rights) = access_rights_opt {
+        info!(
+            "🔐 [VIEW_IMAGE] Access rights found - views: {}/{}",
+            access_rights.view_count, access_rights.view_limit
+        );
+
+        // Check if view limit exceeded
+        if access_rights.view_count >= access_rights.view_limit {
+            error!(
+                "🚫 [VIEW_IMAGE] View limit exceeded: {}/{}",
+                access_rights.view_count, access_rights.view_limit
+            );
+            return Err((
+                StatusCode::FORBIDDEN,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!(
+                        "View limit exceeded ({}/{})",
+                        access_rights.view_count, access_rights.view_limit
+                    )),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ));
+        }
+
+        // Increment view count
+        access_rights.view_count += 1;
+        info!(
+            "✅ [VIEW_IMAGE] Incremented view count: {}/{}",
+            access_rights.view_count, access_rights.view_limit
+        );
+
+        // Re-embed with updated view count
+        if let Ok(carrier_bytes) = std::fs::read("cover_images/carrier1.jpg") {
+            match embed_image_with_access_rights(&carrier_bytes, &secret_image, Some(&access_rights)) {
+                Ok(updated_carrier) => {
+                    if let Err(e) = std::fs::write(&local_carrier_path, &updated_carrier) {
+                        error!("⚠️ [VIEW_IMAGE] Failed to save updated carrier: {}", e);
+                    } else {
+                        info!("💾 [VIEW_IMAGE] Saved updated carrier with new view count");
+                    }
+                }
+                Err(e) => {
+                    error!("⚠️ [VIEW_IMAGE] Failed to re-embed carrier: {}", e);
+                }
+            }
+        }
+    } else {
+        info!("ℹ️ [VIEW_IMAGE] No access rights embedded (unlimited viewing)");
     }
+
+    // Encode secret image as base64 and return
+    info!("🔄 [VIEW_IMAGE] Encoding secret image as base64...");
+    let image_base64 = general_purpose::STANDARD.encode(&secret_image);
+    info!(
+        "✅ [VIEW_IMAGE] Successfully returning secret image ({} base64 chars)",
+        image_base64.len()
+    );
+
+    Ok((
+        StatusCode::OK,
+        Json(ApiResponse {
+            success: true,
+            message: Some("Image viewed successfully".to_string()),
+            carrier_image_base64: Some(image_base64),
+            error: None,
+            client_id: None,
+            notifications: None,
+            request_id: None,
+            peers: None,
+            images: None,
+            requests: None,
+        }),
+    ))
 }
 
 async fn get_default_view_limit_handler(
@@ -1347,7 +1713,6 @@ async fn auto_grant_access_handler(
     State(state): State<Arc<AppState>>,
     Json(req): Json<AutoGrantAccessRequest>,
 ) -> Result<Json<ApiResponse>, (StatusCode, Json<ApiResponse>)> {
-
     // Get default view limit
     let view_limit = match state.firebase.get_default_view_limit().await {
         Ok(limit) => limit,

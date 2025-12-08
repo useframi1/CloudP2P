@@ -51,14 +51,14 @@ async fn register_client_images(
 
     // Sign in to the client
     match dos_client
-        .sign_in(client_id.to_string(), "127.0.0.1".to_string())
+        .sign_in(client_id.to_string(), "127.0.0.1".to_string(), 0)
         .await
     {
         Ok(_) => println!("  {} signed in successfully", client_id),
         Err(_e) => {
             println!("  {} not found, signing up...", client_id);
             dos_client
-                .sign_up(client_id.to_string(), "127.0.0.1".to_string())
+                .sign_up(client_id.to_string(), "127.0.0.1".to_string(), 0)
                 .await?;
         }
     }

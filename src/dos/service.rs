@@ -17,7 +17,9 @@ impl DoSService {
         let firebase = Arc::new(FirebaseClient::new(firebase_url));
 
         // Load existing clients to verify connection
-        let clients = firebase.get_all_clients().await
+        let clients = firebase
+            .get_all_clients()
+            .await
             .context("Failed to load clients from Firebase")?;
 
         info!("Loaded {} online clients from Firebase", clients.len());
@@ -34,7 +36,12 @@ impl DoSService {
 
     // ========== CLIENT MANAGEMENT ==========
 
-    pub async fn sign_up_client(&self, client_id: String, ip_address: String) -> Result<String> {
+    pub async fn sign_up_client(
+        &self,
+        client_id: String,
+        ip_address: String,
+        p2p_port: u16,
+    ) -> Result<String> {
         // Check if client_id already exists
         if self.firebase.get_client(&client_id).await?.is_some() {
             anyhow::bail!("Client ID already exists");
@@ -45,33 +52,57 @@ impl DoSService {
             client_name: client_id.clone(),
             status: ClientStatus::Online,
             ip_address,
+            p2p_port,
             last_seen: Self::current_timestamp(),
             images: HashMap::new(),
         };
 
         self.firebase.store_client(&client_id, &client_info).await?;
 
-        info!("Client signed up: {}", client_id);
+        info!("Client signed up: {} (P2P port: {})", client_id, p2p_port);
         Ok(client_id)
     }
 
-    pub async fn sign_in_client(&self, client_id: String, _ip_address: String) -> Result<Vec<serde_json::Value>> {
+    pub async fn sign_in_client(
+        &self,
+        client_id: String,
+        ip_address: String,
+        p2p_port: u16,
+    ) -> Result<Vec<serde_json::Value>> {
         // Verify client exists
-        let _client = self.firebase.get_client(&client_id).await?
+        let mut client = self
+            .firebase
+            .get_client(&client_id)
+            .await?
             .ok_or_else(|| anyhow::anyhow!("Client not found"))?;
 
-        // Update status to online
-        self.firebase.update_client_status(&client_id, ClientStatus::Online).await?;
+        // Update status to online, IP address, and P2P port
+        client.status = ClientStatus::Online;
+        client.ip_address = ip_address;
+        client.p2p_port = p2p_port;
+        client.last_seen = Self::current_timestamp();
+
+        self.firebase.store_client(&client_id, &client).await?;
 
         // Get offline notifications
-        let notifications = self.firebase.get_and_clear_notifications(&client_id).await?;
+        let notifications = self
+            .firebase
+            .get_and_clear_notifications(&client_id)
+            .await?;
 
-        info!("Client signed in: {} ({} notifications)", client_id, notifications.len());
+        info!(
+            "Client signed in: {} (P2P port: {}, {} notifications)",
+            client_id,
+            p2p_port,
+            notifications.len()
+        );
         Ok(notifications)
     }
 
     pub async fn sign_out_client(&self, client_id: String) -> Result<()> {
-        self.firebase.update_client_status(&client_id, ClientStatus::Offline).await?;
+        self.firebase
+            .update_client_status(&client_id, ClientStatus::Offline)
+            .await?;
         info!("Client signed out: {}", client_id);
         Ok(())
     }
@@ -89,11 +120,19 @@ impl DoSService {
 
     pub async fn register_image(&self, client_id: String, image: ImageInfo) -> Result<()> {
         self.firebase.store_image(&client_id, &image).await?;
-        info!("Image registered: {} for client {}", image.image_id, client_id);
+        info!(
+            "Image registered: {} for client {}",
+            image.image_id, client_id
+        );
         Ok(())
     }
 
-    pub async fn request_image_access(&self, requester_id: String, owner_id: String, image_id: String) -> Result<String> {
+    pub async fn request_image_access(
+        &self,
+        requester_id: String,
+        owner_id: String,
+        image_id: String,
+    ) -> Result<String> {
         let req_num = self.firebase.get_next_request_id().await?;
         let request_id = format!("req_{}_{}", req_num, requester_id);
 
@@ -105,13 +144,10 @@ impl DoSService {
             "timestamp": Self::current_timestamp()
         });
 
-        // Check if owner is online
-        if let Ok(Some(owner)) = self.firebase.get_client(&owner_id).await {
-            if matches!(owner.status, ClientStatus::Offline) {
-                // Store as pending request
-                self.firebase.store_pending_request(&request_id, &request_data).await?;
-            }
-        }
+        // Store as pending request
+        self.firebase
+            .store_pending_request(&request_id, &request_data)
+            .await?;
 
         info!("Access request created: {}", request_id);
         Ok(request_id)
@@ -121,15 +157,26 @@ impl DoSService {
         self.firebase.get_pending_requests(&owner_id).await
     }
 
-    pub async fn respond_to_access_request(&self, request_id: String, approved: bool, view_limit: Option<u32>) -> Result<()> {
+    pub async fn respond_to_access_request(
+        &self,
+        request_id: String,
+        approved: bool,
+        view_limit: Option<u32>,
+    ) -> Result<()> {
         if approved {
-            info!("Access request {} approved with view_limit: {:?}", request_id, view_limit);
+            info!(
+                "Access request {} approved with view_limit: {:?}",
+                request_id, view_limit
+            );
 
             // Get the request details
             let request = self.firebase.get_pending_request(&request_id).await?;
 
             if let Some(req) = request {
-                let requester_id = req.get("requester_id").and_then(|v| v.as_str()).unwrap_or("");
+                let requester_id = req
+                    .get("requester_id")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
                 let owner_id = req.get("owner_id").and_then(|v| v.as_str()).unwrap_or("");
                 let image_id = req.get("image_id").and_then(|v| v.as_str()).unwrap_or("");
 
@@ -140,9 +187,16 @@ impl DoSService {
                             view_limit: view_limit.unwrap_or(999999), // Default to unlimited if not specified
                             view_count: 0,
                         };
-                        image.access_rights.insert(requester_id.to_string(), access_right);
+                        image
+                            .access_rights
+                            .insert(requester_id.to_string(), access_right);
                         self.firebase.store_image(owner_id, image).await?;
-                        info!("Granted access to {} for image {} with limit {}", requester_id, image_id, view_limit.unwrap_or(999999));
+                        info!(
+                            "Granted access to {} for image {} with limit {}",
+                            requester_id,
+                            image_id,
+                            view_limit.unwrap_or(999999)
+                        );
                     }
                 }
             }
@@ -154,7 +208,12 @@ impl DoSService {
         Ok(())
     }
 
-    pub async fn update_access_rights(&self, client_id: String, image_id: String, access_rights: std::collections::HashMap<String, crate::common::messages::AccessRight>) -> Result<()> {
+    pub async fn update_access_rights(
+        &self,
+        client_id: String,
+        image_id: String,
+        access_rights: std::collections::HashMap<String, crate::common::messages::AccessRight>,
+    ) -> Result<()> {
         // Get client and update image access rights
         if let Some(mut client) = self.firebase.get_client(&client_id).await? {
             if let Some(image) = client.images.get_mut(&image_id) {
@@ -166,12 +225,19 @@ impl DoSService {
     }
 
     pub async fn report_peer_failure(&self, failed_client_id: String) -> Result<()> {
-        self.firebase.update_client_status(&failed_client_id, ClientStatus::Offline).await?;
+        self.firebase
+            .update_client_status(&failed_client_id, ClientStatus::Offline)
+            .await?;
         info!("Client marked as failed: {}", failed_client_id);
         Ok(())
     }
 
-    pub async fn increment_view_count(&self, owner_id: String, image_id: String, viewer_id: String) -> Result<bool> {
+    pub async fn increment_view_count(
+        &self,
+        owner_id: String,
+        image_id: String,
+        viewer_id: String,
+    ) -> Result<bool> {
         // Get the owner's client info
         if let Some(mut owner_client) = self.firebase.get_client(&owner_id).await? {
             if let Some(image) = owner_client.images.get_mut(&image_id) {
@@ -179,7 +245,10 @@ impl DoSService {
                 if let Some(access_right) = image.access_rights.get_mut(&viewer_id) {
                     // Check if view limit exceeded
                     if access_right.view_count >= access_right.view_limit {
-                        info!("View limit exceeded for {} viewing image {} of {}", viewer_id, image_id, owner_id);
+                        info!(
+                            "View limit exceeded for {} viewing image {} of {}",
+                            viewer_id, image_id, owner_id
+                        );
                         return Ok(false);
                     }
 
@@ -191,11 +260,17 @@ impl DoSService {
                     // Clone the image for storage
                     let image_clone = image.clone();
                     self.firebase.store_image(&owner_id, &image_clone).await?;
-                    info!("Incremented view count for {} viewing image {} of {} ({}/{})",
-                          viewer_id, image_id, owner_id, new_count, limit);
+                    info!(
+                        "Incremented view count for {} viewing image {} of {} ({}/{})",
+                        viewer_id, image_id, owner_id, new_count, limit
+                    );
                     return Ok(true);
                 } else {
-                    anyhow::bail!("Viewer {} does not have access to image {}", viewer_id, image_id);
+                    anyhow::bail!(
+                        "Viewer {} does not have access to image {}",
+                        viewer_id,
+                        image_id
+                    );
                 }
             } else {
                 anyhow::bail!("Image {} not found for owner {}", image_id, owner_id);
@@ -203,5 +278,31 @@ impl DoSService {
         } else {
             anyhow::bail!("Owner {} not found", owner_id);
         }
+    }
+
+    // ========== P2P SUPPORT ==========
+
+    /// Get a peer's IP address and P2P port for direct connection
+    ///
+    /// # Arguments
+    /// - `peer_id`: ID of the peer client
+    ///
+    /// # Returns
+    /// - `Ok((ip_address, p2p_port, online))`: Peer's connection info and status
+    /// - `Err`: If peer not found
+    pub async fn get_peer_address(&self, peer_id: &str) -> Result<(String, u16, bool)> {
+        let client = self
+            .firebase
+            .get_client(peer_id)
+            .await?
+            .ok_or_else(|| anyhow::anyhow!("Peer {} not found", peer_id))?;
+
+        let online = matches!(client.status, ClientStatus::Online);
+        info!(
+            "Peer {} address lookup: {}:{} (online: {})",
+            peer_id, client.ip_address, client.p2p_port, online
+        );
+
+        Ok((client.ip_address, client.p2p_port, online))
     }
 }

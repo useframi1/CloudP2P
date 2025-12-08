@@ -6,4 +6,7 @@
 pub mod steganography;
 
 // Re-export main functions for convenience
-pub use steganography::{embed_text_bytes, extract_text_bytes};
+pub use steganography::{
+    embed_image_with_access_rights, embed_text_bytes, extract_image_with_access_rights,
+    extract_text_bytes, EmbeddedAccessRights,
+};
