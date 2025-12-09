@@ -649,7 +649,7 @@
             <!-- Card 4: Shared Images -->
             <div class="card">
                 <div class="card-header">
-                    <h2>🖼️ Shared Images</h2>
+                    <h2>🎁 Images Shared With Me</h2>
                     <button class="refresh-btn" onclick="loadSharedImages()">Refresh</button>
                 </div>
                 <div class="peer-list" id="shared-images-list">
@@ -1098,130 +1098,62 @@
         }
 
         async function loadSharedImages() {
-            console.log('🔄 loadSharedImages called');
+            console.log('🔄 loadSharedImages called - loading ONLY images shared with me');
             var container = document.getElementById('shared-images-list');
             if (!container) return;
 
             container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
 
             try {
-                console.log('📡 Fetching online peers...');
-                var peersResponse = await fetch(API_BASE + '/online-peers');
-                var peersData = await peersResponse.json();
-                console.log('📦 Peers data:', peersData);
-
-                console.log('📡 Fetching accessible images...');
+                // Only fetch accessible images (images that have been shared with me)
+                console.log('📡 Fetching accessible images (personalized carriers)...');
                 var accessResponse = await fetch(API_BASE + '/accessible-images');
                 var accessData = await accessResponse.json();
                 console.log('📦 Access data:', accessData);
 
-                var accessMap = {};
-                if (accessData.success && accessData.images) {
-                    console.log('📊 Building access map from', accessData.images.length, 'images');
-                    accessData.images.forEach(function (item) {
-                        var key = item.owner_id + '_' + item.image.image_id;
-                        accessMap[key] = {
-                            viewCount: item.access.view_count,
-                            viewLimit: item.access.view_limit,
-                            viewsLeft: item.access.view_limit - item.access.view_count
-                        };
-                        console.log('  📌', key, '→', accessMap[key].viewCount + '/' + accessMap[key].viewLimit);
-                    });
-                }
-
-                var allImages = [];
-
-                // Only add images from valid Firebase clients
-                if (peersData.success && peersData.peers) {
-                    peersData.peers.forEach(function (peer) {
-                        // Filter out invalid/placeholder clients
-                        if (peer.client_id && peer.ip_address && peer.images) {
-                            Object.values(peer.images).forEach(function (img) {
-                                allImages.push({
-                                    clientId: peer.client_id,
-                                    image: img,
-                                    isOnline: true
-                                });
-                            });
-                        }
-                    });
-                }
-
-                if (accessData.success && accessData.images) {
-                    accessData.images.forEach(function (item) {
-                        var exists = allImages.some(function (img) {
-                            return img.clientId === item.owner_id && img.image.image_id === item.image.image_id;
-                        });
-
-                        if (!exists && item.owner_id && item.image) {
-                            allImages.push({
-                                clientId: item.owner_id,
-                                image: item.image,
-                                isOnline: false
-                            });
-                        }
-                    });
-                }
-
-                if (allImages.length > 0) {
+                if (accessData.success && accessData.images && accessData.images.length > 0) {
                     var html = '';
-                    allImages.forEach(function (item) {
+                    accessData.images.forEach(function (item) {
                         var imageName = item.image.name || item.image.image_id.replace(/_/g, '.');
-                        var imagePath = item.image.encrypted_path || '';
-                        // For shared images, show carrier image from encrypted_images/{owner_id}/
-                        var displayPath = imagePath ? '/' + imagePath.replace(/\\/g, '/') : '/encrypted_images/' + item.clientId + '/' + imageName;
-                        var isOwner = item.clientId === currentUser;
+                        // Use the local personalized carrier path
+                        var displayPath = '/encrypted_images/' + currentUser + '/' + item.image.image_id + '_from_' + item.owner_id + '.png';
 
-                        var accessKey = item.clientId + '_' + item.image.image_id;
-                        var hasAccess = accessMap[accessKey];
-                        var canView = hasAccess && hasAccess.viewsLeft > 0;
-                        var limitReached = hasAccess && hasAccess.viewsLeft <= 0;
-                        var isLocked = !isOwner && !hasAccess;
+                        var viewColor = item.access.view_count < item.access.view_limit ? '#10b981' : '#dc2626';
+                        var canView = item.access.view_count < item.access.view_limit;
+                        var viewsLeft = item.access.view_limit - item.access.view_count;
 
                         html += '<div class="shared-image-card"><div class="shared-image-header"><div style="min-width: 0; flex: 1;">';
-                        html += '<strong>' + imageName + '</strong><br><small>👤 ' + item.clientId + '</small>';
-
-                        if (hasAccess) {
-                            var viewColor = hasAccess.viewsLeft > 0 ? '#10b981' : '#dc2626';
-                            html += '<br><small style="color: ' + viewColor + '; font-weight: 700; font-size: 8px;">';
-                            html += '👁️ ' + hasAccess.viewCount + '/' + hasAccess.viewLimit + '</small>';
-                        }
+                        html += '<strong>' + imageName + '</strong><br><small>👤 ' + item.owner_id + '</small>';
+                        html += '<br><small style="color: ' + viewColor + '; font-weight: 700; font-size: 8px;">';
+                        html += '👁️ ' + item.access.view_count + '/' + item.access.view_limit + '</small>';
                         html += '</div>';
 
-                        if (isOwner) {
-                            html += '<span class="access-badge access-granted">OWNER</span>';
-                        } else if (canView) {
-                            html += '<span class="access-badge access-granted">VIEW ACCESS</span>';
-                        } else if (limitReached) {
-                            html += '<span class="access-badge access-denied">LIMIT REACHED</span>';
+                        if (canView) {
+                            html += '<span class="access-badge access-granted">✓ ' + viewsLeft + ' VIEWS LEFT</span>';
                         } else {
-                            html += '<span class="access-badge access-denied">LOCKED</span>';
+                            html += '<span class="access-badge access-denied">LIMIT REACHED</span>';
                         }
                         html += '</div>';
 
-                        var blurStyle = (isOwner || canView) ? '' : 'filter: blur(8px);';
+                        var blurStyle = canView ? '' : 'filter: blur(8px);';
                         var cursorStyle = 'cursor: pointer;';
                         html += '<img src="' + displayPath + '" style="' + blurStyle + cursorStyle + '" ';
                         html += 'onerror="this.src=\'https://via.placeholder.com/150x150/8b5cf6/ffffff?text=' + encodeURIComponent(imageName) + '\'" ';
 
-                        if (isOwner) {
-                            html += 'onclick="viewOwnImage(\'' + displayPath + '\', \'' + imageName + '\')"';
-                        } else if (canView) {
-                            html += 'onclick="confirmViewImage(\'' + item.clientId + '\', \'' + item.image.image_id + '\', ' + hasAccess.viewsLeft + ', \'' + displayPath + '\', \'' + imageName + '\')"';
-                        } else if (limitReached) {
-                            html += 'onclick="handleLimitReached(\'' + item.clientId + '\', \'' + item.image.image_id + '\')"';
+                        if (canView) {
+                            html += 'onclick="confirmViewImage(\'' + item.owner_id + '\', \'' + item.image.image_id + '\', ' + viewsLeft + ', \'' + displayPath + '\', \'' + imageName + '\')"';
                         } else {
-                            html += 'onclick="handleLockedImage(\'' + item.clientId + '\', \'' + item.image.image_id + '\')"';
+                            html += 'onclick="handleLimitReached(\'' + item.owner_id + '\', \'' + item.image.image_id + '\')"';
                         }
                         html += '></div>';
                     });
                     container.innerHTML = html;
                 } else {
-                    container.innerHTML = '<div class="no-data">No shared images</div>';
+                    container.innerHTML = '<div class="no-data">No images shared with you yet</div>';
                 }
             } catch (err) {
                 console.log('Failed to load shared images:', err);
-                container.innerHTML = '<div class="no-data">No shared images</div>';
+                container.innerHTML = '<div class="no-data">No images shared with you yet</div>';
             }
         }
 

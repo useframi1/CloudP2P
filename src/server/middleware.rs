@@ -221,7 +221,11 @@ impl ServerMiddleware {
     /// let core = Arc::new(ServerCore::new(config.server.id));
     /// let middleware = ServerMiddleware::new(config, core);
     /// ```
-    pub async fn new(config: ServerConfig, core: Arc<ServerCore>, firebase_url: String) -> anyhow::Result<Self> {
+    pub async fn new(
+        config: ServerConfig,
+        core: Arc<ServerCore>,
+        firebase_url: String,
+    ) -> anyhow::Result<Self> {
         // Initialize metrics for this server
         let metrics = ServerMetrics::new();
 
@@ -362,7 +366,9 @@ impl ServerMiddleware {
                             // No leader elected yet, respond with this server's ID as fallback
                             // Client can retry later if needed
                             debug!("⚠️  LeaderQuery received but no leader elected yet, responding with self");
-                            let response = Message::LeaderResponse { leader_id: self.config.server.id };
+                            let response = Message::LeaderResponse {
+                                leader_id: self.config.server.id,
+                            };
                             let _ = conn.write_message(&response).await;
                         }
                         continue; // Don't process this as a normal message
@@ -939,7 +945,6 @@ impl ServerMiddleware {
             }
 
             // ========== DoS MESSAGES (Leader handles these) ==========
-
             Message::ClientSignUp {
                 client_name,
                 ip_address,
@@ -948,10 +953,20 @@ impl ServerMiddleware {
                 // Only leader handles DoS operations
                 let current_leader = *self.current_leader.read().await;
                 if current_leader == Some(self.config.server.id) {
-                    info!("🔐 Leader {} processing ClientSignUp: {}", self.config.server.id, client_name);
-                    match self.dos_service.sign_up_client(client_name, ip_address, p2p_port).await {
+                    info!(
+                        "🔐 Leader {} processing ClientSignUp: {}",
+                        self.config.server.id, client_name
+                    );
+                    match self
+                        .dos_service
+                        .sign_up_client(client_name, ip_address, p2p_port)
+                        .await
+                    {
                         Ok(client_id) => {
-                            if let Err(e) = conn.write_message(&Message::ClientSignUpResponse { client_id }).await {
+                            if let Err(e) = conn
+                                .write_message(&Message::ClientSignUpResponse { client_id })
+                                .await
+                            {
                                 error!("Failed to send sign up response: {}", e);
                             }
                         }
@@ -971,10 +986,20 @@ impl ServerMiddleware {
             } => {
                 let current_leader = *self.current_leader.read().await;
                 if current_leader == Some(self.config.server.id) {
-                    info!("🔐 Leader {} processing ClientSignIn: {}", self.config.server.id, client_id);
-                    match self.dos_service.sign_in_client(client_id, ip_address, p2p_port).await {
+                    info!(
+                        "🔐 Leader {} processing ClientSignIn: {}",
+                        self.config.server.id, client_id
+                    );
+                    match self
+                        .dos_service
+                        .sign_in_client(client_id, ip_address, p2p_port)
+                        .await
+                    {
                         Ok(notifications) => {
-                            if let Err(e) = conn.write_message(&Message::ClientSignInResponse { notifications }).await {
+                            if let Err(e) = conn
+                                .write_message(&Message::ClientSignInResponse { notifications })
+                                .await
+                            {
                                 error!("Failed to send sign in response: {}", e);
                             }
                         }
@@ -988,7 +1013,10 @@ impl ServerMiddleware {
             Message::ClientSignOut { client_id } => {
                 let current_leader = *self.current_leader.read().await;
                 if current_leader == Some(self.config.server.id) {
-                    info!("🔐 Leader {} processing ClientSignOut: {}", self.config.server.id, client_id);
+                    info!(
+                        "🔐 Leader {} processing ClientSignOut: {}",
+                        self.config.server.id, client_id
+                    );
                     match self.dos_service.sign_out_client(client_id).await {
                         Ok(_) => {
                             if let Err(e) = conn.write_message(&Message::Ack).await {
@@ -1007,7 +1035,10 @@ impl ServerMiddleware {
                 if current_leader == Some(self.config.server.id) {
                     match self.dos_service.list_online_clients().await {
                         Ok(clients) => {
-                            if let Err(e) = conn.write_message(&Message::OnlineClientsList { clients }).await {
+                            if let Err(e) = conn
+                                .write_message(&Message::OnlineClientsList { clients })
+                                .await
+                            {
                                 error!("Failed to send online clients list: {}", e);
                             }
                         }
@@ -1021,7 +1052,10 @@ impl ServerMiddleware {
             Message::RegisterImage { client_id, image } => {
                 let current_leader = *self.current_leader.read().await;
                 if current_leader == Some(self.config.server.id) {
-                    info!("🔐 Leader {} processing RegisterImage: {} for {}", self.config.server.id, image.image_id, client_id);
+                    info!(
+                        "🔐 Leader {} processing RegisterImage: {} for {}",
+                        self.config.server.id, image.image_id, client_id
+                    );
                     match self.dos_service.register_image(client_id, image).await {
                         Ok(_) => {
                             if let Err(e) = conn.write_message(&Message::Ack).await {
@@ -1045,15 +1079,27 @@ impl ServerMiddleware {
                 let current_leader = *self.current_leader.read().await;
                 if current_leader == Some(self.config.server.id) {
                     info!("🔐 Leader {} processing ImageAccessRequest from {} for {} (requested limit: {:?})", self.config.server.id, requester_id, image_id, req_access_limit);
-                    match self.dos_service.request_image_access(requester_id.clone(), owner_id.clone(), image_id.clone(), req_access_limit).await {
+                    match self
+                        .dos_service
+                        .request_image_access(
+                            requester_id.clone(),
+                            owner_id.clone(),
+                            image_id.clone(),
+                            req_access_limit,
+                        )
+                        .await
+                    {
                         Ok(assigned_request_id) => {
-                            if let Err(e) = conn.write_message(&Message::ImageAccessRequest {
-                                request_id: assigned_request_id,
-                                requester_id,
-                                owner_id,
-                                image_id,
-                                req_access_limit,
-                            }).await {
+                            if let Err(e) = conn
+                                .write_message(&Message::ImageAccessRequest {
+                                    request_id: assigned_request_id,
+                                    requester_id,
+                                    owner_id,
+                                    image_id,
+                                    req_access_limit,
+                                })
+                                .await
+                            {
                                 error!("Failed to send image access request response: {}", e);
                             }
                         }
@@ -1071,8 +1117,15 @@ impl ServerMiddleware {
             } => {
                 let current_leader = *self.current_leader.read().await;
                 if current_leader == Some(self.config.server.id) {
-                    info!("🔐 Leader {} processing ImageAccessResponse: {} (approved: {})", self.config.server.id, request_id, approved);
-                    match self.dos_service.respond_to_access_request(request_id, approved, view_limit).await {
+                    info!(
+                        "🔐 Leader {} processing ImageAccessResponse: {} (approved: {})",
+                        self.config.server.id, request_id, approved
+                    );
+                    match self
+                        .dos_service
+                        .respond_to_access_request(request_id, approved, view_limit)
+                        .await
+                    {
                         Ok(_) => {
                             if let Err(e) = conn.write_message(&Message::Ack).await {
                                 error!("Failed to send access response ack: {}", e);
@@ -1090,7 +1143,10 @@ impl ServerMiddleware {
                 if current_leader == Some(self.config.server.id) {
                     match self.dos_service.get_pending_requests(owner_id).await {
                         Ok(requests) => {
-                            if let Err(e) = conn.write_message(&Message::PendingRequestsList { requests }).await {
+                            if let Err(e) = conn
+                                .write_message(&Message::PendingRequestsList { requests })
+                                .await
+                            {
                                 error!("Failed to send pending requests list: {}", e);
                             }
                         }
@@ -1106,12 +1162,15 @@ impl ServerMiddleware {
                 if current_leader == Some(self.config.server.id) {
                     match self.dos_service.get_peer_address(&peer_id).await {
                         Ok((ip, port, online)) => {
-                            if let Err(e) = conn.write_message(&Message::PeerAddressResponse {
-                                peer_id,
-                                ip_address: ip,
-                                p2p_port: port,
-                                online,
-                            }).await {
+                            if let Err(e) = conn
+                                .write_message(&Message::PeerAddressResponse {
+                                    peer_id,
+                                    ip_address: ip,
+                                    p2p_port: port,
+                                    online,
+                                })
+                                .await
+                            {
                                 error!("Failed to send peer address response: {}", e);
                             }
                         }
@@ -1129,16 +1188,27 @@ impl ServerMiddleware {
             } => {
                 let current_leader = *self.current_leader.read().await;
                 if current_leader == Some(self.config.server.id) {
-                    match self.dos_service.increment_view_count(owner_id, image_id, viewer_id).await {
+                    match self
+                        .dos_service
+                        .increment_view_count(owner_id, image_id, viewer_id)
+                        .await
+                    {
                         Ok(allowed) => {
-                            if let Err(e) = conn.write_message(&Message::IncrementViewCountResponse { allowed }).await {
+                            if let Err(e) = conn
+                                .write_message(&Message::IncrementViewCountResponse { allowed })
+                                .await
+                            {
                                 error!("Failed to send increment view count response: {}", e);
                             }
                         }
                         Err(e) => {
                             error!("Failed to increment view count: {}", e);
                             // Still send a response to avoid hanging the client
-                            let _ = conn.write_message(&Message::IncrementViewCountResponse { allowed: true }).await;
+                            let _ = conn
+                                .write_message(&Message::IncrementViewCountResponse {
+                                    allowed: true,
+                                })
+                                .await;
                         }
                     }
                 }
@@ -1806,7 +1876,12 @@ impl ServerMiddleware {
         // Delegate to ServerCore for actual encryption
         let encryption_result = self
             .core
-            .encrypt_image_with_access_rights(request_id, client_name.clone(), secret_image_data, access_rights)
+            .encrypt_image_with_access_rights(
+                request_id,
+                client_name.clone(),
+                secret_image_data,
+                access_rights,
+            )
             .await;
 
         let response = match encryption_result {
