@@ -1710,7 +1710,7 @@ async fn requested_images_handler(
 async fn accessible_images_handler(
     State(state): State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
-    info!("Fetching accessible images");
+    info!("Fetching accessible images from local storage");
 
     let current_user = state.current_user.lock().await;
     if current_user.is_none() {
@@ -1734,69 +1734,75 @@ async fn accessible_images_handler(
     let client_id = current_user.as_ref().unwrap().clone();
     drop(current_user);
 
-    let dos_client = state.dos_client.lock().await;
+    let mut accessible_images = vec![];
 
-    // Get all online clients
-    match dos_client.list_online_clients().await {
-        Ok(clients) => {
-            let mut accessible_images = vec![];
+    // Scan local encrypted_images directory for personalized carriers
+    // Format: encrypted_images/{client_id}/{image_id}_from_{owner_id}.png
+    let local_dir = format!("encrypted_images/{}", client_id);
+    info!("📂 [ACCESSIBLE_IMAGES] Scanning directory: {}", local_dir);
 
-            // Check each client's images for access rights
-            for client in clients {
-                if client.client_id == client_id {
-                    continue; // Skip own images
-                }
+    match std::fs::read_dir(&local_dir) {
+        Ok(entries) => {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if let Some(filename) = path.file_name().and_then(|f| f.to_str()) {
+                    // Check if it's a personalized carrier (ends with _from_*.png)
+                    if filename.contains("_from_") && filename.ends_with(".png") {
+                        info!("📄 [ACCESSIBLE_IMAGES] Found carrier file: {}", filename);
 
-                for (_image_id, image) in &client.images {
-                    // Check if user has access by checking if personalized carrier exists
-                    if image.personalized_carriers.contains_key(&client_id) {
-                        // User has access to this image - read the actual access rights from the carrier
-                        let local_carrier_path = format!(
-                            "encrypted_images/{}/{}_from_{}.png",
-                            client_id, image.image_id, client.client_id
-                        );
+                        // Parse filename: {image_id}_from_{owner_id}.png
+                        if let Some((image_id_part, rest)) = filename.rsplit_once("_from_") {
+                            if let Some(owner_id) = rest.strip_suffix(".png") {
+                                // Read and extract access rights from the carrier
+                                match std::fs::read(&path) {
+                                    Ok(carrier_data) => {
+                                        match extract_image_with_access_rights(&carrier_data) {
+                                            Ok((_, Some(embedded_access))) => {
+                                                info!(
+                                                    "✅ [ACCESSIBLE_IMAGES] Extracted access for {}: {}/{}",
+                                                    image_id_part, embedded_access.view_count, embedded_access.view_limit
+                                                );
 
-                        // Extract embedded access rights from carrier to get current view count
-                        info!("📂 [ACCESSIBLE_IMAGES] Looking for carrier at: {}", local_carrier_path);
-                        match std::fs::read(&local_carrier_path) {
-                            Ok(carrier_data) => {
-                                info!("✅ [ACCESSIBLE_IMAGES] Found carrier file: {} bytes", carrier_data.len());
-                                match extract_image_with_access_rights(&carrier_data) {
-                                    Ok((_, Some(embedded_access))) => {
-                                        // Use the access rights from the carrier (source of truth)
-                                        info!(
-                                            "📊 [ACCESSIBLE_IMAGES] Extracted access rights from carrier for {}: {}/{}",
-                                            image.image_id, embedded_access.view_count, embedded_access.view_limit
-                                        );
+                                                // Create AccessRight from embedded data
+                                                let access = AccessRight {
+                                                    view_limit: embedded_access.view_limit,
+                                                    view_count: embedded_access.view_count,
+                                                };
 
-                                        // Create AccessRight from embedded data
-                                        let access = AccessRight {
-                                            view_limit: embedded_access.view_limit,
-                                            view_count: embedded_access.view_count,
-                                        };
+                                                // Create basic ImageInfo
+                                                let image = ImageInfo {
+                                                    image_id: image_id_part.to_string(),
+                                                    name: image_id_part.replace('_', "."),
+                                                    encrypted_path: path.to_string_lossy().to_string(),
+                                                    access_rights: std::collections::HashMap::new(),
+                                                    personalized_carriers: std::collections::HashMap::new(),
+                                                };
 
-                                        accessible_images.push(serde_json::json!({
-                                            "owner_id": client.client_id,
-                                            "image": image,
-                                            "access": access
-                                        }));
-                                    }
-                                    Ok((_, None)) => {
-                                        info!("⚠️ [ACCESSIBLE_IMAGES] No embedded access rights in carrier for {}", image.image_id);
+                                                accessible_images.push(serde_json::json!({
+                                                    "owner_id": owner_id,
+                                                    "image": image,
+                                                    "access": access
+                                                }));
+                                            }
+                                            Ok((_, None)) => {
+                                                info!("⚠️ [ACCESSIBLE_IMAGES] No embedded access rights in {}", filename);
+                                            }
+                                            Err(e) => {
+                                                error!("❌ [ACCESSIBLE_IMAGES] Failed to extract access rights from {}: {}", filename, e);
+                                            }
+                                        }
                                     }
                                     Err(e) => {
-                                        error!("❌ [ACCESSIBLE_IMAGES] Failed to extract access rights for {}: {}", image.image_id, e);
+                                        error!("❌ [ACCESSIBLE_IMAGES] Failed to read {}: {}", filename, e);
                                     }
                                 }
-                            }
-                            Err(e) => {
-                                info!("⚠️ [ACCESSIBLE_IMAGES] Carrier file not found: {} - {}", local_carrier_path, e);
                             }
                         }
                     }
                 }
             }
 
+            info!("✅ [ACCESSIBLE_IMAGES] Found {} accessible images", accessible_images.len());
             Ok((
                 StatusCode::OK,
                 Json(ApiResponse {
@@ -1814,19 +1820,20 @@ async fn accessible_images_handler(
             ))
         }
         Err(e) => {
-            error!("Failed to fetch accessible images: {}", e);
-            Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
+            info!("⚠️ [ACCESSIBLE_IMAGES] Directory not found or empty: {} - {}", local_dir, e);
+            // Return empty list if directory doesn't exist (user has no shared images yet)
+            Ok((
+                StatusCode::OK,
                 Json(ApiResponse {
-                    success: false,
-                    error: Some(format!("Failed to fetch accessible images: {}", e)),
+                    success: true,
+                    images: Some(vec![]),
                     message: None,
+                    error: None,
                     carrier_image_base64: None,
                     client_id: None,
                     notifications: None,
                     request_id: None,
                     peers: None,
-                    images: None,
                     requests: None,
                 }),
             ))
