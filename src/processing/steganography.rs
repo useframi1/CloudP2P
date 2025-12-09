@@ -840,3 +840,37 @@ pub fn extract_image_with_access_rights(
 
     Ok((secret_bytes, access_rights))
 }
+
+/// Update the access rights embedded in an existing personalized carrier
+///
+/// This function extracts the secret image and current access rights from a carrier,
+/// then re-embeds the secret with updated access rights.
+///
+/// # Arguments
+/// * `carrier_image_bytes` - The existing personalized carrier with embedded access rights
+/// * `new_access_rights` - The new access rights to embed
+///
+/// # Returns
+/// Updated carrier image with new access rights embedded
+///
+/// # Example
+/// ```
+/// let carrier_data = std::fs::read("carrier_from_owner.png")?;
+/// let new_rights = EmbeddedAccessRights {
+///     username: "client1".to_string(),
+///     view_limit: 10,  // Updated from 5 to 10
+///     view_count: 2,   // Keep current count
+/// };
+/// let updated_carrier = update_embedded_access_rights(&carrier_data, &new_rights)?;
+/// std::fs::write("carrier_from_owner.png", updated_carrier)?;
+/// ```
+pub fn update_embedded_access_rights(
+    carrier_image_bytes: &[u8],
+    new_access_rights: &EmbeddedAccessRights,
+) -> Result<Vec<u8>> {
+    // Extract the secret image from the existing carrier
+    let (secret_image, _old_access_rights) = extract_image_with_access_rights(carrier_image_bytes)?;
+
+    // Re-embed the secret with the new access rights
+    embed_image_with_access_rights(carrier_image_bytes, &secret_image, Some(new_access_rights))
+}

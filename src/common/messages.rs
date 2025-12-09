@@ -408,6 +408,25 @@ pub enum Message {
         carrier_data: Vec<u8>,
     },
 
+    /// **Access Rights Update**
+    ///
+    /// Owner notifies requester that access rights have been modified or revoked.
+    /// Requester must update the embedded access rights in their local carrier or delete it.
+    ///
+    /// # Fields
+    /// - `owner_id`: ID of the image owner
+    /// - `image_id`: ID of the image
+    /// - `requester_id`: ID of the client whose access is being updated
+    /// - `revoked`: If true, access is revoked and requester should delete the local carrier
+    /// - `new_view_limit`: If not revoked, the new view limit to embed in the local carrier
+    AccessRightsUpdate {
+        owner_id: String,
+        image_id: String,
+        requester_id: String,
+        revoked: bool,
+        new_view_limit: Option<u32>,
+    },
+
     /// **P2P Access Denied**
     ///
     /// Response when a peer rejects an image request due to insufficient access rights.

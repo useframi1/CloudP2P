@@ -24,7 +24,9 @@ use cloud_p2p::client::middleware::{ClientConfig, ClientMiddleware};
 use cloud_p2p::client::p2p_service::P2PService;
 use cloud_p2p::common::messages::{AccessRight, ImageInfo};
 use cloud_p2p::dos::firebase::FirebaseClient;
-use cloud_p2p::processing::{embed_image_with_access_rights, extract_image_with_access_rights, EmbeddedAccessRights};
+use cloud_p2p::processing::{
+    embed_image_with_access_rights, extract_image_with_access_rights, EmbeddedAccessRights,
+};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -109,11 +111,19 @@ struct RespondRequestRequest {
     approved: bool,
     view_limit: Option<u32>, // Owner-set view limit when approving
 }
- 
+
 #[derive(Deserialize)]
 struct ViewImageRequest {
     owner_id: String,
     image_id: String,
+}
+
+#[derive(Deserialize)]
+struct ManageAccessRequest {
+    image_id: String,
+    requester_id: String,
+    action: String,              // "revoke" or "modify"
+    new_view_limit: Option<u32>, // Only for "modify" action
 }
 
 struct AppState {
@@ -128,7 +138,7 @@ struct AppState {
 async fn register_local_images(
     dos_client: &DosClient,
     client_middleware: Arc<Mutex<ClientMiddleware>>,
-    client_id: &str,             
+    client_id: &str,
     image_dir: &str,
 ) -> anyhow::Result<()> {
     let path = std::path::Path::new(image_dir);
@@ -204,7 +214,10 @@ async fn register_local_images(
                         .as_millis() as u64;
 
                     // Send secret image to compute server for encryption (no access rights at registration)
-                    info!("🔐 Sending {} to compute server for encryption...", filename);
+                    info!(
+                        "🔐 Sending {} to compute server for encryption...",
+                        filename
+                    );
                     let encrypted_carrier = match client_middleware
                         .lock()
                         .await
@@ -402,6 +415,8 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/respond-request", post(respond_request_handler))
         .route("/api/requested-images", get(requested_images_handler))
         .route("/api/accessible-images", get(accessible_images_handler))
+        .route("/api/my-shared-images", get(my_shared_images_handler))
+        .route("/api/manage-access", post(manage_access_handler))
         .route("/api/view-image", post(view_image_handler))
         .route(
             "/api/default-view-limit",
@@ -1161,7 +1176,11 @@ async fn respond_request_handler(
 
     if payload.approved {
         // Get request details from Firebase
-        let request = match state.firebase.get_pending_request(&payload.request_id).await {
+        let request = match state
+            .firebase
+            .get_pending_request(&payload.request_id)
+            .await
+        {
             Ok(Some(req)) => req,
             Ok(None) => {
                 return Err((
@@ -1204,7 +1223,10 @@ async fn respond_request_handler(
             .get("requester_id")
             .and_then(|v| v.as_str())
             .unwrap_or("");
-        let image_id = request.get("image_id").and_then(|v| v.as_str()).unwrap_or("");
+        let image_id = request
+            .get("image_id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
 
         info!(
             "Creating personalized carrier for {} requesting {} (view_limit: {:?})",
@@ -1276,7 +1298,10 @@ async fn respond_request_handler(
         let carrier_bytes = match std::fs::read(&image_info.encrypted_path) {
             Ok(bytes) => bytes,
             Err(e) => {
-                error!("Failed to read carrier from {}: {}", image_info.encrypted_path, e);
+                error!(
+                    "Failed to read carrier from {}: {}",
+                    image_info.encrypted_path, e
+                );
                 return Err((
                     StatusCode::INTERNAL_SERVER_ERROR,
                     Json(ApiResponse {
@@ -1368,7 +1393,10 @@ async fn respond_request_handler(
             }
         };
 
-        info!("✅ Created personalized carrier: {} bytes", personalized_carrier.len());
+        info!(
+            "✅ Created personalized carrier: {} bytes",
+            personalized_carrier.len()
+        );
 
         // Save personalized carrier to disk
         let personalized_path = format!(
@@ -1398,68 +1426,88 @@ async fn respond_request_handler(
         info!("💾 Saved personalized carrier to: {}", personalized_path);
 
         // Send personalized carrier to requester via P2P immediately
-        info!("📡 Sending personalized carrier to {} via P2P...", requester_id);
+        info!(
+            "📡 Sending personalized carrier to {} via P2P...",
+            requester_id
+        );
 
         // Get requester's P2P address from DoS
         let dos_client = state.dos_client.lock().await;
-        let (requester_ip, requester_p2p_port) = match dos_client.get_peer_address(requester_id).await {
-            Ok(Some((ip, port))) => (ip, port),
-            Ok(None) => {
-                error!("Requester {} not found or offline, cannot send personalized carrier", requester_id);
-                drop(dos_client);
-                return Err((
-                    StatusCode::SERVICE_UNAVAILABLE,
-                    Json(ApiResponse {
-                        success: false,
-                        error: Some("Requester is offline. Cannot deliver personalized carrier.".to_string()),
-                        message: None,
-                        carrier_image_base64: None,
-                        client_id: None,
-                        notifications: None,
-                        request_id: None,
-                        peers: None,
-                        images: None,
-                        requests: None,
-                    }),
-                ));
-            }
-            Err(e) => {
-                error!("Failed to get requester address: {}", e);
-                drop(dos_client);
-                return Err((
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(ApiResponse {
-                        success: false,
-                        error: Some(format!("Failed to get requester address: {}", e)),
-                        message: None,
-                        carrier_image_base64: None,
-                        client_id: None,
-                        notifications: None,
-                        request_id: None,
-                        peers: None,
-                        images: None,
-                        requests: None,
-                    }),
-                ));
-            }
-        };
+        let (requester_ip, requester_p2p_port) =
+            match dos_client.get_peer_address(requester_id).await {
+                Ok(Some((ip, port))) => (ip, port),
+                Ok(None) => {
+                    error!(
+                        "Requester {} not found or offline, cannot send personalized carrier",
+                        requester_id
+                    );
+                    drop(dos_client);
+                    return Err((
+                        StatusCode::SERVICE_UNAVAILABLE,
+                        Json(ApiResponse {
+                            success: false,
+                            error: Some(
+                                "Requester is offline. Cannot deliver personalized carrier."
+                                    .to_string(),
+                            ),
+                            message: None,
+                            carrier_image_base64: None,
+                            client_id: None,
+                            notifications: None,
+                            request_id: None,
+                            peers: None,
+                            images: None,
+                            requests: None,
+                        }),
+                    ));
+                }
+                Err(e) => {
+                    error!("Failed to get requester address: {}", e);
+                    drop(dos_client);
+                    return Err((
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(ApiResponse {
+                            success: false,
+                            error: Some(format!("Failed to get requester address: {}", e)),
+                            message: None,
+                            carrier_image_base64: None,
+                            client_id: None,
+                            notifications: None,
+                            request_id: None,
+                            peers: None,
+                            images: None,
+                            requests: None,
+                        }),
+                    ));
+                }
+            };
         drop(dos_client);
 
         info!("📍 Requester at {}:{}", requester_ip, requester_p2p_port);
 
         // Send the personalized carrier via P2P
-        match state.p2p_service.send_personalized_carrier(
-            &requester_ip,
-            requester_p2p_port,
-            image_id,
-            &owner_id,
-            personalized_carrier.clone(),
-        ).await {
+        match state
+            .p2p_service
+            .send_personalized_carrier(
+                &requester_ip,
+                requester_p2p_port,
+                image_id,
+                &owner_id,
+                personalized_carrier.clone(),
+            )
+            .await
+        {
             Ok(_) => {
-                info!("✅ Personalized carrier sent to {} successfully", requester_id);
+                info!(
+                    "✅ Personalized carrier sent to {} successfully",
+                    requester_id
+                );
             }
             Err(e) => {
-                error!("Failed to send personalized carrier to {}: {}", requester_id, e);
+                error!(
+                    "Failed to send personalized carrier to {}: {}",
+                    requester_id, e
+                );
                 return Err((
                     StatusCode::INTERNAL_SERVER_ERROR,
                     Json(ApiResponse {
@@ -1481,13 +1529,15 @@ async fn respond_request_handler(
         // Update Firebase with personalized carrier path ONLY (no access_rights in Firebase)
         // Access rights are embedded in the carrier image itself
         let mut updated_image = image_info.clone();
-        updated_image.personalized_carriers.insert(
-            requester_id.to_string(),
-            personalized_path.clone(),
-        );
+        updated_image
+            .personalized_carriers
+            .insert(requester_id.to_string(), personalized_path.clone());
 
         if let Err(e) = state.firebase.store_image(&owner_id, &updated_image).await {
-            error!("Failed to update Firebase with personalized carrier path: {}", e);
+            error!(
+                "Failed to update Firebase with personalized carrier path: {}",
+                e
+            );
         }
 
         info!("✅ Updated Firebase with personalized carrier path (access rights embedded in carrier)");
@@ -1773,9 +1823,12 @@ async fn accessible_images_handler(
                                                 let image = ImageInfo {
                                                     image_id: image_id_part.to_string(),
                                                     name: image_id_part.replace('_', "."),
-                                                    encrypted_path: path.to_string_lossy().to_string(),
+                                                    encrypted_path: path
+                                                        .to_string_lossy()
+                                                        .to_string(),
                                                     access_rights: std::collections::HashMap::new(),
-                                                    personalized_carriers: std::collections::HashMap::new(),
+                                                    personalized_carriers:
+                                                        std::collections::HashMap::new(),
                                                 };
 
                                                 accessible_images.push(serde_json::json!({
@@ -1793,7 +1846,10 @@ async fn accessible_images_handler(
                                         }
                                     }
                                     Err(e) => {
-                                        error!("❌ [ACCESSIBLE_IMAGES] Failed to read {}: {}", filename, e);
+                                        error!(
+                                            "❌ [ACCESSIBLE_IMAGES] Failed to read {}: {}",
+                                            filename, e
+                                        );
                                     }
                                 }
                             }
@@ -1802,7 +1858,10 @@ async fn accessible_images_handler(
                 }
             }
 
-            info!("✅ [ACCESSIBLE_IMAGES] Found {} accessible images", accessible_images.len());
+            info!(
+                "✅ [ACCESSIBLE_IMAGES] Found {} accessible images",
+                accessible_images.len()
+            );
             Ok((
                 StatusCode::OK,
                 Json(ApiResponse {
@@ -1820,7 +1879,10 @@ async fn accessible_images_handler(
             ))
         }
         Err(e) => {
-            info!("⚠️ [ACCESSIBLE_IMAGES] Directory not found or empty: {} - {}", local_dir, e);
+            info!(
+                "⚠️ [ACCESSIBLE_IMAGES] Directory not found or empty: {} - {}",
+                local_dir, e
+            );
             // Return empty list if directory doesn't exist (user has no shared images yet)
             Ok((
                 StatusCode::OK,
@@ -1834,6 +1896,440 @@ async fn accessible_images_handler(
                     notifications: None,
                     request_id: None,
                     peers: None,
+                    requests: None,
+                }),
+            ))
+        }
+    }
+}
+
+async fn my_shared_images_handler(
+    State(state): State<Arc<AppState>>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
+    info!("📤 [MY_SHARED_IMAGES] Fetching images I've shared with others");
+
+    let current_user = state.current_user.lock().await;
+    if current_user.is_none() {
+        return Err((
+            StatusCode::UNAUTHORIZED,
+            Json(ApiResponse {
+                success: false,
+                error: Some("Not signed in".to_string()),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        ));
+    }
+
+    let owner_id = current_user.as_ref().unwrap().clone();
+    drop(current_user);
+
+    // Get my client info from Firebase
+    match state.firebase.get_client(&owner_id).await {
+        Ok(Some(client)) => {
+            let mut shared_images = vec![];
+
+            // For each image I own, check who has access
+            for (image_id, image) in &client.images {
+                // Get access rights for this image
+                let mut access_list = vec![];
+
+                for (requester_id, access) in &image.access_rights {
+                    access_list.push(serde_json::json!({
+                        "requester_id": requester_id,
+                        "view_limit": access.view_limit,
+                        "view_count": access.view_count,
+                        "views_left": access.view_limit.saturating_sub(access.view_count)
+                    }));
+                }
+
+                // Only include images that have been shared (have access rights)
+                if !access_list.is_empty() {
+                    shared_images.push(serde_json::json!({
+                        "image_id": image_id,
+                        "name": image.name,
+                        "access_list": access_list,
+                        "total_shared_with": access_list.len()
+                    }));
+                }
+            }
+
+            info!(
+                "✅ [MY_SHARED_IMAGES] Found {} shared images",
+                shared_images.len()
+            );
+            Ok((
+                StatusCode::OK,
+                Json(ApiResponse {
+                    success: true,
+                    images: Some(shared_images),
+                    message: None,
+                    error: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    requests: None,
+                }),
+            ))
+        }
+        Ok(None) => Err((
+            StatusCode::NOT_FOUND,
+            Json(ApiResponse {
+                success: false,
+                error: Some("Client not found".to_string()),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        )),
+        Err(e) => {
+            error!("❌ [MY_SHARED_IMAGES] Failed to fetch client: {}", e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Failed to fetch shared images: {}", e)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+    }
+}
+
+async fn manage_access_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<ManageAccessRequest>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
+    info!(
+        "🔧 [MANAGE_ACCESS] {} access for image {} to requester {}",
+        payload.action, payload.image_id, payload.requester_id
+    );
+
+    let current_user = state.current_user.lock().await;
+    if current_user.is_none() {
+        return Err((
+            StatusCode::UNAUTHORIZED,
+            Json(ApiResponse {
+                success: false,
+                error: Some("Not signed in".to_string()),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        ));
+    }
+
+    let owner_id = current_user.as_ref().unwrap().clone();
+    drop(current_user);
+
+    // Validate action
+    if payload.action != "revoke" && payload.action != "modify" {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(ApiResponse {
+                success: false,
+                error: Some("Invalid action. Must be 'revoke' or 'modify'".to_string()),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        ));
+    }
+
+    if payload.action == "modify" && payload.new_view_limit.is_none() {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(ApiResponse {
+                success: false,
+                error: Some("new_view_limit is required for modify action".to_string()),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        ));
+    }
+
+    // Get current client data from Firebase
+    let mut client = match state.firebase.get_client(&owner_id).await {
+        Ok(Some(c)) => c,
+        Ok(None) => {
+            return Err((
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some("Owner client not found".to_string()),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+        Err(e) => {
+            error!("❌ [MANAGE_ACCESS] Failed to get client: {}", e);
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Failed to get client: {}", e)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ));
+        }
+    };
+
+    // Get the image
+    let image = match client.images.get_mut(&payload.image_id) {
+        Some(img) => img,
+        None => {
+            return Err((
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some("Image not found".to_string()),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+    };
+
+    // Check if requester has access
+    let current_access = match image.access_rights.get(&payload.requester_id) {
+        Some(access) => access.clone(),
+        None => {
+            return Err((
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!(
+                        "Requester {} does not have access to this image",
+                        payload.requester_id
+                    )),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+    };
+
+    let revoked = payload.action == "revoke";
+    let new_view_limit = if revoked {
+        None
+    } else {
+        payload.new_view_limit
+    };
+
+    // Update Firebase based on action
+    if revoked {
+        // Remove access rights from Firebase
+        image.access_rights.remove(&payload.requester_id);
+        image.personalized_carriers.remove(&payload.requester_id);
+        info!(
+            "🗑️ [MANAGE_ACCESS] Revoked access for {} to image {}",
+            payload.requester_id, payload.image_id
+        );
+    } else {
+        // Modify view limit (keep view count the same)
+        if let Some(new_limit) = new_view_limit {
+            image.access_rights.insert(
+                payload.requester_id.clone(),
+                AccessRight {
+                    view_limit: new_limit,
+                    view_count: current_access.view_count, // Keep current count
+                },
+            );
+            info!(
+                "✏️ [MANAGE_ACCESS] Modified view limit for {} to {} (current count: {})",
+                payload.requester_id, new_limit, current_access.view_count
+            );
+        }
+    }
+
+    // Update Firebase
+    if let Err(e) = state.firebase.store_client(&owner_id, &client).await {
+        error!("❌ [MANAGE_ACCESS] Failed to update Firebase: {}", e);
+        return Err((
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse {
+                success: false,
+                error: Some(format!("Failed to update Firebase: {}", e)),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        ));
+    }
+
+    // Send P2P message to requester to update their local carrier
+    info!(
+        "📡 [MANAGE_ACCESS] Sending P2P update to {} for image {}",
+        payload.requester_id, payload.image_id
+    );
+
+    // Get requester's address from Firebase
+    let requester_client = match state.firebase.get_client(&payload.requester_id).await {
+        Ok(Some(c)) => c,
+        Ok(None) => {
+            error!(
+                "⚠️ [MANAGE_ACCESS] Requester not found, changes saved but P2P notification failed"
+            );
+            return Ok((
+                StatusCode::OK,
+                Json(ApiResponse {
+                    success: true,
+                    message: Some(format!(
+                        "Access {} but requester is offline. Changes will sync when they come online.",
+                        if revoked { "revoked" } else { "modified" }
+                    )),
+                    error: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ));
+        }
+        Err(e) => {
+            error!("❌ [MANAGE_ACCESS] Failed to get requester: {}", e);
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Failed to get requester: {}", e)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ));
+        }
+    };
+
+    // Send P2P AccessRightsUpdate message
+    let p2p_result = state
+        .p2p_service
+        .send_access_rights_update(
+            &requester_client.ip_address,
+            requester_client.p2p_port,
+            owner_id.clone(),
+            payload.image_id.clone(),
+            payload.requester_id.clone(),
+            revoked,
+            new_view_limit,
+        )
+        .await;
+
+    match p2p_result {
+        Ok(_) => {
+            info!("✅ [MANAGE_ACCESS] P2P update sent successfully");
+            Ok((
+                StatusCode::OK,
+                Json(ApiResponse {
+                    success: true,
+                    message: Some(format!(
+                        "Access {} and requester notified",
+                        if revoked { "revoked" } else { "modified" }
+                    )),
+                    error: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+        Err(e) => {
+            error!("⚠️ [MANAGE_ACCESS] Failed to send P2P update: {}", e);
+            Ok((
+                StatusCode::OK,
+                Json(ApiResponse {
+                    success: true,
+                    message: Some(format!(
+                        "Access {} but failed to notify requester (may be offline): {}",
+                        if revoked { "revoked" } else { "modified" },
+                        e
+                    )),
+                    error: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
                     requests: None,
                 }),
             ))
@@ -1880,11 +2376,17 @@ async fn view_image_handler(
         viewer_id, payload.image_id, payload.owner_id
     );
 
-    info!("📂 [VIEW_IMAGE] Reading personalized carrier from: {}", local_carrier_path);
+    info!(
+        "📂 [VIEW_IMAGE] Reading personalized carrier from: {}",
+        local_carrier_path
+    );
 
     let carrier_data = match std::fs::read(&local_carrier_path) {
         Ok(data) => {
-            info!("✅ [VIEW_IMAGE] Read personalized carrier: {} bytes", data.len());
+            info!(
+                "✅ [VIEW_IMAGE] Read personalized carrier: {} bytes",
+                data.len()
+            );
             data
         }
         Err(e) => {
@@ -1979,13 +2481,19 @@ async fn view_image_handler(
         let carrier_path = "cover_images/cover_image.png";
         match std::fs::read(carrier_path) {
             Ok(carrier_bytes) => {
-                match embed_image_with_access_rights(&carrier_bytes, &secret_image, Some(&access_rights)) {
+                match embed_image_with_access_rights(
+                    &carrier_bytes,
+                    &secret_image,
+                    Some(&access_rights),
+                ) {
                     Ok(updated_carrier) => {
                         if let Err(e) = std::fs::write(&local_carrier_path, &updated_carrier) {
                             error!("⚠️ [VIEW_IMAGE] Failed to save updated carrier: {}", e);
                         } else {
-                            info!("💾 [VIEW_IMAGE] Saved updated carrier with new view count: {}/{}",
-                                  access_rights.view_count, access_rights.view_limit);
+                            info!(
+                                "💾 [VIEW_IMAGE] Saved updated carrier with new view count: {}/{}",
+                                access_rights.view_count, access_rights.view_limit
+                            );
                         }
                     }
                     Err(e) => {
@@ -1994,7 +2502,10 @@ async fn view_image_handler(
                 }
             }
             Err(e) => {
-                error!("⚠️ [VIEW_IMAGE] Failed to read carrier image {}: {}", carrier_path, e);
+                error!(
+                    "⚠️ [VIEW_IMAGE] Failed to read carrier image {}: {}",
+                    carrier_path, e
+                );
             }
         }
     } else {

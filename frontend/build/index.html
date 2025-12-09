@@ -690,6 +690,19 @@
                     <div class="no-data">No pending requests</div>
                 </div>
             </div>
+
+            <!-- Card 7: Manage Shared Images -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>👥 Manage Shared Images</h2>
+                    <button class="refresh-btn" onclick="loadMySharedImages()">Refresh</button>
+                </div>
+                <div class="peer-list" id="my-shared-images-list">
+                    <div class="loading">
+                        <div class="spinner"></div>Loading...
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1407,6 +1420,125 @@
                     loadPendingRequests();
                 } else {
                     alert('❌ Error: ' + data.error);
+                }
+            } catch (err) {
+                alert('❌ Error: ' + err.message);
+            }
+        }
+
+        async function loadMySharedImages() {
+            console.log('🔄 loadMySharedImages called');
+            var container = document.getElementById('my-shared-images-list');
+            if (!container) return;
+
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+
+            try {
+                var response = await fetch(API_BASE + '/my-shared-images');
+                var data = await response.json();
+                console.log('📦 My shared images data:', data);
+
+                if (data.success && data.images && data.images.length > 0) {
+                    var html = '';
+                    data.images.forEach(function (imageData) {
+                        html += '<div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 12px; background: #f9fafb;">';
+                        html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">';
+                        html += '<div><strong style="color: #1f2937;">📸 ' + imageData.name + '</strong><br>';
+                        html += '<small style="color: #6b7280;">Shared with ' + imageData.total_shared_with + ' user(s)</small></div>';
+                        html += '</div>';
+
+                        // Access list for this image
+                        imageData.access_list.forEach(function (access) {
+                            var viewColor = access.views_left > 0 ? '#10b981' : '#dc2626';
+                            html += '<div style="background: white; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; margin-bottom: 8px;">';
+                            html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">';
+                            html += '<div><strong>👤 ' + access.requester_id + '</strong><br>';
+                            html += '<small style="color: ' + viewColor + '; font-weight: 700;">👁️ ' + access.view_count + '/' + access.view_limit + ' views (' + access.views_left + ' left)</small>';
+                            html += '</div></div>';
+
+                            // Action buttons and modify input
+                            html += '<div style="display: flex; gap: 8px; align-items: center;">';
+                            html += '<input type="number" id="new-limit-' + imageData.image_id + '-' + access.requester_id + '" ';
+                            html += 'value="' + access.view_limit + '" min="1" placeholder="New limit" ';
+                            html += 'style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px;">';
+                            html += '<button class="btn btn-primary btn-small" style="padding: 8px 12px;" ';
+                            html += 'onclick="modifyAccess(\'' + imageData.image_id + '\', \'' + access.requester_id + '\')">✏️ Update</button>';
+                            html += '<button class="btn btn-danger btn-small" style="padding: 8px 12px;" ';
+                            html += 'onclick="revokeAccess(\'' + imageData.image_id + '\', \'' + access.requester_id + '\')">🗑️ Revoke</button>';
+                            html += '</div></div>';
+                        });
+
+                        html += '</div>';
+                    });
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<div class="no-data">You haven\'t shared any images yet</div>';
+                }
+            } catch (err) {
+                console.error('Failed to load shared images:', err);
+                container.innerHTML = '<div class="no-data">Failed to load shared images</div>';
+            }
+        }
+
+        async function modifyAccess(imageId, requesterId) {
+            var inputId = 'new-limit-' + imageId + '-' + requesterId;
+            var newLimit = parseInt(document.getElementById(inputId).value);
+
+            if (!newLimit || newLimit < 1) {
+                alert('❌ Please enter a valid view limit (at least 1)');
+                return;
+            }
+
+            if (!confirm('Update view limit for ' + requesterId + ' to ' + newLimit + ' views?')) {
+                return;
+            }
+
+            try {
+                var response = await fetch(API_BASE + '/manage-access', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image_id: imageId,
+                        requester_id: requesterId,
+                        action: 'modify',
+                        new_view_limit: newLimit
+                    })
+                });
+                var data = await response.json();
+
+                if (data.success) {
+                    alert('✅ ' + (data.message || 'Access updated successfully'));
+                    loadMySharedImages();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Failed to update access'));
+                }
+            } catch (err) {
+                alert('❌ Error: ' + err.message);
+            }
+        }
+
+        async function revokeAccess(imageId, requesterId) {
+            if (!confirm('⚠️ Revoke access for ' + requesterId + '?\n\nThis will delete their local copy of the image.')) {
+                return;
+            }
+
+            try {
+                var response = await fetch(API_BASE + '/manage-access', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image_id: imageId,
+                        requester_id: requesterId,
+                        action: 'revoke'
+                    })
+                });
+                var data = await response.json();
+
+                if (data.success) {
+                    alert('✅ ' + (data.message || 'Access revoked successfully'));
+                    loadMySharedImages();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Failed to revoke access'));
                 }
             } catch (err) {
                 alert('❌ Error: ' + err.message);

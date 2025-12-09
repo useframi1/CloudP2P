@@ -115,6 +115,20 @@ impl P2PService {
                 self.handle_personalized_carrier_delivery(&image_id, &owner_id, carrier_data)
                     .await?;
             }
+            Message::AccessRightsUpdate {
+                owner_id,
+                image_id,
+                requester_id,
+                revoked,
+                new_view_limit,
+            } => {
+                println!(
+                    "🔧 [P2P] Receiving access rights update for {} from {} (revoked: {}, new_limit: {:?})",
+                    image_id, owner_id, revoked, new_view_limit
+                );
+                self.handle_access_rights_update(&owner_id, &image_id, &requester_id, revoked, new_view_limit)
+                    .await?;
+            }
             _ => {
                 println!("[P2P] Unexpected message type received");
                 let response = Message::P2PAccessDenied {
@@ -154,6 +168,95 @@ impl P2PService {
             "💾 [P2P_RECEIVE] Saved personalized carrier to: {}",
             save_path
         );
+
+        Ok(())
+    }
+
+    /// Handle access rights update from owner
+    ///
+    /// Owner notifies requester that access has been revoked or modified.
+    /// Requester updates or deletes their local personalized carrier.
+    async fn handle_access_rights_update(
+        &self,
+        owner_id: &str,
+        image_id: &str,
+        requester_id: &str,
+        revoked: bool,
+        new_view_limit: Option<u32>,
+    ) -> Result<()> {
+        use crate::processing::{extract_image_with_access_rights, update_embedded_access_rights, EmbeddedAccessRights};
+
+        // Verify this update is for me
+        if requester_id != self.client_id {
+            println!(
+                "⚠️ [P2P_ACCESS_UPDATE] Update not for me (expected {}, got {})",
+                self.client_id, requester_id
+            );
+            return Ok(());
+        }
+
+        let carrier_path = format!(
+            "encrypted_images/{}/{}_from_{}.png",
+            self.client_id, image_id, owner_id
+        );
+
+        if revoked {
+            // Delete the local personalized carrier
+            if std::fs::remove_file(&carrier_path).is_ok() {
+                println!(
+                    "🗑️ [P2P_ACCESS_UPDATE] Access revoked - deleted carrier: {}",
+                    carrier_path
+                );
+            } else {
+                println!(
+                    "⚠️ [P2P_ACCESS_UPDATE] Carrier not found (may already be deleted): {}",
+                    carrier_path
+                );
+            }
+        } else if let Some(new_limit) = new_view_limit {
+            // Update the embedded access rights in the local carrier
+            match std::fs::read(&carrier_path) {
+                Ok(carrier_data) => {
+                    // Extract current access rights to get view count
+                    match extract_image_with_access_rights(&carrier_data) {
+                        Ok((_secret, Some(current_access))) => {
+                            // Create updated access rights with new limit but same count
+                            let updated_access = EmbeddedAccessRights {
+                                username: self.client_id.clone(),
+                                view_limit: new_limit,
+                                view_count: current_access.view_count, // Preserve current count
+                            };
+
+                            // Update the carrier with new access rights
+                            match update_embedded_access_rights(&carrier_data, &updated_access) {
+                                Ok(updated_carrier) => {
+                                    std::fs::write(&carrier_path, updated_carrier)?;
+                                    println!(
+                                        "✅ [P2P_ACCESS_UPDATE] Updated view limit from {} to {} (current count: {})",
+                                        current_access.view_limit, new_limit, current_access.view_count
+                                    );
+                                }
+                                Err(e) => {
+                                    println!("❌ [P2P_ACCESS_UPDATE] Failed to update carrier: {}", e);
+                                }
+                            }
+                        }
+                        Ok((_secret, None)) => {
+                            println!("⚠️ [P2P_ACCESS_UPDATE] No access rights found in carrier");
+                        }
+                        Err(e) => {
+                            println!("❌ [P2P_ACCESS_UPDATE] Failed to extract access rights: {}", e);
+                        }
+                    }
+                }
+                Err(e) => {
+                    println!(
+                        "⚠️ [P2P_ACCESS_UPDATE] Carrier not found: {} - {}",
+                        carrier_path, e
+                    );
+                }
+            }
+        }
 
         Ok(())
     }
@@ -433,6 +536,45 @@ impl P2PService {
 
         conn.write_message(&message).await?;
         println!("✅ [P2P_SEND] Personalized carrier sent successfully");
+
+        Ok(())
+    }
+
+    /// Send access rights update to a requester
+    ///
+    /// Owner calls this to notify a requester that their access has been revoked or modified.
+    /// The requester will update or delete their local personalized carrier.
+    pub async fn send_access_rights_update(
+        &self,
+        requester_ip: &str,
+        requester_port: u16,
+        owner_id: String,
+        image_id: String,
+        requester_id: String,
+        revoked: bool,
+        new_view_limit: Option<u32>,
+    ) -> Result<()> {
+        println!(
+            "📡 [P2P_ACCESS_UPDATE] Sending access update to {}:{} for image {} (revoked: {}, new_limit: {:?})",
+            requester_ip, requester_port, image_id, revoked, new_view_limit
+        );
+
+        // Connect to requester's P2P port
+        let addr = format!("{}:{}", requester_ip, requester_port);
+        let socket = TcpStream::connect(&addr).await?;
+        let mut conn = Connection::new(socket);
+
+        // Send AccessRightsUpdate message
+        let message = Message::AccessRightsUpdate {
+            owner_id,
+            image_id,
+            requester_id,
+            revoked,
+            new_view_limit,
+        };
+
+        conn.write_message(&message).await?;
+        println!("✅ [P2P_ACCESS_UPDATE] Access rights update sent successfully");
 
         Ok(())
     }
