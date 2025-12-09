@@ -99,6 +99,9 @@ pub struct ClientInfo {
     /// Directory of Services (DoS) address
     #[serde(default = "default_dos_address")]
     pub dos_address: String,
+    /// Public IP address of this client for P2P communication
+    #[serde(default = "default_ip_address")]
+    pub ip_address: String,
 }
 
 fn default_image_dir() -> String {
@@ -107,6 +110,10 @@ fn default_image_dir() -> String {
 
 fn default_dos_address() -> String {
     "127.0.0.1:9000".to_string()
+}
+
+fn default_ip_address() -> String {
+    "127.0.0.1".to_string()
 }
 
 /// Request configuration for stress testing.

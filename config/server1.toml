@@ -1,11 +1,11 @@
 [server]
 id = 1
-address = "127.0.0.1:8001"
+address = "10.40.39.41:8001"
 cover_image = "cover_images/cover_image.png"
 
 [peers]
 peers = [
-    { id = 2, address = "127.0.0.1:8002" },
+    { id = 2, address = "10.40.61.159:8002" },
     { id = 3, address = "127.0.0.1:8003" }
 ]
 

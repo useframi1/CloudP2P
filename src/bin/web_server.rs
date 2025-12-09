@@ -122,6 +122,7 @@ struct AppState {
     p2p_service: Arc<P2PService>,
     current_user: Arc<Mutex<Option<String>>>,
     firebase: Arc<FirebaseClient>,
+    config: ClientConfig,
 }
 
 async fn register_local_images(
@@ -383,6 +384,7 @@ async fn main() -> anyhow::Result<()> {
         p2p_service: p2p_service.clone(),
         current_user: Arc::new(Mutex::new(args.client_id)),
         firebase,
+        config: config.clone(),
     });
 
     // Build router
@@ -764,8 +766,9 @@ async fn request_access_handler(
         );
         // Re-sign in with the correct client_id
         let p2p_port = state.p2p_service.p2p_port;
+        let ip_address = state.config.client.ip_address.clone();
         match dos_client
-            .sign_in(requester_id.clone(), "127.0.0.1".to_string(), p2p_port)
+            .sign_in(requester_id.clone(), ip_address, p2p_port)
             .await
         {
             Ok(_) => info!("Re-signed in successfully as {}", requester_id),
@@ -968,8 +971,9 @@ async fn update_access_handler(
             dos_client.client_id()
         );
         let p2p_port = state.p2p_service.p2p_port;
+        let ip_address = state.config.client.ip_address.clone();
         match dos_client
-            .sign_in(client_id.clone(), "127.0.0.1".to_string(), p2p_port)
+            .sign_in(client_id.clone(), ip_address, p2p_port)
             .await
         {
             Ok(_) => info!("Re-signed in successfully as {}", client_id),
