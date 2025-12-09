@@ -9,12 +9,17 @@ use std::path::Path;
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    let dos_address = "127.0.0.1:9000".to_string();
+    // Compute server addresses (leader will handle DoS operations)
+    let server_addresses = vec![
+        "127.0.0.1:8001".to_string(),
+        "127.0.0.1:8002".to_string(),
+        "127.0.0.1:8003".to_string(),
+    ];
 
     // Register images for Client1
     println!("Registering images for client1...");
     register_client_images(
-        dos_address.clone(),
+        server_addresses.clone(),
         "client1",
         "test_images/client1",
     )
@@ -23,7 +28,7 @@ async fn main() -> anyhow::Result<()> {
     // Register images for Client2
     println!("Registering images for client2...");
     register_client_images(
-        dos_address.clone(),
+        server_addresses.clone(),
         "client2",
         "test_images/client2",
     )
@@ -32,7 +37,7 @@ async fn main() -> anyhow::Result<()> {
     // Register images for Client3
     println!("Registering images for client3...");
     register_client_images(
-        dos_address.clone(),
+        server_addresses.clone(),
         "client3",
         "test_images/client3",
     )
@@ -43,11 +48,11 @@ async fn main() -> anyhow::Result<()> {
 }
 
 async fn register_client_images(
-    dos_address: String,
+    server_addresses: Vec<String>,
     client_id: &str,
     image_dir: &str,
 ) -> anyhow::Result<()> {
-    let mut dos_client = DosClient::new(dos_address, client_id.to_string());
+    let mut dos_client = DosClient::new(server_addresses, client_id.to_string());
 
     // Sign in to the client
     match dos_client
@@ -91,8 +96,9 @@ async fn register_client_images(
                     let image_info = ImageInfo {
                         image_id: image_id.clone(),
                         name: filename.clone(),
-                        access_rights: std::collections::HashMap::new(),
                         encrypted_path: path.to_string_lossy().to_string(),
+                        access_rights: std::collections::HashMap::new(),
+                        personalized_carriers: std::collections::HashMap::new(),
                     };
 
                     dos_client.register_image(image_info).await?;

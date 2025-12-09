@@ -104,6 +104,18 @@ impl P2PService {
                 self.handle_image_request(&mut conn, &requester_id, &image_id)
                     .await?;
             }
+            Message::PersonalizedCarrierDelivery {
+                image_id,
+                owner_id,
+                carrier_data,
+            } => {
+                println!(
+                    "📥 [P2P] Receiving personalized carrier for {} from {}",
+                    image_id, owner_id
+                );
+                self.handle_personalized_carrier_delivery(&image_id, &owner_id, carrier_data)
+                    .await?;
+            }
             _ => {
                 println!("[P2P] Unexpected message type received");
                 let response = Message::P2PAccessDenied {
@@ -117,11 +129,35 @@ impl P2PService {
         Ok(())
     }
 
+    /// Handle receiving a personalized carrier from an owner (push delivery at approval time)
+    ///
+    /// Saves the personalized carrier to local disk for offline viewing
+    async fn handle_personalized_carrier_delivery(
+        &self,
+        image_id: &str,
+        owner_id: &str,
+        carrier_data: Vec<u8>,
+    ) -> Result<()> {
+        println!("📦 [P2P_RECEIVE] Received personalized carrier: {} bytes", carrier_data.len());
+
+        // Create directory for received images from this owner
+        let save_dir = format!("encrypted_images/{}", self.client_id);
+        std::fs::create_dir_all(&save_dir)?;
+
+        // Save with owner info in filename
+        let save_path = format!("{}/{}_from_{}.png", save_dir, image_id, owner_id);
+
+        std::fs::write(&save_path, &carrier_data)?;
+        println!("💾 [P2P_RECEIVE] Saved personalized carrier to: {}", save_path);
+
+        Ok(())
+    }
+
     /// Handle an image request from a peer - Steganography Flow
     ///
-    /// 1. Get image info and access rights from Firebase
-    /// 2. Read encrypted carrier (has secret, no access rights)
-    /// 3. Extract secret image from carrier
+    /// 1. Get image info from Firebase
+    /// 2. Check if personalized carrier exists (created at approval time)
+    /// 3. Send the pre-created personalized carrier
     /// 4. Create personalized carrier with secret + requester's access rights
     /// 5. Send personalized carrier to requester
     /// 6. Increment view count
@@ -170,6 +206,21 @@ impl P2PService {
             }
         };
 
+        // Check if there's a personalized carrier for this requester (created at approval time)
+        let personalized_path = match image_info.personalized_carriers.get(requester_id) {
+            Some(path) => path.clone(),
+            None => {
+                println!("❌ [P2P_HANDLER] No personalized carrier found for {}. Request may not be approved yet.", requester_id);
+                let response = Message::P2PAccessDenied {
+                    image_id: image_id.to_string(),
+                    reason: "Access not granted or personalized carrier not created".to_string(),
+                };
+                conn.write_message(&response).await?;
+                return Ok(());
+            }
+        };
+
+        // Get access rights for view count checking
         let access_right = match image_info.access_rights.get(requester_id) {
             Some(ar) => ar.clone(),
             None => {
@@ -183,7 +234,7 @@ impl P2PService {
             }
         };
 
-        // Check view limit BEFORE incrementing
+        // Check view limit BEFORE sending
         if access_right.view_count >= access_right.view_limit {
             println!("🚫 [P2P_HANDLER] View limit reached: {}/{}", access_right.view_count, access_right.view_limit);
             let response = Message::P2PAccessDenied {
@@ -196,83 +247,24 @@ impl P2PService {
 
         println!("✅ [P2P_HANDLER] Access granted: {}/{} views used", access_right.view_count, access_right.view_limit);
 
-        let encrypted_path = image_info.encrypted_path.clone();
-
-        // Read the encrypted carrier (has secret, no access rights)
-        println!("📂 [P2P_HANDLER] Reading encrypted carrier from: {}", encrypted_path);
-        let encrypted_carrier = match std::fs::read(&encrypted_path) {
+        // Read the pre-created personalized carrier from disk
+        println!("📂 [P2P_HANDLER] Reading personalized carrier from: {}", personalized_path);
+        let personalized_carrier = match std::fs::read(&personalized_path) {
             Ok(data) => data,
             Err(e) => {
-                println!("❌ [P2P_HANDLER] Failed to read encrypted carrier: {}", e);
+                println!("❌ [P2P_HANDLER] Failed to read personalized carrier: {}", e);
                 let response = Message::P2PAccessDenied {
                     image_id: image_id.to_string(),
-                    reason: format!("Encrypted carrier not found: {}", e),
+                    reason: format!("Personalized carrier not found: {}", e),
                 };
                 conn.write_message(&response).await?;
                 return Ok(());
             }
         };
 
-        // Extract secret image from carrier
-        println!("🔓 [P2P_HANDLER] Extracting secret image from carrier...");
-        let (secret_image, _) = match extract_image_with_access_rights(&encrypted_carrier) {
-            Ok(data) => data,
-            Err(e) => {
-                println!("❌ [P2P_HANDLER] Failed to extract secret: {}", e);
-                let response = Message::P2PAccessDenied {
-                    image_id: image_id.to_string(),
-                    reason: format!("Failed to extract secret: {}", e),
-                };
-                conn.write_message(&response).await?;
-                return Ok(());
-            }
-        };
+        println!("✅ [P2P_HANDLER] Read personalized carrier: {} bytes", personalized_carrier.len());
 
-        println!("✅ [P2P_HANDLER] Extracted secret image: {} bytes", secret_image.len());
-
-        // Create personalized carrier with requester's access rights using distributed server encryption
-        let embedded_rights = EmbeddedAccessRights {
-            username: requester_id.to_string(),
-            view_limit: access_right.view_limit,
-            view_count: access_right.view_count,
-        };
-
-        println!("🎨 [P2P_HANDLER] Requesting server to create personalized carrier for {} (limit: {}, count: {})",
-            requester_id, embedded_rights.view_limit, embedded_rights.view_count);
-
-        // Generate unique request ID
-        let request_id = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as u64;
-
-        // Send encryption request to distributed servers
-        let personalized_carrier = match self
-            .client_middleware
-            .lock()
-            .await
-            .submit_encryption_with_access_rights(
-                request_id,
-                secret_image.clone(),
-                Some(embedded_rights),
-            )
-            .await
-        {
-            Ok(data) => data,
-            Err(e) => {
-                println!("❌ [P2P_HANDLER] Server failed to create personalized carrier: {}", e);
-                let response = Message::P2PAccessDenied {
-                    image_id: image_id.to_string(),
-                    reason: format!("Failed to create personalized carrier: {}", e),
-                };
-                conn.write_message(&response).await?;
-                return Ok(());
-            }
-        };
-
-        println!("✅ [P2P_HANDLER] Server created personalized carrier: {} bytes", personalized_carrier.len());
-
-        // Increment view count in Firebase AFTER successful creation
+        // Increment view count in Firebase
         let dos_client = self.dos_client.lock().await;
         if let Err(e) = dos_client.increment_view_count(&self.client_id, image_id, requester_id).await {
             println!("⚠️ [P2P_HANDLER] Failed to increment view count: {}", e);
@@ -367,5 +359,43 @@ impl P2PService {
                 Err(anyhow!("Unexpected response type from peer"))
             }
         }
+    }
+
+    /// Send a personalized carrier to a requester (called when owner approves request)
+    ///
+    /// # Arguments
+    /// - `requester_ip`: IP address of the requester
+    /// - `requester_p2p_port`: P2P port of the requester
+    /// - `image_id`: ID of the image
+    /// - `owner_id`: ID of the owner
+    /// - `personalized_carrier`: The personalized carrier bytes to send
+    ///
+    /// # Returns
+    /// Ok(()) on success
+    pub async fn send_personalized_carrier(
+        &self,
+        requester_ip: &str,
+        requester_p2p_port: u16,
+        image_id: &str,
+        owner_id: &str,
+        personalized_carrier: Vec<u8>,
+    ) -> Result<()> {
+        println!("📡 [P2P_SEND] Sending personalized carrier for {} to {}:{}", image_id, requester_ip, requester_p2p_port);
+
+        let address = format!("{}:{}", requester_ip, requester_p2p_port);
+        let stream = TcpStream::connect(&address).await?;
+        let mut conn = Connection::new(stream);
+
+        // Send PersonalizedCarrierDelivery message
+        let message = Message::PersonalizedCarrierDelivery {
+            image_id: image_id.to_string(),
+            owner_id: owner_id.to_string(),
+            carrier_data: personalized_carrier,
+        };
+
+        conn.write_message(&message).await?;
+        println!("✅ [P2P_SEND] Personalized carrier sent successfully");
+
+        Ok(())
     }
 }

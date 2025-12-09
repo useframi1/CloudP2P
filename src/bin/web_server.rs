@@ -24,7 +24,7 @@ use cloud_p2p::client::middleware::{ClientConfig, ClientMiddleware};
 use cloud_p2p::client::p2p_service::P2PService;
 use cloud_p2p::common::messages::{AccessRight, ImageInfo};
 use cloud_p2p::dos::firebase::FirebaseClient;
-use cloud_p2p::processing::{embed_image_with_access_rights, extract_image_with_access_rights};
+use cloud_p2p::processing::{embed_image_with_access_rights, extract_image_with_access_rights, EmbeddedAccessRights};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -109,7 +109,7 @@ struct RespondRequestRequest {
     approved: bool,
     view_limit: Option<u32>, // Owner-set view limit when approving
 }
-
+ 
 #[derive(Deserialize)]
 struct ViewImageRequest {
     owner_id: String,
@@ -121,14 +121,13 @@ struct AppState {
     dos_client: Arc<Mutex<DosClient>>,
     p2p_service: Arc<P2PService>,
     current_user: Arc<Mutex<Option<String>>>,
-    image_dir: String,
     firebase: Arc<FirebaseClient>,
 }
 
 async fn register_local_images(
     dos_client: &DosClient,
     client_middleware: Arc<Mutex<ClientMiddleware>>,
-    client_id: &str,
+    client_id: &str,             
     image_dir: &str,
 ) -> anyhow::Result<()> {
     let path = std::path::Path::new(image_dir);
@@ -239,8 +238,9 @@ async fn register_local_images(
                     let image_info = ImageInfo {
                         image_id: image_id.clone(),
                         name: filename.clone(),
-                        access_rights: std::collections::HashMap::new(),
                         encrypted_path: encrypted_path.clone(),
+                        access_rights: std::collections::HashMap::new(),
+                        personalized_carriers: std::collections::HashMap::new(),
                     };
 
                     match dos_client.register_image(image_info).await {
@@ -253,6 +253,79 @@ async fn register_local_images(
     }
 
     Ok(())
+}
+
+async fn register_images_handler(
+    State(state): State<Arc<AppState>>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
+    info!("📝 Register images request");
+
+    // Get current user
+    let current_user = state.current_user.lock().await.clone();
+    let client_id = match current_user {
+        Some(id) => id,
+        None => {
+            return Err((
+                StatusCode::UNAUTHORIZED,
+                Json(ApiResponse {
+                    success: false,
+                    message: None,
+                    error: Some("Not signed in".to_string()),
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ));
+        }
+    };
+
+    let dos_client = state.dos_client.lock().await;
+    // Dynamically construct image directory based on actual client_id
+    let image_dir = format!("test_images/{}", client_id);
+
+    // Register images with server-based encryption
+    match register_local_images(&*dos_client, state.client.clone(), &client_id, &image_dir).await {
+        Ok(_) => {
+            info!("✅ Images registered successfully for {}", client_id);
+            Ok((
+                StatusCode::OK,
+                Json(ApiResponse {
+                    success: true,
+                    message: Some("Images registered successfully".to_string()),
+                    error: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+        Err(e) => {
+            error!("❌ Failed to register images: {}", e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    message: None,
+                    error: Some(format!("Failed to register images: {}", e)),
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+    }
 }
 
 #[tokio::main]
@@ -272,9 +345,9 @@ async fn main() -> anyhow::Result<()> {
     // Create client middleware
     let client = ClientMiddleware::new(config.clone(), core);
 
-    // Create DoS client
+    // Create DoS client - connects to leader server instead of separate DoS
     let dos_client = DosClient::new(
-        config.client.dos_address.clone(),
+        config.client.server_addresses.clone(),
         config.client.name.clone(),
     );
 
@@ -309,7 +382,6 @@ async fn main() -> anyhow::Result<()> {
         dos_client: dos_client_arc,
         p2p_service: p2p_service.clone(),
         current_user: Arc::new(Mutex::new(args.client_id)),
-        image_dir: config.client.image_dir.clone(),
         firebase,
     });
 
@@ -319,6 +391,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/signup", post(signup_handler))
         .route("/api/signin", post(signin_handler))
         .route("/api/signout", post(signout_handler))
+        .route("/api/register-images", post(register_images_handler))
         .route("/api/online-peers", get(online_peers_handler))
         .route("/api/request-access", post(request_access_handler))
         .route("/api/my-images", get(my_images_handler))
@@ -335,6 +408,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/auto-grant-access", post(auto_grant_access_handler))
         .route("/api/health", get(health_check))
         .nest_service("/test_images", ServeDir::new("test_images"))
+        .nest_service("/encrypted_images", ServeDir::new("encrypted_images"))
         .nest_service("/", ServeDir::new("frontend/build"))
         .layer(CorsLayer::permissive())
         .with_state(state.clone());
@@ -420,19 +494,6 @@ async fn signup_handler(
             *state.current_user.lock().await = Some(client_id.clone());
             info!("Sign up successful: {}", client_id);
 
-            // Auto-register images from local folder
-            let image_dir = state.image_dir.clone();
-            if let Err(e) = register_local_images(
-                &*dos_client,
-                state.client.clone(),
-                &client_id,
-                &image_dir,
-            )
-            .await
-            {
-                error!("Failed to auto-register images: {}", e);
-            }
-
             Ok((
                 StatusCode::OK,
                 Json(ApiResponse {
@@ -517,20 +578,6 @@ async fn signin_handler(
                 payload.client_id,
                 notifications.len()
             );
-
-            // Auto-register images from local folder
-            let image_dir = state.image_dir.clone();
-            let client_id = payload.client_id.clone();
-            if let Err(e) = register_local_images(
-                &*dos_client,
-                state.client.clone(),
-                &client_id,
-                &image_dir,
-            )
-            .await
-            {
-                error!("Failed to auto-register images: {}", e);
-            }
 
             Ok((
                 StatusCode::OK,
@@ -1077,18 +1124,375 @@ async fn respond_request_handler(
     Json(payload): Json<RespondRequestRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
     info!(
-        "Responding to request {} with {}",
+        "Responding to request {} with approved={}",
         payload.request_id, payload.approved
     );
 
-    let dos_client = state.dos_client.lock().await;
+    // Get current user (owner)
+    let current_user = state.current_user.lock().await.clone();
+    let owner_id = match current_user {
+        Some(id) => id,
+        None => {
+            return Err((
+                StatusCode::UNAUTHORIZED,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some("Not signed in".to_string()),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ));
+        }
+    };
 
+    if payload.approved {
+        // Get request details from Firebase
+        let request = match state.firebase.get_pending_request(&payload.request_id).await {
+            Ok(Some(req)) => req,
+            Ok(None) => {
+                return Err((
+                    StatusCode::NOT_FOUND,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some("Request not found".to_string()),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+            Err(e) => {
+                error!("Failed to get pending request: {}", e);
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some(format!("Failed to get request: {}", e)),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        };
+
+        let requester_id = request
+            .get("requester_id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        let image_id = request.get("image_id").and_then(|v| v.as_str()).unwrap_or("");
+
+        info!(
+            "Creating personalized carrier for {} requesting {} (view_limit: {:?})",
+            requester_id, image_id, payload.view_limit
+        );
+
+        // Get image info from Firebase to get the base carrier path
+        let owner_client = match state.firebase.get_client(&owner_id).await {
+            Ok(Some(client)) => client,
+            Ok(None) => {
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some("Owner not found in Firebase".to_string()),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+            Err(e) => {
+                error!("Failed to get owner from Firebase: {}", e);
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some(format!("Failed to get owner: {}", e)),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        };
+
+        let image_info = match owner_client.images.get(image_id) {
+            Some(img) => img,
+            None => {
+                return Err((
+                    StatusCode::NOT_FOUND,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some("Image not found".to_string()),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        };
+
+        // Read the base encrypted carrier from disk
+        let carrier_bytes = match std::fs::read(&image_info.encrypted_path) {
+            Ok(bytes) => bytes,
+            Err(e) => {
+                error!("Failed to read carrier from {}: {}", image_info.encrypted_path, e);
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some(format!("Failed to read carrier: {}", e)),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        };
+
+        info!("📂 Read base carrier: {} bytes", carrier_bytes.len());
+
+        // Extract the secret image from the base carrier
+        let secret_image = match extract_image_with_access_rights(&carrier_bytes) {
+            Ok((img, _)) => img,
+            Err(e) => {
+                error!("Failed to extract secret image: {}", e);
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some(format!("Failed to extract secret: {}", e)),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        };
+
+        info!("🔓 Extracted secret image: {} bytes", secret_image.len());
+
+        // Create personalized carrier with requester's access rights via compute servers
+        let view_limit = payload.view_limit.unwrap_or(999999);
+        let embedded_rights = EmbeddedAccessRights {
+            username: requester_id.to_string(),
+            view_limit,
+            view_count: 0,
+        };
+
+        info!(
+            "🎨 Requesting server to create personalized carrier for {} (limit: {})",
+            requester_id, view_limit
+        );
+
+        let request_id = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as u64;
+
+        let personalized_carrier = match state
+            .client
+            .lock()
+            .await
+            .submit_encryption_with_access_rights(request_id, secret_image, Some(embedded_rights))
+            .await
+        {
+            Ok(data) => data,
+            Err(e) => {
+                error!("Failed to create personalized carrier: {}", e);
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some(format!("Failed to create personalized carrier: {}", e)),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        };
+
+        info!("✅ Created personalized carrier: {} bytes", personalized_carrier.len());
+
+        // Save personalized carrier to disk
+        let personalized_path = format!(
+            "encrypted_images/{}/{}_for_{}.png",
+            owner_id, image_id, requester_id
+        );
+
+        if let Err(e) = std::fs::write(&personalized_path, &personalized_carrier) {
+            error!("Failed to save personalized carrier: {}", e);
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Failed to save carrier: {}", e)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ));
+        }
+
+        info!("💾 Saved personalized carrier to: {}", personalized_path);
+
+        // Send personalized carrier to requester via P2P immediately
+        info!("📡 Sending personalized carrier to {} via P2P...", requester_id);
+
+        // Get requester's P2P address from DoS
+        let dos_client = state.dos_client.lock().await;
+        let (requester_ip, requester_p2p_port) = match dos_client.get_peer_address(requester_id).await {
+            Ok(Some((ip, port))) => (ip, port),
+            Ok(None) => {
+                error!("Requester {} not found or offline, cannot send personalized carrier", requester_id);
+                drop(dos_client);
+                return Err((
+                    StatusCode::SERVICE_UNAVAILABLE,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some("Requester is offline. Cannot deliver personalized carrier.".to_string()),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+            Err(e) => {
+                error!("Failed to get requester address: {}", e);
+                drop(dos_client);
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some(format!("Failed to get requester address: {}", e)),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        };
+        drop(dos_client);
+
+        info!("📍 Requester at {}:{}", requester_ip, requester_p2p_port);
+
+        // Send the personalized carrier via P2P
+        match state.p2p_service.send_personalized_carrier(
+            &requester_ip,
+            requester_p2p_port,
+            image_id,
+            &owner_id,
+            personalized_carrier.clone(),
+        ).await {
+            Ok(_) => {
+                info!("✅ Personalized carrier sent to {} successfully", requester_id);
+            }
+            Err(e) => {
+                error!("Failed to send personalized carrier to {}: {}", requester_id, e);
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some(format!("Failed to deliver personalized carrier: {}", e)),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        }
+
+        // Update Firebase with personalized carrier path ONLY (no access_rights in Firebase)
+        // Access rights are embedded in the carrier image itself
+        let mut updated_image = image_info.clone();
+        updated_image.personalized_carriers.insert(
+            requester_id.to_string(),
+            personalized_path.clone(),
+        );
+
+        if let Err(e) = state.firebase.store_image(&owner_id, &updated_image).await {
+            error!("Failed to update Firebase with personalized carrier path: {}", e);
+        }
+
+        info!("✅ Updated Firebase with personalized carrier path (access rights embedded in carrier)");
+    }
+
+    // Send approval/denial response to DoS
+    let dos_client = state.dos_client.lock().await;
     match dos_client
         .respond_to_access_request(&payload.request_id, payload.approved, payload.view_limit)
         .await
     {
         Ok(_) => {
-            info!("Response sent successfully");
+            info!("✅ Access request response sent successfully");
             Ok((
                 StatusCode::OK,
                 Json(ApiResponse {
@@ -1336,13 +1740,51 @@ async fn accessible_images_handler(
                 }
 
                 for (_image_id, image) in &client.images {
-                    if let Some(access) = image.access_rights.get(&client_id) {
-                        // User has access to this image
-                        accessible_images.push(serde_json::json!({
-                            "owner_id": client.client_id,
-                            "image": image,
-                            "access": access
-                        }));
+                    // Check if user has access by checking if personalized carrier exists
+                    if image.personalized_carriers.contains_key(&client_id) {
+                        // User has access to this image - read the actual access rights from the carrier
+                        let local_carrier_path = format!(
+                            "encrypted_images/{}/{}_from_{}.png",
+                            client_id, image.image_id, client.client_id
+                        );
+
+                        // Extract embedded access rights from carrier to get current view count
+                        info!("📂 [ACCESSIBLE_IMAGES] Looking for carrier at: {}", local_carrier_path);
+                        match std::fs::read(&local_carrier_path) {
+                            Ok(carrier_data) => {
+                                info!("✅ [ACCESSIBLE_IMAGES] Found carrier file: {} bytes", carrier_data.len());
+                                match extract_image_with_access_rights(&carrier_data) {
+                                    Ok((_, Some(embedded_access))) => {
+                                        // Use the access rights from the carrier (source of truth)
+                                        info!(
+                                            "📊 [ACCESSIBLE_IMAGES] Extracted access rights from carrier for {}: {}/{}",
+                                            image.image_id, embedded_access.view_count, embedded_access.view_limit
+                                        );
+
+                                        // Create AccessRight from embedded data
+                                        let access = AccessRight {
+                                            view_limit: embedded_access.view_limit,
+                                            view_count: embedded_access.view_count,
+                                        };
+
+                                        accessible_images.push(serde_json::json!({
+                                            "owner_id": client.client_id,
+                                            "image": image,
+                                            "access": access
+                                        }));
+                                    }
+                                    Ok((_, None)) => {
+                                        info!("⚠️ [ACCESSIBLE_IMAGES] No embedded access rights in carrier for {}", image.image_id);
+                                    }
+                                    Err(e) => {
+                                        error!("❌ [ACCESSIBLE_IMAGES] Failed to extract access rights for {}: {}", image.image_id, e);
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                info!("⚠️ [ACCESSIBLE_IMAGES] Carrier file not found: {} - {}", local_carrier_path, e);
+                            }
+                        }
                     }
                 }
             }
@@ -1417,36 +1859,29 @@ async fn view_image_handler(
     info!("👤 [VIEW_IMAGE] Viewer ID: {}", viewer_id);
     drop(current_user);
 
-    let dos_client = state.dos_client.lock().await;
-
-    // Get peer address from DoS (pure P2P - no centralized storage)
-    info!(
-        "🔎 [VIEW_IMAGE] Querying DoS for peer {} address...",
-        payload.owner_id
-    );
-    let peer_address_result = dos_client.get_peer_address(&payload.owner_id).await;
-    drop(dos_client); // Release lock immediately
-
-    info!(
-        "📡 [VIEW_IMAGE] DoS query result: {:?}",
-        peer_address_result
+    // Read the personalized carrier from local disk (received at approval time)
+    let local_carrier_path = format!(
+        "encrypted_images/{}/{}_from_{}.png",
+        viewer_id, payload.image_id, payload.owner_id
     );
 
-    // Extract peer address or fail
-    let (peer_ip, peer_port) = match peer_address_result {
-        Ok(Some((ip, port))) => {
-            info!("🎯 [VIEW_IMAGE] Peer found online at {}:{}", ip, port);
-            (ip, port)
+    info!("📂 [VIEW_IMAGE] Reading personalized carrier from: {}", local_carrier_path);
+
+    let carrier_data = match std::fs::read(&local_carrier_path) {
+        Ok(data) => {
+            info!("✅ [VIEW_IMAGE] Read personalized carrier: {} bytes", data.len());
+            data
         }
-        Ok(None) => {
-            error!("❌ [VIEW_IMAGE] Peer {} is offline", payload.owner_id);
+        Err(e) => {
+            error!("❌ [VIEW_IMAGE] Failed to read personalized carrier: {}", e);
+            error!("💡 [VIEW_IMAGE] Make sure the access request was approved and carrier was delivered");
             return Err((
-                StatusCode::SERVICE_UNAVAILABLE,
+                StatusCode::NOT_FOUND,
                 Json(ApiResponse {
                     success: false,
                     error: Some(format!(
-                        "Peer {} is offline - pure P2P system requires owner to be online",
-                        payload.owner_id
+                        "Personalized carrier not found. Request may not be approved yet or carrier delivery failed: {}",
+                        e
                     )),
                     message: None,
                     carrier_image_base64: None,
@@ -1459,105 +1894,6 @@ async fn view_image_handler(
                 }),
             ));
         }
-        Err(e) => {
-            error!("❌ [VIEW_IMAGE] Failed to get peer address: {}", e);
-            return Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(ApiResponse {
-                    success: false,
-                    error: Some(format!("Failed to locate peer: {}", e)),
-                    message: None,
-                    carrier_image_base64: None,
-                    client_id: None,
-                    notifications: None,
-                    request_id: None,
-                    peers: None,
-                    images: None,
-                    requests: None,
-                }),
-            ));
-        }
-    };
-
-    // Check if we already have this carrier image locally
-    let local_carrier_path = format!(
-        "received_carriers/{}/{}_{}.png",
-        viewer_id, payload.owner_id, payload.image_id
-    );
-
-    let carrier_data = if std::path::Path::new(&local_carrier_path).exists() {
-        info!("📂 [VIEW_IMAGE] Found local carrier at {}", local_carrier_path);
-        match std::fs::read(&local_carrier_path) {
-            Ok(data) => data,
-            Err(e) => {
-                error!("❌ [VIEW_IMAGE] Failed to read local carrier: {}", e);
-                return Err((
-                    StatusCode::INTERNAL_SERVER_ERROR,
-                    Json(ApiResponse {
-                        success: false,
-                        error: Some(format!("Failed to read local carrier: {}", e)),
-                        message: None,
-                        carrier_image_base64: None,
-                        client_id: None,
-                        notifications: None,
-                        request_id: None,
-                        peers: None,
-                        images: None,
-                        requests: None,
-                    }),
-                ));
-            }
-        }
-    } else {
-        // First time - perform P2P transfer
-        info!(
-            "🚀 [VIEW_IMAGE] No local carrier found, initiating P2P transfer from {}:{}",
-            peer_ip, peer_port
-        );
-        let data = match P2PService::request_image_from_peer(
-            &peer_ip,
-            peer_port,
-            &payload.image_id,
-            &viewer_id,
-        )
-        .await
-        {
-            Ok(data) => {
-                info!(
-                    "✅ [VIEW_IMAGE] P2P transfer successful ({} bytes)",
-                    data.len()
-                );
-                data
-            }
-            Err(e) => {
-                error!("❌ [VIEW_IMAGE] P2P transfer failed: {}", e);
-                return Err((
-                    StatusCode::FORBIDDEN,
-                    Json(ApiResponse {
-                        success: false,
-                        error: Some(format!("P2P transfer failed: {}", e)),
-                        message: None,
-                        carrier_image_base64: None,
-                        client_id: None,
-                        notifications: None,
-                        request_id: None,
-                        peers: None,
-                        images: None,
-                        requests: None,
-                    }),
-                ));
-            }
-        };
-
-        // Save carrier locally
-        std::fs::create_dir_all(format!("received_carriers/{}", viewer_id)).ok();
-        if let Err(e) = std::fs::write(&local_carrier_path, &data) {
-            error!("⚠️ [VIEW_IMAGE] Failed to save carrier locally: {}", e);
-        } else {
-            info!("💾 [VIEW_IMAGE] Saved carrier to {}", local_carrier_path);
-        }
-
-        data
     };
 
     // Extract secret image and access rights from carrier
@@ -1624,19 +1960,26 @@ async fn view_image_handler(
             access_rights.view_count, access_rights.view_limit
         );
 
-        // Re-embed with updated view count
-        if let Ok(carrier_bytes) = std::fs::read("cover_images/carrier1.jpg") {
-            match embed_image_with_access_rights(&carrier_bytes, &secret_image, Some(&access_rights)) {
-                Ok(updated_carrier) => {
-                    if let Err(e) = std::fs::write(&local_carrier_path, &updated_carrier) {
-                        error!("⚠️ [VIEW_IMAGE] Failed to save updated carrier: {}", e);
-                    } else {
-                        info!("💾 [VIEW_IMAGE] Saved updated carrier with new view count");
+        // Re-embed with updated view count using the cover image
+        let carrier_path = "cover_images/cover_image.png";
+        match std::fs::read(carrier_path) {
+            Ok(carrier_bytes) => {
+                match embed_image_with_access_rights(&carrier_bytes, &secret_image, Some(&access_rights)) {
+                    Ok(updated_carrier) => {
+                        if let Err(e) = std::fs::write(&local_carrier_path, &updated_carrier) {
+                            error!("⚠️ [VIEW_IMAGE] Failed to save updated carrier: {}", e);
+                        } else {
+                            info!("💾 [VIEW_IMAGE] Saved updated carrier with new view count: {}/{}",
+                                  access_rights.view_count, access_rights.view_limit);
+                        }
+                    }
+                    Err(e) => {
+                        error!("⚠️ [VIEW_IMAGE] Failed to re-embed carrier: {}", e);
                     }
                 }
-                Err(e) => {
-                    error!("⚠️ [VIEW_IMAGE] Failed to re-embed carrier: {}", e);
-                }
+            }
+            Err(e) => {
+                error!("⚠️ [VIEW_IMAGE] Failed to read carrier image {}: {}", carrier_path, e);
             }
         }
     } else {

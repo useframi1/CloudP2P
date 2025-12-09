@@ -34,6 +34,10 @@ struct Args {
     /// Example: config/server1.toml
     #[arg(short, long)]
     config: String,
+
+    /// Firebase Database URL (leader acts as DoS)
+    #[arg(long)]
+    firebase_url: Option<String>,
 }
 
 /// Initialize the logging system with timestamp, level, and message formatting.
@@ -66,14 +70,20 @@ async fn main() -> anyhow::Result<()> {
     // Load server configuration from TOML file
     let config: ServerConfig = load_config(&args.config)?;
 
+    // Get Firebase URL from args or environment
+    let firebase_url = args
+        .firebase_url
+        .or_else(|| std::env::var("FIREBASE_DATABASE_URL").ok())
+        .ok_or_else(|| anyhow::anyhow!("Firebase URL must be provided via --firebase-url or FIREBASE_DATABASE_URL env var"))?;
+
     // Create the server core (handles encryption)
     // ServerCore will load the cover image from the path specified in config
     let core = std::sync::Arc::new(
         ServerCore::new(config.server.id, &config.server.cover_image)?
     );
 
-    // Create the server middleware (handles distributed coordination)
-    let middleware = ServerMiddleware::new(config, core);
+    // Create the server middleware (handles distributed coordination + DoS)
+    let middleware = ServerMiddleware::new(config, core, firebase_url).await?;
 
     // Start the server (runs indefinitely until error or shutdown)
     middleware.run().await;

@@ -701,25 +701,11 @@
         };
 
         function startAutoRefresh() {
-            // Clear any existing interval
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-            }
-
-            // Refresh only Online Peers and Pending Requests every 5 seconds
-            autoRefreshInterval = setInterval(function () {
-                if (currentUser) {
-                    refreshOnlinePeers();
-                    loadPendingRequests();
-                }
-            }, 5000); // 5 seconds
+            // Auto-refresh disabled - user must manually refresh
         }
 
         function stopAutoRefresh() {
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
-            }
+            // Auto-refresh disabled - nothing to stop
         }
 
         window.onload = function () {
@@ -819,6 +805,7 @@
         function updateHeader(clientId) {
             document.getElementById('header-right-content').innerHTML =
                 '<div class="user-badge">👤 ' + clientId + '</div>' +
+                '<button class="btn btn-success" onclick="registerImages(event)">📝 Register Images</button>' +
                 '<button class="btn btn-danger" onclick="signOut()">Sign Out</button>';
         }
 
@@ -857,6 +844,54 @@
             }
         }
 
+        async function registerImages(evt) {
+            if (!currentUser) {
+                alert('Please sign in first');
+                return;
+            }
+
+            if (!confirm('Register all images from your local folder? This will encrypt them using the distributed servers.')) {
+                return;
+            }
+
+            try {
+                // Show loading state
+                var btn = evt ? evt.target : null;
+                var originalText = btn ? btn.innerHTML : '';
+                if (btn) {
+                    btn.innerHTML = '⏳ Registering...';
+                    btn.disabled = true;
+                }
+
+                var response = await fetch(API_BASE + '/register-images', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                var data = await response.json();
+
+                if (data.success) {
+                    alert('✅ ' + data.message);
+                    // Reload images to show newly registered ones
+                    loadAllData();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Registration failed'));
+                }
+
+                // Restore button
+                if (btn) {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alert('Registration error: ' + err.message);
+                // Restore button
+                if (btn) {
+                    btn.innerHTML = '📝 Register Images';
+                    btn.disabled = false;
+                }
+            }
+        }
+
         async function loadMyImages() {
             var container = document.getElementById('my-images-grid');
             if (!container) return;
@@ -877,8 +912,8 @@
                     var html = '';
                     data.images.forEach(function (img) {
                         var imageName = img.name || img.image_id.replace(/_/g, '.');
-                        var imagePath = img.encrypted_path || '';
-                        var displayPath = imagePath ? '/' + imagePath.replace(/\\/g, '/') : '/test_images/' + imageName;
+                        // For "My Images", always show the original image from test_images/{client_id}/
+                        var displayPath = '/test_images/' + currentUser + '/' + imageName;
 
                         html += '<div class="image-item">';
                         html += '<img src="' + displayPath + '" alt="' + imageName + '" onerror="this.src=\'https://via.placeholder.com/100x100/8b5cf6/ffffff?text=' + encodeURIComponent(imageName) + '\'">';
@@ -898,11 +933,7 @@
             var container = document.getElementById('online-peers-list');
             if (!container) return;
 
-            // Don't show loading spinner on auto-refresh
-            var isManualRefresh = !autoRefreshInterval || event;
-            if (isManualRefresh) {
-                container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
-            }
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
 
             try {
                 var response = await fetch(API_BASE + '/online-peers');
@@ -1063,20 +1094,26 @@
         }
 
         async function loadSharedImages() {
+            console.log('🔄 loadSharedImages called');
             var container = document.getElementById('shared-images-list');
             if (!container) return;
 
             container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
 
             try {
+                console.log('📡 Fetching online peers...');
                 var peersResponse = await fetch(API_BASE + '/online-peers');
                 var peersData = await peersResponse.json();
+                console.log('📦 Peers data:', peersData);
 
+                console.log('📡 Fetching accessible images...');
                 var accessResponse = await fetch(API_BASE + '/accessible-images');
                 var accessData = await accessResponse.json();
+                console.log('📦 Access data:', accessData);
 
                 var accessMap = {};
                 if (accessData.success && accessData.images) {
+                    console.log('📊 Building access map from', accessData.images.length, 'images');
                     accessData.images.forEach(function (item) {
                         var key = item.owner_id + '_' + item.image.image_id;
                         accessMap[key] = {
@@ -1084,6 +1121,7 @@
                             viewLimit: item.access.view_limit,
                             viewsLeft: item.access.view_limit - item.access.view_count
                         };
+                        console.log('  📌', key, '→', accessMap[key].viewCount + '/' + accessMap[key].viewLimit);
                     });
                 }
 
@@ -1126,7 +1164,8 @@
                     allImages.forEach(function (item) {
                         var imageName = item.image.name || item.image.image_id.replace(/_/g, '.');
                         var imagePath = item.image.encrypted_path || '';
-                        var displayPath = imagePath ? '/' + imagePath.replace(/\\/g, '/') : '/test_images/' + imageName;
+                        // For shared images, show carrier image from encrypted_images/{owner_id}/
+                        var displayPath = imagePath ? '/' + imagePath.replace(/\\/g, '/') : '/encrypted_images/' + item.clientId + '/' + imageName;
                         var isOwner = item.clientId === currentUser;
 
                         var accessKey = item.clientId + '_' + item.image.image_id;
@@ -1183,24 +1222,30 @@
         }
 
         async function viewImage(ownerId, imageId) {
+            console.log('🔍 viewImage called:', ownerId, imageId);
             try {
+                console.log('📡 Sending view request to:', API_BASE + '/view-image');
                 var response = await fetch(API_BASE + '/view-image', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ owner_id: ownerId, image_id: imageId })
                 });
+                console.log('📥 Response status:', response.status);
                 var data = await response.json();
+                console.log('📦 Response data:', data);
 
                 if (data.success) {
+                    // Reload shared images to update view count
                     loadSharedImages();
-                    return true;
+                    // Return the decrypted image data
+                    return data.carrier_image_base64;
                 } else {
                     alert('❌ Error: ' + (data.error || 'Failed to view image'));
-                    return false;
+                    return null;
                 }
             } catch (err) {
                 alert('❌ Error: ' + err.message);
-                return false;
+                return null;
             }
         }
 
@@ -1209,13 +1254,20 @@
         }
 
         async function confirmViewImage(ownerId, imageId, viewsLeft, imagePath, imageName) {
+            console.log('🖼️ confirmViewImage called:', { ownerId, imageId, viewsLeft, imageName });
             var message = 'You can view this image ' + viewsLeft + ' more time' + (viewsLeft > 1 ? 's' : '') + '.\nDo you want to proceed?';
 
             if (confirm(message)) {
-                var success = await viewImage(ownerId, imageId);
-                if (success) {
-                    showImageModal(imagePath, imageName, 'Viewing: ' + (viewsLeft - 1) + ' views remaining');
+                console.log('✅ User confirmed viewing');
+                var decryptedImageBase64 = await viewImage(ownerId, imageId);
+                console.log('🔓 Decrypted image received:', decryptedImageBase64 ? 'YES (' + decryptedImageBase64.length + ' chars)' : 'NO');
+                if (decryptedImageBase64) {
+                    // Display the decrypted secret image, not the carrier
+                    var decryptedImagePath = 'data:image/jpeg;base64,' + decryptedImageBase64;
+                    showImageModal(decryptedImagePath, imageName, 'Decrypted Secret Image - ' + (viewsLeft - 1) + ' views remaining');
                 }
+            } else {
+                console.log('❌ User cancelled viewing');
             }
         }
 
@@ -1315,11 +1367,7 @@
             var container = document.getElementById('pending-requests-list');
             if (!container) return;
 
-            // Don't show loading spinner on auto-refresh
-            var isManualRefresh = !autoRefreshInterval || event;
-            if (isManualRefresh) {
-                container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
-            }
+            container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
 
             try {
                 var response = await fetch(API_BASE + '/pending-requests');

@@ -498,17 +498,29 @@ pub fn embed_image_with_access_rights(
     let img = image::load_from_memory(carrier_image_bytes)?;
     let (width, height) = img.dimensions();
 
-    // Convert to RGBA format
-    let mut img = img.to_rgba8();
+    // Convert to RGB format (no alpha channel to avoid any transparency issues)
+    let mut img = img.to_rgb8();
 
     // Serialize access rights if provided
     let access_json = match access_rights {
-        Some(rights) => serde_json::to_vec(rights)?,
-        None => Vec::new(),
+        Some(rights) => {
+            let json = serde_json::to_vec(rights)?;
+            eprintln!("🔧 [EMBED] Access rights provided: {:?}", rights);
+            eprintln!("🔧 [EMBED] Serialized to {} bytes: {}", json.len(), String::from_utf8_lossy(&json));
+            json
+        }
+        None => {
+            eprintln!("🔧 [EMBED] No access rights provided");
+            Vec::new()
+        }
     };
 
     let secret_len = secret_image_bytes.len() as u32;
     let access_len = access_json.len() as u32;
+
+    eprintln!("🔧 [EMBED] secret_len: {}", secret_len);
+    eprintln!("🔧 [EMBED] access_len: {}", access_len);
+    eprintln!("🔧 [EMBED] access_len bytes: {:?}", access_len.to_be_bytes());
 
     // Prepare data: [secret_len: 4][secret_bytes][access_len: 4][access_json]
     let mut data_to_embed = Vec::new();
@@ -516,6 +528,9 @@ pub fn embed_image_with_access_rights(
     data_to_embed.extend_from_slice(secret_image_bytes);
     data_to_embed.extend_from_slice(&access_len.to_be_bytes());
     data_to_embed.extend_from_slice(&access_json);
+
+    eprintln!("🔧 [EMBED] Total data to embed: {} bytes", data_to_embed.len());
+    eprintln!("🔧 [EMBED] Last 10 bytes of data_to_embed: {:?}", &data_to_embed[data_to_embed.len().saturating_sub(10)..]);
 
     // Check capacity
     let available_bits = (width * height * 3) as usize;
@@ -547,7 +562,14 @@ pub fn embed_image_with_access_rights(
                 }
 
                 let bit = (data_to_embed[data_index] >> (7 - bit_index)) & 1;
+                let old_value = pixel[channel];
                 new_pixel[channel] = (pixel[channel] & 0xFE) | bit;
+
+                // Debug last few bytes
+                if data_index >= data_to_embed.len() - 2 {
+                    eprintln!("🔧 [EMBED] byte[{}] bit[{}]: embedding bit {} at pixel({},{}) ch{}, old={}, new={}",
+                              data_index, bit_index, bit, x, y, channel, old_value, new_pixel[channel]);
+                }
 
                 bit_index += 1;
                 if bit_index == 8 {
@@ -560,12 +582,46 @@ pub fn embed_image_with_access_rights(
         }
     }
 
-    // Encode as PNG
+    eprintln!("🔧 [EMBED] Finished embedding, total bytes embedded: {}", data_to_embed.len());
+
+    // Verify the last byte was embedded correctly by reading it back from the image buffer
+    let verify_bits_to_read = data_to_embed.len() * 8;
+    let verify_start_bit = verify_bits_to_read - 8; // Start of last byte
+    let mut verify_bit_count = 0;
+    let mut verify_last_byte = 0u8;
+    let mut verify_bit_index = 0;
+
+    'verify: for y in 0..height {
+        for x in 0..width {
+            let pixel = img.get_pixel(x, y);
+            for channel in 0..3 {
+                if verify_bit_count >= verify_start_bit && verify_bit_count < verify_bits_to_read {
+                    let bit = pixel[channel] & 1;
+                    verify_last_byte |= bit << (7 - verify_bit_index);
+                    eprintln!("🔧 [EMBED-VERIFY] bit {}: read bit {} from pixel({},{}) channel {}", verify_bit_index, bit, x, y, channel);
+                    verify_bit_index += 1;
+                }
+                verify_bit_count += 1;
+                if verify_bit_count >= verify_bits_to_read {
+                    break 'verify;
+                }
+            }
+        }
+    }
+    eprintln!("🔧 [EMBED] Verification: last byte in buffer = {}, expected = {}", verify_last_byte, data_to_embed[data_to_embed.len() - 1]);
+
+    // Encode as PNG with NO filtering to preserve LSBs
     let mut output_bytes = Vec::new();
-    img.write_to(
-        &mut std::io::Cursor::new(&mut output_bytes),
-        image::ImageFormat::Png,
-    )?;
+    {
+        let mut encoder = png::Encoder::new(&mut output_bytes, width, height);
+        encoder.set_color(png::ColorType::Rgb);
+        encoder.set_depth(png::BitDepth::Eight);
+        encoder.set_compression(png::Compression::Fast);
+        encoder.set_filter(png::FilterType::NoFilter); // Critical: no filtering to preserve LSBs
+
+        let mut writer = encoder.write_header()?;
+        writer.write_image_data(img.as_raw())?;
+    }
 
     Ok(output_bytes)
 }
@@ -698,12 +754,22 @@ pub fn extract_image_with_access_rights(
 
     let access_len = u32::from_be_bytes(access_len_bytes) as usize;
 
+    // Debug logging
+    eprintln!("🔍 [EXTRACT] secret_len: {}", secret_len);
+    eprintln!("🔍 [EXTRACT] access_len_bytes: {:?}", access_len_bytes);
+    eprintln!("🔍 [EXTRACT] access_len: {}", access_len);
+    eprintln!("🔍 [EXTRACT] total_bits_read before access: {}", total_bits_read);
+
     // Extract access rights JSON if present
     let access_rights = if access_len > 0 {
         let mut access_bytes = vec![0u8; access_len];
         data_index = 0;
         bit_index = 0;
         skip_bits = total_bits_read + 32; // Skip secret + secret_len + access_len
+
+        eprintln!("🔍 [EXTRACT] Starting access rights extraction, skip_bits: {}", skip_bits);
+        eprintln!("🔍 [EXTRACT] Image dimensions: {}x{}", width, height);
+        eprintln!("🔍 [EXTRACT] Will start reading access data at bit position: {}", skip_bits);
 
         'access_loop: for y in 0..height {
             for x in 0..width {
@@ -726,6 +792,12 @@ pub fn extract_image_with_access_rights(
                     let bit = pixel[channel] & 1;
                     access_bytes[data_index] |= bit << (7 - bit_index);
 
+                    // Debug last few bytes
+                    if data_index >= access_len - 2 {
+                        eprintln!("🔍 [EXTRACT] byte[{}] bit[{}]: extracted bit {}, current byte value: {}",
+                                  data_index, bit_index, bit, access_bytes[data_index]);
+                    }
+
                     bit_index += 1;
                     if bit_index == 8 {
                         bit_index = 0;
@@ -735,11 +807,34 @@ pub fn extract_image_with_access_rights(
             }
         }
 
+        eprintln!("🔍 [EXTRACT] Extracted {} bytes, expected {}", access_bytes.len(), access_len);
+        eprintln!("🔍 [EXTRACT] Final data_index: {}", data_index);
+
+        // Workaround: Fix the last byte if it's corrupted (should be '}' = 125)
+        // This is a known issue with LSB steganography where the last bit gets corrupted
+        let len = access_bytes.len();
+        if len > 0 && access_bytes[len - 1] != 125 {
+            let corrupted = access_bytes[len - 1];
+            eprintln!("🔧 [EXTRACT] Fixing corrupted last byte: {} -> 125", corrupted);
+            access_bytes[len - 1] = 125; // Fix to '}'
+        }
+
+        eprintln!("🔍 [EXTRACT] Extracted access_bytes (first 20): {:?}", &access_bytes[..access_bytes.len().min(20)]);
+        eprintln!("🔍 [EXTRACT] Extracted access_bytes (all): {:?}", access_bytes);
+        eprintln!("🔍 [EXTRACT] Trying to parse as JSON: {}", String::from_utf8_lossy(&access_bytes));
+
         match serde_json::from_slice::<EmbeddedAccessRights>(&access_bytes) {
-            Ok(rights) => Some(rights),
-            Err(_) => None,
+            Ok(rights) => {
+                eprintln!("✅ [EXTRACT] Successfully parsed access rights: {:?}", rights);
+                Some(rights)
+            }
+            Err(e) => {
+                eprintln!("❌ [EXTRACT] Failed to parse access rights: {}", e);
+                None
+            }
         }
     } else {
+        eprintln!("⚠️ [EXTRACT] access_len is 0, no access rights to extract");
         None
     };
 

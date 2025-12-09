@@ -296,6 +296,7 @@ dependencies = [
  "env_logger",
  "image",
  "log",
+ "png",
  "rand",
  "reqwest",
  "serde",

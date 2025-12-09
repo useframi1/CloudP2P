@@ -46,9 +46,14 @@ pub struct AccessRight {
 pub struct ImageInfo {
     pub image_id: String,
     pub name: String,
+    /// Path to the base encrypted carrier (no access rights embedded)
+    pub encrypted_path: String,
+    /// Access rights (used for view count tracking)
     #[serde(default)]
     pub access_rights: HashMap<String, AccessRight>,
-    pub encrypted_path: String,
+    /// Map of requester_id -> path to personalized carrier with embedded access rights
+    #[serde(default)]
+    pub personalized_carriers: HashMap<String, String>,
 }
 
 // ============================================================================
@@ -392,6 +397,15 @@ pub enum Message {
         image_id: String,
         image_data: Vec<u8>,
         success: bool,
+    },
+
+    /// **Personalized Carrier Delivery**
+    ///
+    /// Owner pushes personalized carrier to requester at approval time.
+    PersonalizedCarrierDelivery {
+        image_id: String,
+        owner_id: String,
+        carrier_data: Vec<u8>,
     },
 
     /// **P2P Access Denied**

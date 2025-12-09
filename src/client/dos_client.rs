@@ -1,22 +1,29 @@
 //! DoS Client - Client-side interface for Directory of Services
+//! Now connects to the leader server instead of a separate DoS server
 
 use crate::common::connection::Connection;
 use crate::common::messages::{ClientInfo, ImageInfo, Message};
 use anyhow::{Context, Result};
+use std::sync::Arc;
 use tokio::net::TcpStream;
+use tokio::sync::Mutex;
 
 pub struct DosClient {
-    dos_address: String,
+    /// List of compute server addresses to query for leader
+    server_addresses: Vec<String>,
     _client_name: String,
     client_id: Option<String>,
+    /// Cached leader address to avoid repeated queries (uses interior mutability)
+    cached_leader_address: Arc<Mutex<Option<String>>>,
 }
 
 impl DosClient {
-    pub fn new(dos_address: String, client_name: String) -> Self {
+    pub fn new(server_addresses: Vec<String>, client_name: String) -> Self {
         Self {
-            dos_address,
+            server_addresses,
             _client_name: client_name,
             client_id: None,
+            cached_leader_address: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -24,10 +31,53 @@ impl DosClient {
         self.client_id.as_deref()
     }
 
+    /// Query the compute servers to find the current leader and return its address
+    async fn discover_leader(&self) -> Result<String> {
+        // If we have a cached leader, try it first
+        let cached = self.cached_leader_address.lock().await.clone();
+        if let Some(cached) = cached {
+            // Verify the cached leader is still valid
+            if let Ok(stream) = TcpStream::connect(&cached).await {
+                let mut conn = Connection::new(stream);
+                if conn.write_message(&Message::LeaderQuery).await.is_ok() {
+                    if let Ok(Some(Message::LeaderResponse { leader_id })) = conn.read_message().await {
+                        // Convert leader_id (1,2,3) to address
+                        if let Some(addr) = self.server_addresses.get(leader_id as usize - 1) {
+                            return Ok(addr.clone());
+                        }
+                    }
+                }
+            }
+            // Cached leader is invalid, clear it
+            *self.cached_leader_address.lock().await = None;
+        }
+
+        // Query each server until we find the leader
+        for server_addr in &self.server_addresses {
+            if let Ok(stream) = TcpStream::connect(server_addr).await {
+                let mut conn = Connection::new(stream);
+                if conn.write_message(&Message::LeaderQuery).await.is_ok() {
+                    if let Ok(Some(Message::LeaderResponse { leader_id })) = conn.read_message().await {
+                        // Convert leader_id to address
+                        if let Some(leader_addr) = self.server_addresses.get(leader_id as usize - 1) {
+                            *self.cached_leader_address.lock().await = Some(leader_addr.clone());
+                            return Ok(leader_addr.clone());
+                        }
+                    }
+                }
+            }
+        }
+
+        anyhow::bail!("Failed to discover leader - all servers unreachable or no leader elected")
+    }
+
     async fn connect(&self) -> Result<Connection> {
-        let stream = TcpStream::connect(&self.dos_address)
+        let leader_address = self.discover_leader().await
+            .context("Failed to connect to DoS (leader)")?;
+
+        let stream = TcpStream::connect(&leader_address)
             .await
-            .context("Failed to connect to DoS")?;
+            .context("Failed to connect to leader server")?;
         Ok(Connection::new(stream))
     }
 
