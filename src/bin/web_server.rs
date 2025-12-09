@@ -475,12 +475,14 @@ fn get_client_ip(connect_info: Option<ConnectInfo<SocketAddr>>) -> String {
 
 async fn signup_handler(
     State(state): State<Arc<AppState>>,
-    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    ConnectInfo(_addr): ConnectInfo<SocketAddr>,
     Json(payload): Json<SignUpRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
-    let ip_address = addr.ip().to_string();
+    // Use IP address from config file, not from HTTP connection
+    // HTTP connection will be localhost if browser is on same machine
+    let ip_address = state.config.client.ip_address.clone();
     info!(
-        "Sign up request for {} from {}",
+        "Sign up request for {} with IP {}",
         payload.client_id, ip_address
     );
 
@@ -540,12 +542,14 @@ async fn signup_handler(
 
 async fn signin_handler(
     State(state): State<Arc<AppState>>,
-    ConnectInfo(addr): ConnectInfo<SocketAddr>,
+    ConnectInfo(_addr): ConnectInfo<SocketAddr>,
     Json(payload): Json<SignInRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
-    let ip_address = addr.ip().to_string();
+    // Use IP address from config file, not from HTTP connection
+    // HTTP connection will be localhost if browser is on same machine
+    let ip_address = state.config.client.ip_address.clone();
     info!(
-        "Sign in request for {} from {}",
+        "Sign in request for {} with IP {}",
         payload.client_id, ip_address
     );
 
