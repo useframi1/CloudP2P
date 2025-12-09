@@ -672,6 +672,10 @@
                     <label>Image ID</label>
                     <input type="text" id="request-image-id" placeholder="image1.jpg">
                 </div>
+                <div class="form-group">
+                    <label>Requested View Limit (optional)</label>
+                    <input type="number" id="request-view-limit" placeholder="e.g., 5" min="1">
+                </div>
                 <button class="btn btn-primary" style="width: 100%">Send Request</button>
                 <div id="request-message"></div>
             </div>
@@ -1337,24 +1341,41 @@
         async function requestImageAccess() {
             var ownerId = document.getElementById('request-owner-id').value.trim();
             var imageId = document.getElementById('request-image-id').value.trim();
+            var viewLimitInput = document.getElementById('request-view-limit').value.trim();
+            var reqAccessLimit = viewLimitInput ? parseInt(viewLimitInput) : null;
 
             if (!ownerId || !imageId) {
-                showMessage('request-message', 'Please fill in both fields', 'error');
+                showMessage('request-message', 'Please fill in owner ID and image ID', 'error');
+                return;
+            }
+
+            if (reqAccessLimit !== null && reqAccessLimit < 1) {
+                showMessage('request-message', 'View limit must be at least 1', 'error');
                 return;
             }
 
             try {
+                var requestBody = { owner_id: ownerId, image_id: imageId };
+                if (reqAccessLimit !== null) {
+                    requestBody.req_access_limit = reqAccessLimit;
+                }
+
                 var response = await fetch(API_BASE + '/request-access', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ owner_id: ownerId, image_id: imageId })
+                    body: JSON.stringify(requestBody)
                 });
                 var data = await response.json();
 
                 if (data.success) {
-                    showMessage('request-message', 'Access request sent successfully!', 'success');
+                    var message = 'Access request sent successfully!';
+                    if (reqAccessLimit) {
+                        message += ' (Requested ' + reqAccessLimit + ' views)';
+                    }
+                    showMessage('request-message', message, 'success');
                     document.getElementById('request-owner-id').value = '';
                     document.getElementById('request-image-id').value = '';
+                    document.getElementById('request-view-limit').value = '';
                 } else {
                     showMessage('request-message', data.error || 'Request failed', 'error');
                 }
@@ -1377,12 +1398,17 @@
                     var html = '';
                     data.requests.forEach(function (req) {
                         var requestId = req.request_id;
+                        var requestedLimit = req.req_access_limit || 5;
                         html += '<div class="request-card"><div class="request-header"><div>';
                         html += '<strong>📬 Request from ' + req.requester_id + '</strong><br>';
-                        html += '<small>🖼️ Image: ' + req.image_id + '</small></div></div>';
+                        html += '<small>🖼️ Image: ' + req.image_id + '</small><br>';
+                        if (req.req_access_limit) {
+                            html += '<small style="color: #6366f1; font-weight: 700;">👁️ Requested: ' + req.req_access_limit + ' views</small>';
+                        }
+                        html += '</div></div>';
                         html += '<div class="form-group" style="margin-top: 8px; margin-bottom: 8px;">';
-                        html += '<label>View Limit</label>';
-                        html += '<input type="number" id="limit-' + requestId + '" placeholder="e.g., 5" min="1" value="5" style="padding: 8px;">';
+                        html += '<label>View Limit (you can modify this)</label>';
+                        html += '<input type="number" id="limit-' + requestId + '" placeholder="e.g., 5" min="1" value="' + requestedLimit + '" style="padding: 8px;">';
                         html += '</div>';
                         html += '<div class="button-group">';
                         html += '<button class="btn btn-success btn-small" onclick="approveRequest(\'' + requestId + '\')">✓ Approve</button>';

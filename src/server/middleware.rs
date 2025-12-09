@@ -1044,8 +1044,8 @@ impl ServerMiddleware {
             } => {
                 let current_leader = *self.current_leader.read().await;
                 if current_leader == Some(self.config.server.id) {
-                    info!("🔐 Leader {} processing ImageAccessRequest from {} for {}", self.config.server.id, requester_id, image_id);
-                    match self.dos_service.request_image_access(requester_id.clone(), owner_id.clone(), image_id.clone()).await {
+                    info!("🔐 Leader {} processing ImageAccessRequest from {} for {} (requested limit: {:?})", self.config.server.id, requester_id, image_id, req_access_limit);
+                    match self.dos_service.request_image_access(requester_id.clone(), owner_id.clone(), image_id.clone(), req_access_limit).await {
                         Ok(assigned_request_id) => {
                             if let Err(e) = conn.write_message(&Message::ImageAccessRequest {
                                 request_id: assigned_request_id,

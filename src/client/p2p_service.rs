@@ -7,12 +7,11 @@
 //! - Access control verification before sending images
 //! - View count management
 
-use crate::common::connection::Connection;
-use crate::common::messages::Message;
 use crate::client::dos_client::DosClient;
 use crate::client::middleware::ClientMiddleware;
+use crate::common::connection::Connection;
+use crate::common::messages::Message;
 use crate::dos::firebase::FirebaseClient;
-use crate::processing::{extract_image_with_access_rights, EmbeddedAccessRights};
 use anyhow::{anyhow, Result};
 use std::sync::Arc;
 use tokio::net::{TcpListener, TcpStream};
@@ -138,7 +137,10 @@ impl P2PService {
         owner_id: &str,
         carrier_data: Vec<u8>,
     ) -> Result<()> {
-        println!("📦 [P2P_RECEIVE] Received personalized carrier: {} bytes", carrier_data.len());
+        println!(
+            "📦 [P2P_RECEIVE] Received personalized carrier: {} bytes",
+            carrier_data.len()
+        );
 
         // Create directory for received images from this owner
         let save_dir = format!("encrypted_images/{}", self.client_id);
@@ -148,7 +150,10 @@ impl P2PService {
         let save_path = format!("{}/{}_from_{}.png", save_dir, image_id, owner_id);
 
         std::fs::write(&save_path, &carrier_data)?;
-        println!("💾 [P2P_RECEIVE] Saved personalized carrier to: {}", save_path);
+        println!(
+            "💾 [P2P_RECEIVE] Saved personalized carrier to: {}",
+            save_path
+        );
 
         Ok(())
     }
@@ -167,7 +172,10 @@ impl P2PService {
         requester_id: &str,
         image_id: &str,
     ) -> Result<()> {
-        println!("🔐 [P2P_HANDLER] Processing request from {} for {}", requester_id, image_id);
+        println!(
+            "🔐 [P2P_HANDLER] Processing request from {} for {}",
+            requester_id, image_id
+        );
 
         // Get image info and access rights from Firebase
         let owner_client = match self.firebase.get_client(&self.client_id).await {
@@ -236,7 +244,10 @@ impl P2PService {
 
         // Check view limit BEFORE sending
         if access_right.view_count >= access_right.view_limit {
-            println!("🚫 [P2P_HANDLER] View limit reached: {}/{}", access_right.view_count, access_right.view_limit);
+            println!(
+                "🚫 [P2P_HANDLER] View limit reached: {}/{}",
+                access_right.view_count, access_right.view_limit
+            );
             let response = Message::P2PAccessDenied {
                 image_id: image_id.to_string(),
                 reason: "View limit reached".to_string(),
@@ -245,14 +256,23 @@ impl P2PService {
             return Ok(());
         }
 
-        println!("✅ [P2P_HANDLER] Access granted: {}/{} views used", access_right.view_count, access_right.view_limit);
+        println!(
+            "✅ [P2P_HANDLER] Access granted: {}/{} views used",
+            access_right.view_count, access_right.view_limit
+        );
 
         // Read the pre-created personalized carrier from disk
-        println!("📂 [P2P_HANDLER] Reading personalized carrier from: {}", personalized_path);
+        println!(
+            "📂 [P2P_HANDLER] Reading personalized carrier from: {}",
+            personalized_path
+        );
         let personalized_carrier = match std::fs::read(&personalized_path) {
             Ok(data) => data,
             Err(e) => {
-                println!("❌ [P2P_HANDLER] Failed to read personalized carrier: {}", e);
+                println!(
+                    "❌ [P2P_HANDLER] Failed to read personalized carrier: {}",
+                    e
+                );
                 let response = Message::P2PAccessDenied {
                     image_id: image_id.to_string(),
                     reason: format!("Personalized carrier not found: {}", e),
@@ -262,17 +282,26 @@ impl P2PService {
             }
         };
 
-        println!("✅ [P2P_HANDLER] Read personalized carrier: {} bytes", personalized_carrier.len());
+        println!(
+            "✅ [P2P_HANDLER] Read personalized carrier: {} bytes",
+            personalized_carrier.len()
+        );
 
         // Increment view count in Firebase
         let dos_client = self.dos_client.lock().await;
-        if let Err(e) = dos_client.increment_view_count(&self.client_id, image_id, requester_id).await {
+        if let Err(e) = dos_client
+            .increment_view_count(&self.client_id, image_id, requester_id)
+            .await
+        {
             println!("⚠️ [P2P_HANDLER] Failed to increment view count: {}", e);
         }
         drop(dos_client);
 
         // Send personalized carrier to requester
-        println!("📤 [P2P_HANDLER] Sending personalized carrier to {}", requester_id);
+        println!(
+            "📤 [P2P_HANDLER] Sending personalized carrier to {}",
+            requester_id
+        );
         let response = Message::P2PImageResponse {
             image_id: image_id.to_string(),
             image_data: personalized_carrier,
@@ -302,7 +331,10 @@ impl P2PService {
     ) -> Result<Vec<u8>> {
         let addr = format!("{}:{}", peer_ip, peer_port);
         println!("🔌 [P2P_REQUEST] Attempting to connect to peer at {}", addr);
-        println!("📋 [P2P_REQUEST] Requester: {}, Image: {}", requester_id, image_id);
+        println!(
+            "📋 [P2P_REQUEST] Requester: {}, Image: {}",
+            requester_id, image_id
+        );
 
         // Connect to peer
         println!("🔗 [P2P_REQUEST] Connecting...");
@@ -343,7 +375,10 @@ impl P2PService {
                 ..
             } => {
                 if success {
-                    println!("✅ [P2P_REQUEST] Success! Received image data ({} bytes)", image_data.len());
+                    println!(
+                        "✅ [P2P_REQUEST] Success! Received image data ({} bytes)",
+                        image_data.len()
+                    );
                     Ok(image_data)
                 } else {
                     println!("❌ [P2P_REQUEST] Peer returned unsuccessful response");
@@ -380,7 +415,10 @@ impl P2PService {
         owner_id: &str,
         personalized_carrier: Vec<u8>,
     ) -> Result<()> {
-        println!("📡 [P2P_SEND] Sending personalized carrier for {} to {}:{}", image_id, requester_ip, requester_p2p_port);
+        println!(
+            "📡 [P2P_SEND] Sending personalized carrier for {} to {}:{}",
+            image_id, requester_ip, requester_p2p_port
+        );
 
         let address = format!("{}:{}", requester_ip, requester_p2p_port);
         let stream = TcpStream::connect(&address).await?;

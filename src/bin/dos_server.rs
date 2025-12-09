@@ -119,7 +119,7 @@ async fn handle_client(dos: Arc<DoSService>, socket: tokio::net::TcpStream) -> R
         } => {
             info!("Processing ImageAccessRequest from {} for {} (limit: {:?})", requester_id, image_id, req_access_limit);
             let assigned_request_id = dos
-                .request_image_access(requester_id.clone(), owner_id.clone(), image_id.clone())
+                .request_image_access(requester_id.clone(), owner_id.clone(), image_id.clone(), req_access_limit)
                 .await?;
             conn.write_message(&Message::ImageAccessRequest {
                 request_id: assigned_request_id,

@@ -132,6 +132,7 @@ impl DoSService {
         requester_id: String,
         owner_id: String,
         image_id: String,
+        req_access_limit: Option<u32>,
     ) -> Result<String> {
         let req_num = self.firebase.get_next_request_id().await?;
         let request_id = format!("req_{}_{}", req_num, requester_id);
@@ -141,6 +142,7 @@ impl DoSService {
             "requester_id": requester_id,
             "owner_id": owner_id,
             "image_id": image_id,
+            "req_access_limit": req_access_limit,
             "timestamp": Self::current_timestamp()
         });
 
@@ -149,7 +151,7 @@ impl DoSService {
             .store_pending_request(&request_id, &request_data)
             .await?;
 
-        info!("Access request created: {}", request_id);
+        info!("Access request created: {} (requested limit: {:?})", request_id, req_access_limit);
         Ok(request_id)
     }
 
