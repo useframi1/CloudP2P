@@ -793,7 +793,7 @@ pub fn extract_image_with_access_rights(
                     access_bytes[data_index] |= bit << (7 - bit_index);
 
                     // Debug last few bytes
-                    if data_index >= access_len - 2 {
+                    if access_len >= 2 && data_index >= access_len - 2 {
                         eprintln!("🔍 [EXTRACT] byte[{}] bit[{}]: extracted bit {}, current byte value: {}",
                                   data_index, bit_index, bit, access_bytes[data_index]);
                     }
