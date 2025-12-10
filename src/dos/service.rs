@@ -137,11 +137,23 @@ impl DoSService {
         let req_num = self.firebase.get_next_request_id().await?;
         let request_id = format!("req_{}_{}", req_num, requester_id);
 
+        // Get image name from owner's Firebase data
+        let image_name = if let Ok(Some(owner_client)) = self.firebase.get_client(&owner_id).await {
+            owner_client
+                .images
+                .get(&image_id)
+                .map(|img| img.name.clone())
+                .unwrap_or_else(|| image_id.clone())
+        } else {
+            image_id.clone()
+        };
+
         let request_data = serde_json::json!({
             "request_id": request_id,
             "requester_id": requester_id,
             "owner_id": owner_id,
             "image_id": image_id,
+            "image_name": image_name,
             "req_access_limit": req_access_limit,
             "timestamp": Self::current_timestamp()
         });

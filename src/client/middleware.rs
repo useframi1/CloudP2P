@@ -93,7 +93,7 @@ pub struct ClientInfo {
     pub name: String,
     /// List of server addresses to query for leader discovery (e.g., ["127.0.0.1:5001", "127.0.0.1:5002"])
     pub server_addresses: Vec<String>,
-    /// Directory containing images to randomly select from (default: "test_images")
+    /// Directory containing images to randomly select from (default: "client_images/{client_id}/original_images")
     #[serde(default = "default_image_dir")]
     pub image_dir: String,
     /// Directory of Services (DoS) address

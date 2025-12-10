@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { peerApi, accessApi } from '@/lib/api/client';
 import { RefreshCw, Edit2, Trash2, Loader2, ImageOff } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAuthStore } from '@/lib/store/auth';
+import { useAutoRefresh } from '@/lib/hooks/useAutoRefresh';
 
 interface AccessEntry {
   requester_id: string;
@@ -24,13 +26,16 @@ interface SharedImage {
 }
 
 export default function ManagePage() {
+  const { clientId } = useAuthStore();
   const [images, setImages] = useState<SharedImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingLimits, setEditingLimits] = useState<Record<string, number>>({});
 
-  const loadSharedImages = async () => {
-    setIsLoading(true);
+  const loadSharedImages = async (silent = false) => {
+    if (!silent) {
+      setIsLoading(true);
+    }
     setError(null);
     try {
       const response = await peerApi.getMySharedImages();
@@ -50,7 +55,9 @@ export default function ManagePage() {
     } catch (err: any) {
       setError(err.message || 'Failed to load shared images');
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -102,6 +109,9 @@ export default function ManagePage() {
     loadSharedImages();
   }, []);
 
+  // Auto-refresh every 5 seconds (silent mode)
+  useAutoRefresh(() => loadSharedImages(true), 5000);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -113,7 +123,7 @@ export default function ManagePage() {
         </div>
         <Button
           variant="outline"
-          onClick={loadSharedImages}
+          onClick={() => loadSharedImages()}
           disabled={isLoading}
         >
           <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -151,8 +161,23 @@ export default function ManagePage() {
               {images.map((image) => (
                 <Card key={image.image_id} className="bg-gray-50">
                   <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-24 h-24 shrink-0 bg-gray-200 rounded-lg overflow-hidden">
+                        <img
+                          src={`/client_images/${clientId}/original_images/${image.name}`}
+                          alt={image.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            target.style.display = 'none';
+                            const parent = target.parentElement;
+                            if (parent) {
+                              parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></div>';
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1">
                         <CardTitle className="text-lg">{image.name}</CardTitle>
                         <CardDescription>
                           Shared with {image.total_shared_with} user{image.total_shared_with !== 1 ? 's' : ''}

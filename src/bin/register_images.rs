@@ -21,7 +21,7 @@ async fn main() -> anyhow::Result<()> {
     register_client_images(
         server_addresses.clone(),
         "client1",
-        "test_images/client1",
+        "client_images/client1/original_images",
     )
     .await?;
 
@@ -30,7 +30,7 @@ async fn main() -> anyhow::Result<()> {
     register_client_images(
         server_addresses.clone(),
         "client2",
-        "test_images/client2",
+        "client_images/client2/original_images",
     )
     .await?;
 
@@ -39,7 +39,7 @@ async fn main() -> anyhow::Result<()> {
     register_client_images(
         server_addresses.clone(),
         "client3",
-        "test_images/client3",
+        "client_images/client3/original_images",
     )
     .await?;
 

@@ -157,7 +157,7 @@ impl P2PService {
         );
 
         // Create directory for received images from this owner
-        let save_dir = format!("encrypted_images/{}", self.client_id);
+        let save_dir = format!("client_images/{}/received_images", self.client_id);
         std::fs::create_dir_all(&save_dir)?;
 
         // Save with owner info in filename
@@ -196,7 +196,7 @@ impl P2PService {
         }
 
         let carrier_path = format!(
-            "encrypted_images/{}/{}_from_{}.png",
+            "client_images/{}/received_images/{}_from_{}.png",
             self.client_id, image_id, owner_id
         );
 

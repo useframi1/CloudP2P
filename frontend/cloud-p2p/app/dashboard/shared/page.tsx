@@ -8,12 +8,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { peerApi, accessApi } from '@/lib/api/client';
 import { RefreshCw, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useAutoRefresh } from '@/lib/hooks/useAutoRefresh';
 
 interface SharedImage {
   owner_id: string;
   image: {
     image_id: string;
     name: string;
+    encrypted_path: string;
   };
   access: {
     view_count: number;
@@ -28,8 +30,10 @@ export default function SharedPage() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [viewingImage, setViewingImage] = useState(false);
 
-  const loadSharedImages = async () => {
-    setIsLoading(true);
+  const loadSharedImages = async (silent = false) => {
+    if (!silent) {
+      setIsLoading(true);
+    }
     setError(null);
     try {
       const response = await peerApi.getAccessibleImages();
@@ -41,7 +45,9 @@ export default function SharedPage() {
     } catch (err: any) {
       setError(err.message || 'Failed to load shared images');
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -70,6 +76,9 @@ export default function SharedPage() {
     loadSharedImages();
   }, []);
 
+  // Auto-refresh every 5 seconds (silent mode)
+  useAutoRefresh(() => loadSharedImages(true), 5000);
+
   const getStatusBadge = (viewCount: number, viewLimit: number) => {
     const remaining = viewLimit - viewCount;
     if (remaining <= 0) {
@@ -92,7 +101,7 @@ export default function SharedPage() {
         </div>
         <Button
           variant="outline"
-          onClick={loadSharedImages}
+          onClick={() => loadSharedImages()}
           disabled={isLoading}
         >
           <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -133,10 +142,20 @@ export default function SharedPage() {
 
                 return (
                   <Card key={`${item.owner_id}-${item.image.image_id}`} className="overflow-hidden">
-                    <div className={`aspect-square bg-gray-100 relative ${!canView ? 'opacity-50 blur-sm' : ''}`}>
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Eye className="h-16 w-16 text-gray-300" />
-                      </div>
+                    <div className={`aspect-square bg-gray-100 relative overflow-hidden ${!canView ? 'opacity-50' : ''}`}>
+                      <img
+                        src={`/${item.image.encrypted_path}`}
+                        alt={item.image.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            parent.innerHTML = '<div class="w-full h-full flex items-center justify-center"><svg class="h-16 w-16 text-gray-300" stroke="currentColor" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></div>';
+                          }
+                        }}
+                      />
                     </div>
                     <CardContent className="p-4 space-y-3">
                       <div>

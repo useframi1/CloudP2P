@@ -51,6 +51,15 @@ export const imageApi = {
     return response.data;
   },
 
+  uploadImage: async (imageFile: File): Promise<ApiResponse> => {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    const response = await apiClient.post('/upload-image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
   getMyImages: async (): Promise<ApiResponse> => {
     const response = await apiClient.get('/my-images');
     return response.data;

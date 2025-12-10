@@ -9,6 +9,7 @@ import { peerApi, accessApi } from '@/lib/api/client';
 import { RefreshCw, Users, Send, Loader2, ChevronRight } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuthStore } from '@/lib/store/auth';
+import { useAutoRefresh } from '@/lib/hooks/useAutoRefresh';
 import {
   Select,
   SelectContent,
@@ -42,8 +43,10 @@ export default function PeersPage() {
   const [viewLimit, setViewLimit] = useState<number>(3);
   const [requesting, setRequesting] = useState(false);
 
-  const loadPeers = async () => {
-    setIsLoading(true);
+  const loadPeers = async (silent = false) => {
+    if (!silent) {
+      setIsLoading(true);
+    }
     setError(null);
     try {
       const response = await peerApi.getOnlinePeers();
@@ -59,7 +62,9 @@ export default function PeersPage() {
     } catch (err: any) {
       setError(err.message || 'Failed to load peers');
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -123,6 +128,9 @@ export default function PeersPage() {
     loadPeers();
   }, []);
 
+  // Auto-refresh every 5 seconds (silent mode)
+  useAutoRefresh(() => loadPeers(true), 5000);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -134,7 +142,7 @@ export default function PeersPage() {
         </div>
         <Button
           variant="outline"
-          onClick={loadPeers}
+          onClick={() => loadPeers()}
           disabled={isLoading}
         >
           <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />

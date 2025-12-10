@@ -151,9 +151,14 @@ async fn register_local_images(
         return Ok(());
     }
 
-    // Create encrypted_images directory for this client
-    let encrypted_dir = format!("encrypted_images/{}", client_id);
+    // Create client_images directory structure for this client
+    let client_dir = format!("client_images/{}", client_id);
+    let original_dir = format!("{}/original_images", client_dir);
+    let encrypted_dir = format!("{}/encrypted_images", client_dir);
+    let received_dir = format!("{}/received_images", client_dir);
+    std::fs::create_dir_all(&original_dir)?;
     std::fs::create_dir_all(&encrypted_dir)?;
+    std::fs::create_dir_all(&received_dir)?;
 
     let entries = match std::fs::read_dir(path) {
         Ok(e) => e,
@@ -161,7 +166,7 @@ async fn register_local_images(
     };
 
     // Get list of carrier images
-    let carrier_files: Vec<_> = std::fs::read_dir("cover_images")?
+    let carrier_files: Vec<_> = std::fs::read_dir("client_images/cover_images")?
         .filter_map(|e| e.ok())
         .filter(|e| {
             e.path().is_file()
@@ -176,7 +181,7 @@ async fn register_local_images(
         .collect();
 
     if carrier_files.is_empty() {
-        error!("No carrier images found in cover_images/ folder. Please add carrier images.");
+        error!("No carrier images found in client_images/cover_images/ folder. Please add carrier images.");
         return Ok(());
     }
 
@@ -270,6 +275,267 @@ async fn register_local_images(
     Ok(())
 }
 
+async fn register_single_image(
+    dos_client: &DosClient,
+    client_middleware: Arc<Mutex<ClientMiddleware>>,
+    client_id: &str,
+    image_path: &str,
+) -> anyhow::Result<()> {
+    let secret_path = std::path::Path::new(image_path);
+
+    // Create client_images directory structure for this client
+    let client_dir = format!("client_images/{}", client_id);
+    let encrypted_dir = format!("{}/encrypted_images", client_dir);
+    std::fs::create_dir_all(&encrypted_dir)?;
+
+    // Get list of carrier images
+    let carrier_files: Vec<_> = std::fs::read_dir("client_images/cover_images")?
+        .filter_map(|e| e.ok())
+        .filter(|e| {
+            e.path().is_file()
+                && e.path()
+                    .extension()
+                    .map(|ext| {
+                        let ext = ext.to_string_lossy().to_lowercase();
+                        ext == "jpg" || ext == "jpeg" || ext == "png"
+                    })
+                    .unwrap_or(false)
+        })
+        .collect();
+
+    if carrier_files.is_empty() {
+        anyhow::bail!("No carrier images found in client_images/cover_images/ folder");
+    }
+
+    let filename = secret_path
+        .file_name()
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+
+    let image_id = filename.replace(".", "_");
+
+    // Read secret image
+    let secret_bytes = std::fs::read(&secret_path)?;
+
+    // Generate unique request ID
+    let request_id = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis() as u64;
+
+    // Encrypt image
+    let mut client = client_middleware.lock().await;
+    let carrier_image = client.submit_task(request_id, secret_bytes).await?;
+    drop(client);
+
+    // Save base encrypted carrier
+    let encrypted_path = format!("{}/{}.png", encrypted_dir, image_id);
+    std::fs::write(&encrypted_path, &carrier_image)?;
+
+    // Register with DoS
+    let image_info = ImageInfo {
+        image_id: image_id.clone(),
+        name: filename,
+        encrypted_path: encrypted_path.clone(),
+        access_rights: std::collections::HashMap::new(),
+        personalized_carriers: std::collections::HashMap::new(),
+    };
+
+    dos_client.register_image(image_info).await?;
+    info!("✅ Registered image: {}", image_id);
+
+    Ok(())
+}
+
+async fn upload_image_handler(
+    State(state): State<Arc<AppState>>,
+    mut multipart: Multipart,
+) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
+    info!("📤 Upload image request");
+
+    // Get current user
+    let current_user = state.current_user.lock().await.clone();
+    let client_id = match current_user {
+        Some(id) => id,
+        None => {
+            return Err((
+                StatusCode::UNAUTHORIZED,
+                Json(ApiResponse {
+                    success: false,
+                    message: None,
+                    error: Some("Not signed in".to_string()),
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ));
+        }
+    };
+
+    // Create user's image directory if it doesn't exist
+    let user_image_dir = format!("client_images/{}/original_images", client_id);
+    std::fs::create_dir_all(&user_image_dir).map_err(|e| {
+        error!("Failed to create image directory: {}", e);
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse {
+                success: false,
+                error: Some(format!("Failed to create image directory: {}", e)),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        )
+    })?;
+
+    // Process uploaded file
+    let mut filename = String::new();
+    let mut file_data = Vec::new();
+
+    while let Some(field) = multipart.next_field().await.map_err(|e| {
+        error!("Failed to read multipart field: {}", e);
+        (
+            StatusCode::BAD_REQUEST,
+            Json(ApiResponse {
+                success: false,
+                error: Some(format!("Invalid file upload: {}", e)),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        )
+    })? {
+        if field.name() == Some("image") {
+            filename = field
+                .file_name()
+                .unwrap_or("uploaded_image.png")
+                .to_string();
+            file_data = field
+                .bytes()
+                .await
+                .map_err(|e| {
+                    error!("Failed to read file data: {}", e);
+                    (
+                        StatusCode::BAD_REQUEST,
+                        Json(ApiResponse {
+                            success: false,
+                            error: Some(format!("Failed to read file: {}", e)),
+                            message: None,
+                            carrier_image_base64: None,
+                            client_id: None,
+                            notifications: None,
+                            request_id: None,
+                            peers: None,
+                            images: None,
+                            requests: None,
+                        }),
+                    )
+                })?
+                .to_vec();
+        }
+    }
+
+    if file_data.is_empty() {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            Json(ApiResponse {
+                success: false,
+                error: Some("No file uploaded".to_string()),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        ));
+    }
+
+    // Save file
+    let file_path = format!("{}/{}", user_image_dir, filename);
+    std::fs::write(&file_path, &file_data).map_err(|e| {
+        error!("Failed to save file: {}", e);
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(ApiResponse {
+                success: false,
+                error: Some(format!("Failed to save file: {}", e)),
+                message: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        )
+    })?;
+
+    info!("✅ Image uploaded: {}", file_path);
+
+    // Now register this single image
+    let dos_client = state.dos_client.lock().await;
+    match register_single_image(&*dos_client, state.client.clone(), &client_id, &file_path).await {
+        Ok(_) => {
+            info!("✅ Image registered successfully: {}", filename);
+            Ok((
+                StatusCode::OK,
+                Json(ApiResponse {
+                    success: true,
+                    message: Some(format!(
+                        "Image {} uploaded and registered successfully",
+                        filename
+                    )),
+                    error: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+        Err(e) => {
+            error!("❌ Failed to register image: {}", e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Failed to register image: {}", e)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+    }
+}
+
 async fn register_images_handler(
     State(state): State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
@@ -300,7 +566,7 @@ async fn register_images_handler(
 
     let dos_client = state.dos_client.lock().await;
     // Dynamically construct image directory based on actual client_id
-    let image_dir = format!("test_images/{}", client_id);
+    let image_dir = format!("client_images/{}/original_images", client_id);
 
     // Register images with server-based encryption
     match register_local_images(&*dos_client, state.client.clone(), &client_id, &image_dir).await {
@@ -408,6 +674,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/signin", post(signin_handler))
         .route("/api/signout", post(signout_handler))
         .route("/api/register-images", post(register_images_handler))
+        .route("/api/upload-image", post(upload_image_handler))
         .route("/api/online-peers", get(online_peers_handler))
         .route("/api/peer-images/:peer_id", get(peer_images_handler))
         .route("/api/request-access", post(request_access_handler))
@@ -426,8 +693,7 @@ async fn main() -> anyhow::Result<()> {
         )
         .route("/api/auto-grant-access", post(auto_grant_access_handler))
         .route("/api/health", get(health_check))
-        .nest_service("/test_images", ServeDir::new("test_images"))
-        .nest_service("/encrypted_images", ServeDir::new("encrypted_images"))
+        .nest_service("/client_images", ServeDir::new("client_images"))
         .nest_service("/", ServeDir::new("frontend/build"))
         .layer(CorsLayer::permissive())
         .with_state(state.clone());
@@ -1480,7 +1746,7 @@ async fn respond_request_handler(
 
         // Save personalized carrier to disk
         let personalized_path = format!(
-            "encrypted_images/{}/{}_for_{}.png",
+            "client_images/{}/encrypted_images/{}_for_{}.png",
             owner_id, image_id, requester_id
         );
 
@@ -1866,9 +2132,9 @@ async fn accessible_images_handler(
 
     let mut accessible_images = vec![];
 
-    // Scan local encrypted_images directory for personalized carriers
-    // Format: encrypted_images/{client_id}/{image_id}_from_{owner_id}.png
-    let local_dir = format!("encrypted_images/{}", client_id);
+    // Scan local received_images directory for personalized carriers
+    // Format: client_images/{client_id}/received_images/{image_id}_from_{owner_id}.png
+    let local_dir = format!("client_images/{}/received_images", client_id);
     info!("📂 [ACCESSIBLE_IMAGES] Scanning directory: {}", local_dir);
 
     match std::fs::read_dir(&local_dir) {
@@ -2524,7 +2790,7 @@ async fn view_image_handler(
 
     // Read the personalized carrier from local disk (received at approval time)
     let local_carrier_path = format!(
-        "encrypted_images/{}/{}_from_{}.png",
+        "client_images/{}/received_images/{}_from_{}.png",
         viewer_id, payload.image_id, payload.owner_id
     );
 
@@ -2668,7 +2934,7 @@ async fn view_image_handler(
         }
 
         // Re-embed with updated view count using the cover image
-        let carrier_path = "cover_images/cover_image.png";
+        let carrier_path = "client_images/cover_images/cover_image.png";
         match std::fs::read(carrier_path) {
             Ok(carrier_bytes) => {
                 match embed_image_with_access_rights(
@@ -2828,7 +3094,7 @@ async fn process_pending_access_changes(state: &Arc<AppState>, client_id: &str) 
 
         // Apply the change to local carrier file
         let carrier_path = format!(
-            "encrypted_images/{}/{}_from_{}.png",
+            "client_images/{}/received_images/{}_from_{}.png",
             client_id, image_id, owner_id
         );
 

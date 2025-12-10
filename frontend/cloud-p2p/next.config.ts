@@ -8,12 +8,8 @@ const nextConfig: NextConfig = {
         destination: 'http://localhost:3001/api/:path*',
       },
       {
-        source: '/test_images/:path*',
-        destination: 'http://localhost:3001/test_images/:path*',
-      },
-      {
-        source: '/encrypted_images/:path*',
-        destination: 'http://localhost:3001/encrypted_images/:path*',
+        source: '/client_images/:path*',
+        destination: 'http://localhost:3001/client_images/:path*',
       },
     ];
   },

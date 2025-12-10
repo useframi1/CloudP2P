@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { imageApi } from '@/lib/api/client';
-import { RefreshCw, ImagePlus, Loader2, ImageIcon } from 'lucide-react';
+import { RefreshCw, ImagePlus, Loader2, Upload } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuthStore } from '@/lib/store/auth';
+import { useAutoRefresh } from '@/lib/hooks/useAutoRefresh';
+import { useRef } from 'react';
 
 interface Image {
   image_id: string;
@@ -16,14 +18,18 @@ interface Image {
 
 export default function DashboardPage() {
   const { clientId } = useAuthStore();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<Image[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const loadImages = async () => {
-    setIsLoading(true);
+  const loadImages = async (silent = false) => {
+    if (!silent) {
+      setIsLoading(true);
+    }
     setError(null);
     try {
       const response = await imageApi.getMyImages();
@@ -35,7 +41,9 @@ export default function DashboardPage() {
     } catch (err: any) {
       setError(err.message || 'Failed to load images');
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -58,9 +66,43 @@ export default function DashboardPage() {
     }
   };
 
+  const handleUploadImage = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    setIsUploading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await imageApi.uploadImage(file);
+      if (response.success) {
+        setSuccess(response.message || 'Image uploaded and registered successfully!');
+        loadImages();
+        // Reset file input
+        event.target.value = '';
+      } else {
+        setError(response.error || 'Failed to upload image');
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || err.message || 'Failed to upload image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   useEffect(() => {
     loadImages();
   }, []);
+
+  // Auto-refresh every 5 seconds (silent mode)
+  useAutoRefresh(() => loadImages(true), 5000);
 
   return (
     <div className="space-y-6">
@@ -74,7 +116,7 @@ export default function DashboardPage() {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            onClick={loadImages}
+            onClick={() => loadImages()}
             disabled={isLoading}
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -82,7 +124,7 @@ export default function DashboardPage() {
           <Button
             onClick={handleRegisterImages}
             disabled={isRegistering}
-            className="bg-blue-600 hover:bg-blue-700"
+            variant="outline"
           >
             {isRegistering ? (
               <>
@@ -92,7 +134,31 @@ export default function DashboardPage() {
             ) : (
               <>
                 <ImagePlus className="mr-2 h-4 w-4" />
-                Register Images
+                Register All
+              </>
+            )}
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleUploadImage}
+            className="hidden"
+          />
+          <Button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isUploading}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {isUploading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Upload Image
               </>
             )}
           </Button>
@@ -137,7 +203,7 @@ export default function DashboardPage() {
                 <Card key={image.image_id} className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer group">
                   <div className="aspect-square bg-gray-100 relative overflow-hidden">
                     <img
-                      src={`/test_images/${clientId}/${image.name}`}
+                      src={`/client_images/${clientId}/original_images/${image.name}`}
                       alt={image.name}
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       onError={(e) => {

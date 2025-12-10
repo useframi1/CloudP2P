@@ -5,7 +5,7 @@ server_addresses = [
     "10.40.61.159:8002",
     "10.40.61.159:8003"
 ]
-image_dir = "test_images/client2"
+image_dir = "client_images/client2/original_images"
 dos_address = "127.0.0.1:9000"
 ip_address = "10.40.58.232"  # Change this to your public IP address
 
