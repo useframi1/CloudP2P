@@ -6,7 +6,7 @@ cover_image = "client_images/cover_images/cover_image.png"
 [peers]
 peers = [
     { id = 1, address = "10.40.39.41:8001" },
-    { id = 3, address = "10.40.61.159:8003" }
+    { id = 3, address = "10.40.58.232:8003" }
 ]
 
 [election]
