@@ -23,6 +23,7 @@ interface Peer {
   client_id: string;
   ip_address: string;
   images: Record<string, any>;
+  online: boolean;
 }
 
 interface PeerImage {
@@ -49,7 +50,7 @@ export default function PeersPage() {
     }
     setError(null);
     try {
-      const response = await peerApi.getOnlinePeers();
+      const response = await peerApi.getAllPeers();
       if (response.success && response.peers) {
         // Filter out the current user from the peers list
         const filteredPeers = response.peers.filter(
@@ -135,9 +136,9 @@ export default function PeersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Online Peers</h1>
+          <h1 className="text-3xl font-bold text-gray-900">All Peers</h1>
           <p className="mt-1 text-sm text-gray-500">
-            Select a peer to view their images and request access
+            Select a peer to view their images and request access (works for online and offline users)
           </p>
         </div>
         <Button
@@ -165,9 +166,9 @@ export default function PeersPage() {
         {/* Peers List */}
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle>Online Users</CardTitle>
+            <CardTitle>All Users</CardTitle>
             <CardDescription>
-              {peers.length} user{peers.length !== 1 ? 's' : ''} online
+              {peers.length} user{peers.length !== 1 ? 's' : ''} registered
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -178,9 +179,9 @@ export default function PeersPage() {
             ) : peers.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <Users className="h-12 w-12 text-gray-400 mb-4" />
-                <p className="text-gray-600 font-medium">No users online</p>
+                <p className="text-gray-600 font-medium">No users registered</p>
                 <p className="text-sm text-gray-500 mt-1">
-                  Check back later to see online peers
+                  No other users have signed up yet
                 </p>
               </div>
             ) : (
@@ -206,7 +207,9 @@ export default function PeersPage() {
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Badge className="bg-green-500">Online</Badge>
+                          <Badge className={peer.online ? "bg-green-500" : "bg-gray-400"}>
+                            {peer.online ? "Online" : "Offline"}
+                          </Badge>
                           {selectedPeer?.client_id === peer.client_id && (
                             <ChevronRight className="h-4 w-4 text-blue-600" />
                           )}

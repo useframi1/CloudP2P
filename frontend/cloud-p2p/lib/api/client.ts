@@ -82,6 +82,11 @@ export const peerApi = {
     return response.data;
   },
 
+  getAllPeers: async (): Promise<ApiResponse> => {
+    const response = await apiClient.get('/all-peers');
+    return response.data;
+  },
+
   getPeerImages: async (peerId: string): Promise<ApiResponse> => {
     const response = await apiClient.get(`/peer-images/${peerId}`);
     return response.data;

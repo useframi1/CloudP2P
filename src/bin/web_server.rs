@@ -676,6 +676,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/register-images", post(register_images_handler))
         .route("/api/upload-image", post(upload_image_handler))
         .route("/api/online-peers", get(online_peers_handler))
+        .route("/api/all-peers", get(all_peers_handler))
         .route("/api/peer-images/:peer_id", get(peer_images_handler))
         .route("/api/request-access", post(request_access_handler))
         .route("/api/my-images", get(my_images_handler))
@@ -1019,6 +1020,84 @@ async fn online_peers_handler(
             ))
         }
     }
+}
+
+async fn all_peers_handler(
+    State(state): State<Arc<AppState>>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
+    info!("Fetching all peers (online and offline)");
+
+    // Get all clients from Firebase
+    let all_clients = match state.firebase.get_all_clients().await {
+        Ok(clients) => clients,
+        Err(e) => {
+            error!("Failed to fetch all clients from Firebase: {}", e);
+            return Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Failed to fetch peers: {}", e)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ));
+        }
+    };
+
+    // Get online clients from DoS
+    let dos_client = state.dos_client.lock().await;
+    let online_clients = match dos_client.list_online_clients().await {
+        Ok(clients) => clients.into_iter().map(|c| c.client_id).collect::<std::collections::HashSet<_>>(),
+        Err(e) => {
+            error!("Failed to fetch online clients: {}", e);
+            std::collections::HashSet::new() // If we can't get online status, mark all as offline
+        }
+    };
+    drop(dos_client);
+
+    // Combine data: add online status to all clients
+    let mut peers: Vec<serde_json::Value> = all_clients
+        .into_iter()
+        .map(|client| {
+            let is_online = online_clients.contains(&client.client_id);
+            serde_json::json!({
+                "client_id": client.client_id,
+                "ip_address": client.ip_address,
+                "images": client.images,
+                "online": is_online
+            })
+        })
+        .collect();
+
+    // Sort peers by client_id for consistent ordering
+    peers.sort_by(|a, b| {
+        let a_id = a.get("client_id").and_then(|v| v.as_str()).unwrap_or("");
+        let b_id = b.get("client_id").and_then(|v| v.as_str()).unwrap_or("");
+        a_id.cmp(b_id)
+    });
+
+    info!("Found {} total peers ({} online)", peers.len(), online_clients.len());
+    Ok((
+        StatusCode::OK,
+        Json(ApiResponse {
+            success: true,
+            peers: Some(peers),
+            message: None,
+            error: None,
+            carrier_image_base64: None,
+            client_id: None,
+            notifications: None,
+            request_id: None,
+            images: None,
+            requests: None,
+        }),
+    ))
 }
 
 async fn peer_images_handler(
