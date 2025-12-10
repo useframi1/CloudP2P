@@ -35,13 +35,19 @@ export default function RequestsPage() {
     try {
       const response = await accessApi.getPendingRequests();
       if (response.success && response.requests) {
-        setRequests(response.requests);
-        // Initialize view limits with requested limits
-        const limits: Record<string, number> = {};
-        response.requests.forEach((req: PendingRequest) => {
-          limits[req.request_id] = req.req_access_limit || 3;
+        const requests = response.requests;
+        setRequests(requests);
+        // Initialize view limits only for new requests (preserve user edits)
+        setViewLimits((prevLimits) => {
+          const newLimits = { ...prevLimits };
+          requests.forEach((req: PendingRequest) => {
+            // Only set if not already in state (preserve user's edited values)
+            if (!(req.request_id in newLimits)) {
+              newLimits[req.request_id] = req.req_access_limit || 3;
+            }
+          });
+          return newLimits;
         });
-        setViewLimits(limits);
       } else {
         setError(response.error || 'Failed to load requests');
       }
