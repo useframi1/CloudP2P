@@ -2188,18 +2188,18 @@ async fn manage_access_handler(
             payload.requester_id, payload.image_id
         );
     } else {
-        // Modify view limit (keep view count the same)
+        // Modify view limit and reset view count to 0
         if let Some(new_limit) = new_view_limit {
             image.access_rights.insert(
                 payload.requester_id.clone(),
                 AccessRight {
                     view_limit: new_limit,
-                    view_count: current_access.view_count, // Keep current count
+                    view_count: 0, // Reset count to 0
                 },
             );
             info!(
-                "✏️ [MANAGE_ACCESS] Modified view limit for {} to {} (current count: {})",
-                payload.requester_id, new_limit, current_access.view_count
+                "✏️ [MANAGE_ACCESS] Modified view limit for {} to {} (reset count to 0)",
+                payload.requester_id, new_limit
             );
         }
     }
