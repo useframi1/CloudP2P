@@ -2254,9 +2254,20 @@ async fn accessible_images_handler(
                                                 };
 
                                                 // Create basic ImageInfo
+                                                // Convert image_id back to filename (replace last underscore with dot for extension)
+                                                let name = if let Some(last_underscore) = image_id_part.rfind('_') {
+                                                    format!(
+                                                        "{}.{}",
+                                                        &image_id_part[..last_underscore],
+                                                        &image_id_part[last_underscore + 1..]
+                                                    )
+                                                } else {
+                                                    image_id_part.to_string()
+                                                };
+
                                                 let image = ImageInfo {
                                                     image_id: image_id_part.to_string(),
-                                                    name: image_id_part.replace('_', "."),
+                                                    name,
                                                     encrypted_path: path
                                                         .to_string_lossy()
                                                         .to_string(),
