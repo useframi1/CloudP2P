@@ -3,7 +3,7 @@ name = "Client1"
 server_addresses = [
     "10.40.39.41:8001",
     "10.40.61.159:8002",
-    "10.40.58.232:8003"
+    "10.40.54.255:8003"
 ]
 image_dir = "client_images/client1/original_images"
 dos_address = "127.0.0.1:9000"
