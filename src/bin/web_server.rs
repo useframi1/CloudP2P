@@ -1053,7 +1053,10 @@ async fn all_peers_handler(
     // Get online clients from DoS
     let dos_client = state.dos_client.lock().await;
     let online_clients = match dos_client.list_online_clients().await {
-        Ok(clients) => clients.into_iter().map(|c| c.client_id).collect::<std::collections::HashSet<_>>(),
+        Ok(clients) => clients
+            .into_iter()
+            .map(|c| c.client_id)
+            .collect::<std::collections::HashSet<_>>(),
         Err(e) => {
             error!("Failed to fetch online clients: {}", e);
             std::collections::HashSet::new() // If we can't get online status, mark all as offline
@@ -1062,14 +1065,15 @@ async fn all_peers_handler(
     drop(dos_client);
 
     // Combine data: add online status to all clients
+    // all_clients is HashMap<String, DosClientInfo> where key is client_id
     let mut peers: Vec<serde_json::Value> = all_clients
         .into_iter()
-        .map(|client| {
-            let is_online = online_clients.contains(&client.client_id);
+        .map(|(client_id, client_info)| {
+            let is_online = online_clients.contains(&client_id);
             serde_json::json!({
-                "client_id": client.client_id,
-                "ip_address": client.ip_address,
-                "images": client.images,
+                "client_id": client_id,
+                "ip_address": client_info.ip_address,
+                "images": client_info.images,
                 "online": is_online
             })
         })
@@ -1082,7 +1086,11 @@ async fn all_peers_handler(
         a_id.cmp(b_id)
     });
 
-    info!("Found {} total peers ({} online)", peers.len(), online_clients.len());
+    info!(
+        "Found {} total peers ({} online)",
+        peers.len(),
+        online_clients.len()
+    );
     Ok((
         StatusCode::OK,
         Json(ApiResponse {
@@ -2334,7 +2342,9 @@ async fn accessible_images_handler(
 
                                                 // Create basic ImageInfo
                                                 // Convert image_id back to filename (replace last underscore with dot for extension)
-                                                let name = if let Some(last_underscore) = image_id_part.rfind('_') {
+                                                let name = if let Some(last_underscore) =
+                                                    image_id_part.rfind('_')
+                                                {
                                                     format!(
                                                         "{}.{}",
                                                         &image_id_part[..last_underscore],
