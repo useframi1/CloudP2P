@@ -1779,42 +1779,46 @@ async fn respond_request_handler(
 
         // Get requester's P2P address from DoS
         let dos_client = state.dos_client.lock().await;
-        let (requester_ip, requester_p2p_port) =
-            match dos_client.get_peer_address(requester_id).await {
-                Ok(Some((ip, port))) => (ip, port),
-                Ok(None) => {
-                    error!(
-                        "Requester {} not found or offline, cannot send personalized carrier",
-                        requester_id
-                    );
-                    drop(dos_client);
-                    return Err((
-                        StatusCode::SERVICE_UNAVAILABLE,
-                        Json(ApiResponse {
-                            success: false,
-                            error: Some(
-                                "Requester is offline. Cannot deliver personalized carrier."
-                                    .to_string(),
-                            ),
-                            message: None,
-                            carrier_image_base64: None,
-                            client_id: None,
-                            notifications: None,
-                            request_id: None,
-                            peers: None,
-                            images: None,
-                            requests: None,
-                        }),
-                    ));
-                }
-                Err(e) => {
-                    error!("Failed to get requester address: {}", e);
-                    drop(dos_client);
+        let requester_address = dos_client.get_peer_address(requester_id).await;
+        drop(dos_client);
+
+        let (requester_ip, requester_p2p_port) = match requester_address {
+            Ok(Some((ip, port))) => (ip, port),
+            Ok(None) => {
+                // Requester is offline - store personalized carrier in Firebase for later delivery
+                info!(
+                    "⏳ Requester {} is offline, storing personalized carrier in Firebase for later delivery",
+                    requester_id
+                );
+
+                // Encode personalized carrier as base64 to store in Firebase
+                // This is only for offline approvals - online approvals use P2P directly
+                let carrier_base64 =
+                    base64::engine::general_purpose::STANDARD.encode(&personalized_carrier);
+
+                // Store pending approval with carrier data in Firebase
+                let pending_data = serde_json::json!({
+                    "type": "approval",
+                    "owner_id": owner_id,
+                    "image_id": image_id,
+                    "personalized_carrier_base64": carrier_base64,
+                    "timestamp": std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs()
+                });
+
+                if let Err(e) = state
+                    .firebase
+                    .store_pending_access_change(requester_id, &pending_data)
+                    .await
+                {
+                    error!("Failed to store pending approval: {}", e);
                     return Err((
                         StatusCode::INTERNAL_SERVER_ERROR,
                         Json(ApiResponse {
                             success: false,
-                            error: Some(format!("Failed to get requester address: {}", e)),
+                            error: Some(format!("Failed to store pending approval: {}", e)),
                             message: None,
                             carrier_image_base64: None,
                             client_id: None,
@@ -1826,8 +1830,70 @@ async fn respond_request_handler(
                         }),
                     ));
                 }
-            };
-        drop(dos_client);
+
+                // Update Firebase with personalized carrier path
+                let mut updated_image = image_info.clone();
+                updated_image
+                    .personalized_carriers
+                    .insert(requester_id.to_string(), personalized_path.clone());
+
+                if let Err(e) = state.firebase.store_image(&owner_id, &updated_image).await {
+                    error!(
+                        "Failed to update Firebase with personalized carrier path: {}",
+                        e
+                    );
+                }
+
+                // Respond to DoS
+                let dos_client = state.dos_client.lock().await;
+                if let Err(e) = dos_client
+                    .respond_to_access_request(&payload.request_id, true, payload.view_limit)
+                    .await
+                {
+                    error!("Failed to respond to request via DoS: {}", e);
+                }
+                drop(dos_client);
+
+                info!("✅ Approval stored for offline requester {}", requester_id);
+
+                return Ok((
+                    StatusCode::OK,
+                    Json(ApiResponse {
+                        success: true,
+                        message: Some(format!(
+                            "Request approved. Personalized carrier will be delivered when {} comes online.",
+                            requester_id
+                        )),
+                        error: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+            Err(e) => {
+                error!("Failed to get requester address: {}", e);
+                return Err((
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ApiResponse {
+                        success: false,
+                        error: Some(format!("Failed to get requester address: {}", e)),
+                        message: None,
+                        carrier_image_base64: None,
+                        client_id: None,
+                        notifications: None,
+                        request_id: None,
+                        peers: None,
+                        images: None,
+                        requests: None,
+                    }),
+                ));
+            }
+        };
 
         info!("📍 Requester at {}:{}", requester_ip, requester_p2p_port);
 
@@ -3062,6 +3128,77 @@ async fn process_pending_access_changes(state: &Arc<AppState>, client_id: &str) 
 
     // Process each pending change
     for change in pending_changes {
+        // Check if this is a pending approval (new access grant)
+        let change_type = change.get("type").and_then(|v| v.as_str()).unwrap_or("");
+
+        if change_type == "approval" {
+            // This is a pending approval - receive personalized carrier from Firebase
+            let owner_id = match change.get("owner_id").and_then(|v| v.as_str()) {
+                Some(id) => id,
+                None => {
+                    error!("❌ [PENDING_CHANGES] Missing owner_id in approval");
+                    continue;
+                }
+            };
+
+            let image_id = match change.get("image_id").and_then(|v| v.as_str()) {
+                Some(id) => id,
+                None => {
+                    error!("❌ [PENDING_CHANGES] Missing image_id in approval");
+                    continue;
+                }
+            };
+
+            let carrier_base64 = match change
+                .get("personalized_carrier_base64")
+                .and_then(|v| v.as_str())
+            {
+                Some(data) => data,
+                None => {
+                    error!("❌ [PENDING_CHANGES] Missing personalized_carrier_base64 in approval");
+                    continue;
+                }
+            };
+
+            info!(
+                "📬 [PENDING_CHANGES] Receiving pending approval from {}: image {}",
+                owner_id, image_id
+            );
+
+            // Decode base64 carrier
+            use base64::Engine;
+            match base64::engine::general_purpose::STANDARD.decode(carrier_base64) {
+                Ok(carrier_data) => {
+                    // Save to requester's received_images directory
+                    let save_dir = format!("client_images/{}/received_images", client_id);
+                    if let Err(e) = std::fs::create_dir_all(&save_dir) {
+                        error!("Failed to create received_images directory: {}", e);
+                        continue;
+                    }
+
+                    let save_path = format!("{}/{}_from_{}.png", save_dir, image_id, owner_id);
+                    if let Err(e) = std::fs::write(&save_path, &carrier_data) {
+                        error!("Failed to save personalized carrier: {}", e);
+                        continue;
+                    }
+
+                    info!(
+                        "✅ [PENDING_CHANGES] Saved pending approval carrier: {}",
+                        save_path
+                    );
+                }
+                Err(e) => {
+                    error!(
+                        "❌ [PENDING_CHANGES] Failed to decode carrier base64: {}",
+                        e
+                    );
+                }
+            }
+
+            continue; // Skip the rest of the loop for approval types
+        }
+
+        // Handle regular access modifications/revocations
         let owner_id = match change.get("owner_id").and_then(|v| v.as_str()) {
             Some(id) => id,
             None => {
