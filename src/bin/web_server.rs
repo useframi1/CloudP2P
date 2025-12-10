@@ -1,7 +1,7 @@
 //! Web server for image steganography API and DoS integration
 
 use axum::{
-    extract::{multipart::Multipart, ConnectInfo, State},
+    extract::{multipart::Multipart, ConnectInfo, Path, State},
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
@@ -25,7 +25,8 @@ use cloud_p2p::client::p2p_service::P2PService;
 use cloud_p2p::common::messages::{AccessRight, ImageInfo};
 use cloud_p2p::dos::firebase::FirebaseClient;
 use cloud_p2p::processing::{
-    embed_image_with_access_rights, extract_image_with_access_rights, update_embedded_access_rights, EmbeddedAccessRights,
+    embed_image_with_access_rights, extract_image_with_access_rights,
+    update_embedded_access_rights, EmbeddedAccessRights,
 };
 
 #[derive(Parser)]
@@ -408,6 +409,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/signout", post(signout_handler))
         .route("/api/register-images", post(register_images_handler))
         .route("/api/online-peers", get(online_peers_handler))
+        .route("/api/peer-images/:peer_id", get(peer_images_handler))
         .route("/api/request-access", post(request_access_handler))
         .route("/api/my-images", get(my_images_handler))
         .route("/api/update-access", post(update_access_handler))
@@ -732,6 +734,81 @@ async fn online_peers_handler(
                 Json(ApiResponse {
                     success: false,
                     error: Some(format!("Failed to fetch peers: {}", e)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+    }
+}
+
+async fn peer_images_handler(
+    State(state): State<Arc<AppState>>,
+    Path(peer_id): Path<String>,
+) -> Result<impl IntoResponse, (StatusCode, Json<ApiResponse>)> {
+    info!("Fetching image names for peer: {}", peer_id);
+
+    // Get peer's client info from Firebase
+    match state.firebase.get_client(&peer_id).await {
+        Ok(Some(client)) => {
+            // Extract image names and IDs
+            let mut image_list: Vec<serde_json::Value> = Vec::new();
+
+            for (image_id, image_info) in &client.images {
+                image_list.push(serde_json::json!({
+                    "image_id": image_id,
+                    "name": image_info.name,
+                }));
+            }
+
+            info!("Found {} images for peer {}", image_list.len(), peer_id);
+            Ok((
+                StatusCode::OK,
+                Json(ApiResponse {
+                    success: true,
+                    images: Some(image_list),
+                    message: None,
+                    error: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    requests: None,
+                }),
+            ))
+        }
+        Ok(None) => {
+            error!("Peer not found: {}", peer_id);
+            Err((
+                StatusCode::NOT_FOUND,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Peer {} not found", peer_id)),
+                    message: None,
+                    carrier_image_base64: None,
+                    client_id: None,
+                    notifications: None,
+                    request_id: None,
+                    peers: None,
+                    images: None,
+                    requests: None,
+                }),
+            ))
+        }
+        Err(e) => {
+            error!("Failed to fetch peer images: {}", e);
+            Err((
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ApiResponse {
+                    success: false,
+                    error: Some(format!("Failed to fetch peer images: {}", e)),
                     message: None,
                     carrier_image_base64: None,
                     client_id: None,
@@ -2225,8 +2302,15 @@ async fn manage_access_handler(
                 "timestamp": chrono::Utc::now().to_rfc3339()
             });
 
-            if let Err(store_err) = state.firebase.store_pending_access_change(&payload.requester_id, &pending_change).await {
-                error!("❌ [MANAGE_ACCESS] Failed to store pending change: {}", store_err);
+            if let Err(store_err) = state
+                .firebase
+                .store_pending_access_change(&payload.requester_id, &pending_change)
+                .await
+            {
+                error!(
+                    "❌ [MANAGE_ACCESS] Failed to store pending change: {}",
+                    store_err
+                );
             } else {
                 info!("💾 [MANAGE_ACCESS] Stored pending access change for offline requester");
             }
@@ -2288,8 +2372,15 @@ async fn manage_access_handler(
             "timestamp": chrono::Utc::now().to_rfc3339()
         });
 
-        if let Err(store_err) = state.firebase.store_pending_access_change(&payload.requester_id, &pending_change).await {
-            error!("❌ [MANAGE_ACCESS] Failed to store pending change: {}", store_err);
+        if let Err(store_err) = state
+            .firebase
+            .store_pending_access_change(&payload.requester_id, &pending_change)
+            .await
+        {
+            error!(
+                "❌ [MANAGE_ACCESS] Failed to store pending change: {}",
+                store_err
+            );
         } else {
             info!("💾 [MANAGE_ACCESS] Stored pending access change for offline requester");
         }
