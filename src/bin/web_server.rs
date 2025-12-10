@@ -25,7 +25,7 @@ use cloud_p2p::client::p2p_service::P2PService;
 use cloud_p2p::common::messages::{AccessRight, ImageInfo};
 use cloud_p2p::dos::firebase::FirebaseClient;
 use cloud_p2p::processing::{
-    embed_image_with_access_rights, extract_image_with_access_rights, EmbeddedAccessRights,
+    embed_image_with_access_rights, extract_image_with_access_rights, update_embedded_access_rights, EmbeddedAccessRights,
 };
 
 #[derive(Parser)]
@@ -593,6 +593,9 @@ async fn signin_handler(
                     state.p2p_service.client_id, payload.client_id
                 );
             }
+
+            // Process any pending access changes that occurred while offline
+            process_pending_access_changes(&state, &payload.client_id).await;
 
             info!(
                 "Sign in successful: {} ({} notifications)",
@@ -2289,14 +2292,36 @@ async fn manage_access_handler(
         }
         Err(e) => {
             error!("⚠️ [MANAGE_ACCESS] Failed to send P2P update: {}", e);
+
+            // Store pending access change in Firebase for when requester comes online
+            let pending_change = serde_json::json!({
+                "owner_id": owner_id,
+                "image_id": payload.image_id,
+                "revoked": revoked,
+                "new_view_limit": new_view_limit,
+                "timestamp": chrono::Utc::now().to_rfc3339()
+            });
+
+            if let Err(store_err) = state
+                .firebase
+                .store_pending_access_change(&payload.requester_id, &pending_change)
+                .await
+            {
+                error!(
+                    "❌ [MANAGE_ACCESS] Failed to store pending change: {}",
+                    store_err
+                );
+            } else {
+                info!("💾 [MANAGE_ACCESS] Stored pending access change for offline requester");
+            }
+
             Ok((
                 StatusCode::OK,
                 Json(ApiResponse {
                     success: true,
                     message: Some(format!(
-                        "Access {} but failed to notify requester (may be offline): {}",
-                        if revoked { "revoked" } else { "modified" },
-                        e
+                        "Access {} but requester is offline. Changes will apply when they sign in.",
+                        if revoked { "revoked" } else { "modified" }
                     )),
                     error: None,
                     carrier_image_base64: None,
@@ -2430,7 +2455,10 @@ async fn view_image_handler(
             if let Err(e) = std::fs::remove_file(&local_carrier_path) {
                 error!("⚠️ [VIEW_IMAGE] Failed to delete carrier file: {}", e);
             } else {
-                info!("🗑️ [VIEW_IMAGE] Deleted local carrier file: {}", local_carrier_path);
+                info!(
+                    "🗑️ [VIEW_IMAGE] Deleted local carrier file: {}",
+                    local_carrier_path
+                );
             }
 
             // Remove access rights from Firebase
@@ -2523,9 +2551,15 @@ async fn view_image_handler(
         if is_last_view {
             // Delete local carrier file
             if let Err(e) = std::fs::remove_file(&local_carrier_path) {
-                error!("⚠️ [VIEW_IMAGE] Failed to delete carrier file after last view: {}", e);
+                error!(
+                    "⚠️ [VIEW_IMAGE] Failed to delete carrier file after last view: {}",
+                    e
+                );
             } else {
-                info!("🗑️ [VIEW_IMAGE] Deleted local carrier file after last view: {}", local_carrier_path);
+                info!(
+                    "🗑️ [VIEW_IMAGE] Deleted local carrier file after last view: {}",
+                    local_carrier_path
+                );
             }
 
             // Remove access rights from Firebase
@@ -2538,7 +2572,10 @@ async fn view_image_handler(
                     image.personalized_carriers.remove(&viewer_id);
 
                     if let Err(e) = state.firebase.store_client(&owner_id, &owner_client).await {
-                        error!("❌ [VIEW_IMAGE] Failed to update owner's Firebase after last view: {}", e);
+                        error!(
+                            "❌ [VIEW_IMAGE] Failed to update owner's Firebase after last view: {}",
+                            e
+                        );
                     } else {
                         info!("✅ [VIEW_IMAGE] Removed access rights from owner's Firebase after last view");
                     }
@@ -2572,6 +2609,137 @@ async fn view_image_handler(
             requests: None,
         }),
     ))
+}
+
+/// Process pending access changes for a client who just signed in
+/// Called automatically after successful sign-in
+async fn process_pending_access_changes(state: &Arc<AppState>, client_id: &str) {
+    info!(
+        "🔄 [PENDING_CHANGES] Processing pending access changes for {}",
+        client_id
+    );
+
+    // Get and clear all pending changes from Firebase
+    let pending_changes = match state
+        .firebase
+        .get_and_clear_pending_access_changes(client_id)
+        .await
+    {
+        Ok(changes) => changes,
+        Err(e) => {
+            error!("❌ [PENDING_CHANGES] Failed to get pending changes: {}", e);
+            return;
+        }
+    };
+
+    if pending_changes.is_empty() {
+        info!("ℹ️ [PENDING_CHANGES] No pending changes for {}", client_id);
+        return;
+    }
+
+    info!(
+        "📋 [PENDING_CHANGES] Found {} pending change(s)",
+        pending_changes.len()
+    );
+
+    // Process each pending change
+    for change in pending_changes {
+        let owner_id = match change.get("owner_id").and_then(|v| v.as_str()) {
+            Some(id) => id,
+            None => {
+                error!("❌ [PENDING_CHANGES] Missing owner_id in change");
+                continue;
+            }
+        };
+
+        let image_id = match change.get("image_id").and_then(|v| v.as_str()) {
+            Some(id) => id,
+            None => {
+                error!("❌ [PENDING_CHANGES] Missing image_id in change");
+                continue;
+            }
+        };
+
+        let revoked = change
+            .get("revoked")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let new_view_limit = change
+            .get("new_view_limit")
+            .and_then(|v| v.as_u64())
+            .map(|v| v as u32);
+
+        info!(
+            "🔧 [PENDING_CHANGES] Applying change: owner={}, image={}, revoked={}, new_limit={:?}",
+            owner_id, image_id, revoked, new_view_limit
+        );
+
+        // Apply the change to local carrier file
+        let carrier_path = format!(
+            "encrypted_images/{}/{}_from_{}.png",
+            client_id, image_id, owner_id
+        );
+
+        if revoked {
+            // Delete the carrier file
+            if let Err(e) = std::fs::remove_file(&carrier_path) {
+                error!("⚠️ [PENDING_CHANGES] Failed to delete carrier: {}", e);
+            } else {
+                info!("🗑️ [PENDING_CHANGES] Deleted carrier: {}", carrier_path);
+            }
+        } else if let Some(new_limit) = new_view_limit {
+            // Update the carrier with new view limit and reset count
+            match std::fs::read(&carrier_path) {
+                Ok(carrier_data) => {
+                    match extract_image_with_access_rights(&carrier_data) {
+                        Ok((_secret, Some(_current_access))) => {
+                            let updated_access = EmbeddedAccessRights {
+                                username: client_id.to_string(),
+                                view_limit: new_limit,
+                                view_count: 0, // Reset count to 0
+                            };
+
+                            match update_embedded_access_rights(&carrier_data, &updated_access) {
+                                Ok(updated_carrier) => {
+                                    if let Err(e) = std::fs::write(&carrier_path, updated_carrier) {
+                                        error!("❌ [PENDING_CHANGES] Failed to write updated carrier: {}", e);
+                                    } else {
+                                        info!("✅ [PENDING_CHANGES] Updated carrier with new limit: {}", new_limit);
+                                    }
+                                }
+                                Err(e) => {
+                                    error!(
+                                        "❌ [PENDING_CHANGES] Failed to update access rights: {}",
+                                        e
+                                    );
+                                }
+                            }
+                        }
+                        Ok((_secret, None)) => {
+                            error!("⚠️ [PENDING_CHANGES] No access rights found in carrier");
+                        }
+                        Err(e) => {
+                            error!(
+                                "❌ [PENDING_CHANGES] Failed to extract access rights: {}",
+                                e
+                            );
+                        }
+                    }
+                }
+                Err(e) => {
+                    error!(
+                        "⚠️ [PENDING_CHANGES] Carrier not found: {} - {}",
+                        carrier_path, e
+                    );
+                }
+            }
+        }
+    }
+
+    info!(
+        "✅ [PENDING_CHANGES] Finished processing pending changes for {}",
+        client_id
+    );
 }
 
 async fn get_default_view_limit_handler(

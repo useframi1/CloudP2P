@@ -269,4 +269,38 @@ impl FirebaseClient {
 
         Ok(notifications.map(|map| map.into_values().collect()).unwrap_or_default())
     }
+
+    // ========== PENDING ACCESS CHANGES ==========
+    // Used when owner modifies/revokes access but requester is offline
+
+    /// Store a pending access change for an offline requester
+    /// Path: /pending_access_changes/{requester_id}/{change_id}
+    pub async fn store_pending_access_change(&self, requester_id: &str, change: &Value) -> Result<()> {
+        let url = format!("{}/pending_access_changes/{}.json", self.base_url, requester_id);
+        let response = self.client.post(&url).json(change).send().await?;
+
+        if !response.status().is_success() {
+            anyhow::bail!("Failed to store pending access change: {}", response.status());
+        }
+
+        Ok(())
+    }
+
+    /// Get and clear all pending access changes for a requester (called on sign-in)
+    pub async fn get_and_clear_pending_access_changes(&self, requester_id: &str) -> Result<Vec<Value>> {
+        let url = format!("{}/pending_access_changes/{}.json", self.base_url, requester_id);
+
+        // Get pending changes
+        let response = self.client.get(&url).send().await?;
+        let changes: Option<HashMap<String, Value>> = if response.status().is_success() {
+            response.json().await?
+        } else {
+            None
+        };
+
+        // Clear pending changes
+        let _ = self.client.delete(&url).send().await;
+
+        Ok(changes.map(|map| map.into_values().collect()).unwrap_or_default())
+    }
 }
