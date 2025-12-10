@@ -2146,31 +2146,6 @@ async fn manage_access_handler(
         }
     };
 
-    // Check if requester has access
-    let current_access = match image.access_rights.get(&payload.requester_id) {
-        Some(access) => access.clone(),
-        None => {
-            return Err((
-                StatusCode::NOT_FOUND,
-                Json(ApiResponse {
-                    success: false,
-                    error: Some(format!(
-                        "Requester {} does not have access to this image",
-                        payload.requester_id
-                    )),
-                    message: None,
-                    carrier_image_base64: None,
-                    client_id: None,
-                    notifications: None,
-                    request_id: None,
-                    peers: None,
-                    images: None,
-                    requests: None,
-                }),
-            ))
-        }
-    };
-
     let revoked = payload.action == "revoke";
     let new_view_limit = if revoked {
         None
@@ -2450,12 +2425,37 @@ async fn view_image_handler(
                 "🚫 [VIEW_IMAGE] View limit exceeded: {}/{}",
                 access_rights.view_count, access_rights.view_limit
             );
+
+            // Delete local carrier file
+            if let Err(e) = std::fs::remove_file(&local_carrier_path) {
+                error!("⚠️ [VIEW_IMAGE] Failed to delete carrier file: {}", e);
+            } else {
+                info!("🗑️ [VIEW_IMAGE] Deleted local carrier file: {}", local_carrier_path);
+            }
+
+            // Remove access rights from Firebase
+            let owner_id = payload.owner_id.clone();
+            let image_id = payload.image_id.clone();
+
+            if let Ok(Some(mut owner_client)) = state.firebase.get_client(&owner_id).await {
+                if let Some(image) = owner_client.images.get_mut(&image_id) {
+                    image.access_rights.remove(&viewer_id);
+                    image.personalized_carriers.remove(&viewer_id);
+
+                    if let Err(e) = state.firebase.store_client(&owner_id, &owner_client).await {
+                        error!("❌ [VIEW_IMAGE] Failed to update owner's Firebase: {}", e);
+                    } else {
+                        info!("✅ [VIEW_IMAGE] Removed access rights from owner's Firebase");
+                    }
+                }
+            }
+
             return Err((
                 StatusCode::FORBIDDEN,
                 Json(ApiResponse {
                     success: false,
                     error: Some(format!(
-                        "View limit exceeded ({}/{})",
+                        "View limit exceeded ({}/{}). Image access has been removed.",
                         access_rights.view_count, access_rights.view_limit
                     )),
                     message: None,
@@ -2476,6 +2476,16 @@ async fn view_image_handler(
             "✅ [VIEW_IMAGE] Incremented view count: {}/{}",
             access_rights.view_count, access_rights.view_limit
         );
+
+        // Check if this was the last allowed view
+        let is_last_view = access_rights.view_count >= access_rights.view_limit;
+
+        if is_last_view {
+            info!(
+                "🎯 [VIEW_IMAGE] This is the last allowed view ({}/{})",
+                access_rights.view_count, access_rights.view_limit
+            );
+        }
 
         // Re-embed with updated view count using the cover image
         let carrier_path = "cover_images/cover_image.png";
@@ -2506,6 +2516,33 @@ async fn view_image_handler(
                     "⚠️ [VIEW_IMAGE] Failed to read carrier image {}: {}",
                     carrier_path, e
                 );
+            }
+        }
+
+        // If this was the last view, clean up after showing the image
+        if is_last_view {
+            // Delete local carrier file
+            if let Err(e) = std::fs::remove_file(&local_carrier_path) {
+                error!("⚠️ [VIEW_IMAGE] Failed to delete carrier file after last view: {}", e);
+            } else {
+                info!("🗑️ [VIEW_IMAGE] Deleted local carrier file after last view: {}", local_carrier_path);
+            }
+
+            // Remove access rights from Firebase
+            let owner_id = payload.owner_id.clone();
+            let image_id = payload.image_id.clone();
+
+            if let Ok(Some(mut owner_client)) = state.firebase.get_client(&owner_id).await {
+                if let Some(image) = owner_client.images.get_mut(&image_id) {
+                    image.access_rights.remove(&viewer_id);
+                    image.personalized_carriers.remove(&viewer_id);
+
+                    if let Err(e) = state.firebase.store_client(&owner_id, &owner_client).await {
+                        error!("❌ [VIEW_IMAGE] Failed to update owner's Firebase after last view: {}", e);
+                    } else {
+                        info!("✅ [VIEW_IMAGE] Removed access rights from owner's Firebase after last view");
+                    }
+                }
             }
         }
     } else {

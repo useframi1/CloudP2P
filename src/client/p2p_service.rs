@@ -220,11 +220,11 @@ impl P2PService {
                     // Extract current access rights to get view count
                     match extract_image_with_access_rights(&carrier_data) {
                         Ok((_secret, Some(current_access))) => {
-                            // Create updated access rights with new limit but same count
+                            // Create updated access rights with new limit and reset count to 0
                             let updated_access = EmbeddedAccessRights {
                                 username: self.client_id.clone(),
                                 view_limit: new_limit,
-                                view_count: current_access.view_count, // Preserve current count
+                                view_count: 0, // Reset count to 0
                             };
 
                             // Update the carrier with new access rights
@@ -232,8 +232,8 @@ impl P2PService {
                                 Ok(updated_carrier) => {
                                     std::fs::write(&carrier_path, updated_carrier)?;
                                     println!(
-                                        "✅ [P2P_ACCESS_UPDATE] Updated view limit from {} to {} (current count: {})",
-                                        current_access.view_limit, new_limit, current_access.view_count
+                                        "✅ [P2P_ACCESS_UPDATE] Updated view limit from {} to {} (reset count to 0)",
+                                        current_access.view_limit, new_limit
                                     );
                                 }
                                 Err(e) => {

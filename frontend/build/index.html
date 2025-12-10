@@ -1450,11 +1450,10 @@
 
                         // Access list for this image
                         imageData.access_list.forEach(function (access) {
-                            var viewColor = access.views_left > 0 ? '#10b981' : '#dc2626';
                             html += '<div style="background: white; border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; margin-bottom: 8px;">';
                             html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">';
                             html += '<div><strong>👤 ' + access.requester_id + '</strong><br>';
-                            html += '<small style="color: ' + viewColor + '; font-weight: 700;">👁️ ' + access.view_count + '/' + access.view_limit + ' views (' + access.views_left + ' left)</small>';
+                            html += '<small style="color: #6b7280; font-weight: 700;">👁️ View Limit: ' + access.view_limit + '</small>';
                             html += '</div></div>';
 
                             // Action buttons and modify input
