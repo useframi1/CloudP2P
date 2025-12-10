@@ -2215,6 +2215,22 @@ async fn manage_access_handler(
             error!(
                 "⚠️ [MANAGE_ACCESS] Requester not found, changes saved but P2P notification failed"
             );
+
+            // Store pending change since requester doesn't exist
+            let pending_change = serde_json::json!({
+                "owner_id": owner_id,
+                "image_id": payload.image_id,
+                "revoked": revoked,
+                "new_view_limit": new_view_limit,
+                "timestamp": chrono::Utc::now().to_rfc3339()
+            });
+
+            if let Err(store_err) = state.firebase.store_pending_access_change(&payload.requester_id, &pending_change).await {
+                error!("❌ [MANAGE_ACCESS] Failed to store pending change: {}", store_err);
+            } else {
+                info!("💾 [MANAGE_ACCESS] Stored pending access change for offline requester");
+            }
+
             return Ok((
                 StatusCode::OK,
                 Json(ApiResponse {
@@ -2254,7 +2270,52 @@ async fn manage_access_handler(
         }
     };
 
-    // Send P2P AccessRightsUpdate message
+    // Check if requester is online before attempting P2P
+    use cloud_p2p::common::messages::ClientStatus;
+
+    if !matches!(requester_client.status, ClientStatus::Online) {
+        info!(
+            "📴 [MANAGE_ACCESS] Requester {} is offline (status: {:?}), storing pending change",
+            payload.requester_id, requester_client.status
+        );
+
+        // Store pending change for offline requester
+        let pending_change = serde_json::json!({
+            "owner_id": owner_id,
+            "image_id": payload.image_id,
+            "revoked": revoked,
+            "new_view_limit": new_view_limit,
+            "timestamp": chrono::Utc::now().to_rfc3339()
+        });
+
+        if let Err(store_err) = state.firebase.store_pending_access_change(&payload.requester_id, &pending_change).await {
+            error!("❌ [MANAGE_ACCESS] Failed to store pending change: {}", store_err);
+        } else {
+            info!("💾 [MANAGE_ACCESS] Stored pending access change for offline requester");
+        }
+
+        return Ok((
+            StatusCode::OK,
+            Json(ApiResponse {
+                success: true,
+                message: Some(format!(
+                    "Access {} but requester is offline. Changes will apply when they sign in.",
+                    if revoked { "revoked" } else { "modified" }
+                )),
+                error: None,
+                carrier_image_base64: None,
+                client_id: None,
+                notifications: None,
+                request_id: None,
+                peers: None,
+                images: None,
+                requests: None,
+            }),
+        ));
+    }
+
+    // Requester is online, attempt P2P notification
+    info!("📡 [MANAGE_ACCESS] Requester is online, sending P2P update");
     let p2p_result = state
         .p2p_service
         .send_access_rights_update(
