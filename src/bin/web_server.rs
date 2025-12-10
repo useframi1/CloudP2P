@@ -1238,7 +1238,9 @@ async fn my_images_handler(
             let my_client = clients.iter().find(|c| &c.client_id == client_id);
 
             if let Some(client) = my_client {
-                let images: Vec<ImageInfo> = client.images.values().cloned().collect();
+                let mut images: Vec<ImageInfo> = client.images.values().cloned().collect();
+                // Sort images by image_id for consistent ordering
+                images.sort_by(|a, b| a.image_id.cmp(&b.image_id));
                 info!("Found {} images", images.len());
                 let images_json: Vec<serde_json::Value> = images
                     .iter()
@@ -1449,7 +1451,13 @@ async fn pending_requests_handler(
     let dos_client = state.dos_client.lock().await;
 
     match dos_client.get_pending_requests(client_id).await {
-        Ok(requests) => {
+        Ok(mut requests) => {
+            // Sort requests by request_id for consistent ordering
+            requests.sort_by(|a, b| {
+                let a_id = a.get("request_id").and_then(|v| v.as_str()).unwrap_or("");
+                let b_id = b.get("request_id").and_then(|v| v.as_str()).unwrap_or("");
+                a_id.cmp(b_id)
+            });
             info!("Found {} pending requests", requests.len());
             Ok((
                 StatusCode::OK,
@@ -2269,6 +2277,21 @@ async fn accessible_images_handler(
                     }
                 }
             }
+
+            // Sort accessible images by image_id for consistent ordering
+            accessible_images.sort_by(|a, b| {
+                let a_image_id = a
+                    .get("image")
+                    .and_then(|img| img.get("image_id"))
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
+                let b_image_id = b
+                    .get("image")
+                    .and_then(|img| img.get("image_id"))
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("");
+                a_image_id.cmp(b_image_id)
+            });
 
             info!(
                 "✅ [ACCESSIBLE_IMAGES] Found {} accessible images",
