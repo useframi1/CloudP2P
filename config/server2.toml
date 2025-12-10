@@ -1,7 +1,7 @@
 [server]
 id = 2
 address = "10.40.61.159:8002"
-cover_image = "cover_images/cover_image.png"
+cover_image = "client_images/cover_images/cover_image.png"
 
 [peers]
 peers = [
