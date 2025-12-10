@@ -3,11 +3,11 @@ name = "Client3"
 server_addresses = [
     "10.40.39.41:8001",
     "10.40.61.159:8002",
-    "127.0.0.1:8003"
+    "10.40.61.159:8003"
 ]
 image_dir = "test_images/client3"
 dos_address = "127.0.0.1:9000"
-ip_address = "10.40.58.232"  # Change this to your public IP address
+ip_address = "10.40.39.41"  # Change this to your public IP address
 
 [requests]
 total_requests = 10
