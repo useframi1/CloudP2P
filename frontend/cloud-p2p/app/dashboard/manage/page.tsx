@@ -40,15 +40,22 @@ export default function ManagePage() {
     try {
       const response = await peerApi.getMySharedImages();
       if (response.success && response.images) {
-        setImages(response.images);
-        // Initialize editing limits
-        const limits: Record<string, number> = {};
-        response.images.forEach((img: SharedImage) => {
-          img.access_list.forEach((access) => {
-            limits[`${img.image_id}-${access.requester_id}`] = access.view_limit;
+        const images = response.images;
+        setImages(images);
+        // Initialize editing limits only for new entries (preserve user edits)
+        setEditingLimits((prevLimits) => {
+          const newLimits = { ...prevLimits };
+          images.forEach((img: SharedImage) => {
+            img.access_list.forEach((access) => {
+              const key = `${img.image_id}-${access.requester_id}`;
+              // Only set if not already in state (preserve user's edited values)
+              if (!(key in newLimits)) {
+                newLimits[key] = access.view_limit;
+              }
+            });
           });
+          return newLimits;
         });
-        setEditingLimits(limits);
       } else {
         setError(response.error || 'Failed to load shared images');
       }

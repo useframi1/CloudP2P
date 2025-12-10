@@ -971,10 +971,17 @@ async fn online_peers_handler(
 
     match dos_client.list_online_clients().await {
         Ok(clients) => {
-            let peers: Vec<serde_json::Value> = clients
+            let mut peers: Vec<serde_json::Value> = clients
                 .into_iter()
                 .map(|c| serde_json::to_value(c).unwrap())
                 .collect();
+
+            // Sort peers by client_id for consistent ordering
+            peers.sort_by(|a, b| {
+                let a_id = a.get("client_id").and_then(|v| v.as_str()).unwrap_or("");
+                let b_id = b.get("client_id").and_then(|v| v.as_str()).unwrap_or("");
+                a_id.cmp(b_id)
+            });
 
             info!("Found {} online peers", peers.len());
             Ok((
@@ -1032,6 +1039,13 @@ async fn peer_images_handler(
                     "name": image_info.name,
                 }));
             }
+
+            // Sort images by image_id for consistent ordering
+            image_list.sort_by(|a, b| {
+                let a_id = a.get("image_id").and_then(|v| v.as_str()).unwrap_or("");
+                let b_id = b.get("image_id").and_then(|v| v.as_str()).unwrap_or("");
+                a_id.cmp(b_id)
+            });
 
             info!("Found {} images for peer {}", image_list.len(), peer_id);
             Ok((
@@ -2384,6 +2398,13 @@ async fn my_shared_images_handler(
                     }));
                 }
 
+                // Sort access list by requester_id for consistent ordering
+                access_list.sort_by(|a, b| {
+                    let a_id = a.get("requester_id").and_then(|v| v.as_str()).unwrap_or("");
+                    let b_id = b.get("requester_id").and_then(|v| v.as_str()).unwrap_or("");
+                    a_id.cmp(b_id)
+                });
+
                 // Only include images that have been shared (have access rights)
                 if !access_list.is_empty() {
                     shared_images.push(serde_json::json!({
@@ -2394,6 +2415,13 @@ async fn my_shared_images_handler(
                     }));
                 }
             }
+
+            // Sort shared images by image_id for consistent ordering
+            shared_images.sort_by(|a, b| {
+                let a_id = a.get("image_id").and_then(|v| v.as_str()).unwrap_or("");
+                let b_id = b.get("image_id").and_then(|v| v.as_str()).unwrap_or("");
+                a_id.cmp(b_id)
+            });
 
             info!(
                 "✅ [MY_SHARED_IMAGES] Found {} shared images",
